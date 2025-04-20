@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pet Business Homepage</title>
+    <link rel="stylesheet" href="styles/styles.css">
+</head>
+<body>
+    <header>
+        <!-- Navbar -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <img src="res/logo.png" alt="Logo" class="logo">
+                <ul class="nav-links">
+                    <li><img src="res/home.png" alt="בית" ><br><a href="#">בית</a></li>
+                    <li><img src="res/pet-shop.png" alt="חנות"><br><a href="#">חנות</a></li>
+                    <li><img src="res/dog-sleep.png" alt="פנסיון"><br><a href="#">פנסיון</a></li>
+                    <li><img src="res/dog_shower.png" alt="טיפוח"><br><a href="#">טיפוח</a></li>
+                    <li><img src="res/care.png" alt="נטושים"><br><a href="#">נטושים</a></li>
+                    <li><img src="res/virtual-assistant.png" alt="צור קשר"><br><a href="#">צור קשר</a></li>
+                </ul>
+            </div>
+
+            <!-- Authentication buttons (register/log in)-->
+            <div class="auth-buttons">
+                <button onclick="openPopup('loginpopup')"><img src="res/login-icon.png" alt="*">כניסה</button>
+                <button onclick="openPopup('regispopup')"><img src="res/sign up.png" alt="*">רישום</button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- shopping categ.-->
+    <section class="shop">
+        <hr>
+        <h2>חנות</h2>
+        <hr>
+        <div class="shop-items">
+            <a href="store.html" class="shop-item"><img src="res/dog food catg.webp" alt="מזון"><br>מזון</a>
+            <a href="toys.html" class="shop-item"><img src="res/Do toys category.jpg" alt="צעצועים"><br><br>צעצועים</a>
+            <a href="collars.html" class="shop-item"><img src="res/dog collars.webp" alt="קולרים ורצועות"><br>קולרים ורצועות</a>
+            <a href="pesticides.html" class="shop-item"><img src="res/Pesticide products.webp" alt="מוצרי הדברה"><br>מוצרי הדברה</a>
+        </div>
+    </section>
+
+    <!-- services-->
+    <section class="services">
+        <hr>
+        <h2>השירותים שלנו</h2>
+        <hr>
+        <div class="services-items">
+            <div class="service">
+                <img src="res/dog spa.png" alt="פינוק">
+                <br><button onclick="openPopup('groomingpopup')"> הזמן פינוק לחיותך</button>
+            </div>
+            <div class="service">
+                <img src="res/abandoned dog.png" alt="נטושים">
+                <br><button onclick="openPopup('abandentpopup')">דיווח כלבים נטושים</button>
+            </div>
+            <div class="service">
+                <img src="res/dog hotel.png" alt="פנסיון">
+                <br><button onclick="openPopup('boardingpopup')"> הזמן שירות פנסיון</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- subscribe-->
+    <section class="subscribe">
+        <h2>הצטרפו למועדון הלקוחות</h2>
+        <form>
+            <input type="text" placeholder="שם">
+            <input type="tel" placeholder="טלפון">
+            <input type="email" placeholder="מייל">
+            <button type="submit">צירף אותי</button>
+        </form>
+    </section>
+
+    <!-- carousel (images)-->
+    <div class="carousel-container">
+        <div class="carousel">
+            <div class="carousel-images">
+                <img src="res/dogs images.png" alt="Image 1">
+                <img src="res/dogs images.png" alt="Image 2">
+            </div>
+            <button class="prev" onclick="prevSlide()">&#10095;</button>
+            <button class="next" onclick="nextSlide()">&#10094;</button>
+        </div>
+    </div>
+    <hr>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-column map-column">
+                <h3>המפה שלנו</h3>
+                <div class="map-container">
+                    <!-- Embed your map here -->
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.019287601182!2d144.9630579153168!3d-37.81410797975195!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad642af0f11fd81%3A0xf577d1b1f5e6b1b!2sFederation%20Square!5e0!3m2!1sen!2sau!4v1613962621744!5m2!1sen!2sau" width="100%" height="200" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                </div>
+            </div>
+            <div class="footer-column info-column">
+                <div class="info-row">
+                    <h3>שעות פתיחה</h3>
+                    <p>א'-ה': 9:00 - 18:00</p>
+                    <p>ו': 9:00 - 14:00</p>
+                </div>
+                <div class="info-row">
+                    <h3>צור קשר</h3>
+                    <p>טלפון: 123-456-7890</p>
+                    <p>אימייל: info@example.com</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- popup spa order-->
+    <div id="groomingpopup" class="popup-container">
+        <div class="popup-content">
+            <span class="close-btn" onclick="closePopup('groomingpopup')">&times;</span>
+            <img src="res/logo.png" alt="Logo">
+            <h2>הזמן פינוק לחייתך</h2>
+            <!-- Content -->
+        </div>
+    </div>
+
+    <!-- Other popups -->
+    <script src="script/web.js"></script>
+</body>
+</html>

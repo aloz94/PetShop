@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Popup - Grooming Appointment</title>
+    <link rel="stylesheet" href="styles/styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            background-color: #fdf5e6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .popup-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .popup-content {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            width: 300px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .popup-content img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+        .popup-content h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .input-field {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border: 1px solid #000;
+            border-radius: 10px;
+            padding: 5px 10px;
+            margin-bottom: 10px;
+        }
+        .input-field input, .input-field select {
+            border: none;
+            outline: none;
+            flex: 1;
+            padding: 5px;
+            font-size: 14px;
+            text-align: right;
+        }
+        .price-label {
+            background: #e0c39a;
+            padding: 8px;
+            border-radius: 15px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        .popup-button {
+            background: #c49b6c;
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <button onclick="openPopup()">הזמן תור</button>
+    
+    <div id="popup" class="popup-container">
+        <div class="popup-content">
+            <span class="close-btn" onclick="closePopup()">&times;</span>
+            <img src="logo.png" alt="Logo">
+            <h2>הזמן פינוק לחייתך</h2>
+            
+            <div class="input-field">
+                <input type="date">
+            </div>
+            <div class="input-field">
+                <select>
+                    <option>בחר שעה</option>
+                    <option>10:00</option>
+                    <option>12:00</option>
+                    <option>14:00</option>
+                </select>
+            </div>
+            <div class="input-field">
+                <select>
+                    <option>בחר כלב</option>
+                    <option>לברדור</option>
+                    <option>שיצו</option>
+                    <option>פודל</option>
+                </select>
+            </div>
+            
+            <div class="price-label">עלות - ₪500</div>
+            
+            <button class="popup-button">הזמן תור</button>
+        </div>
+    </div>
+
+    <script>
+        function openPopup() {
+            document.getElementById("popup").style.display = "flex";
+        }
+        function closePopup() {
+            document.getElementById("popup").style.display = "none";
+        }
+    </script>
+</body>
+</html>

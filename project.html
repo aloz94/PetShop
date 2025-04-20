@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Joy Spa </title>
+    <link rel="stylesheet" href="styles/styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+            background-color: #fdf5e6;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .nav-links {
+            list-style: none;
+            display: flex;
+            gap: 15px;
+            padding: 0;
+        }
+        .nav-links li {
+            display: inline;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+        }
+        .auth-buttons button {
+            margin-left: 10px;
+            background-color: #ffcc80;
+            border: none;
+            padding: 5px 15px;
+            cursor: pointer;
+        }
+        .shop, .services, .subscribe, .carousel, .location {
+            text-align: center;
+            padding: 20px;
+        }
+        .shop-items, .services-items {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .shop-item, .service {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .subscribe form {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .subscribe input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .subscribe button {
+            background-color: #ffcc80;
+            border: none;
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+        .carousel-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .carousel-slide {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 0 10px;
+        }
+        .map-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <ul class="nav-links">
+                <li><a href="#">בית</a></li>
+                <li><a href="#">חנות</a></li>
+                <li><a href="#">פנסיון</a></li>
+                <li><a href="#">טיפוח</a></li>
+                <li><a href="#">נושאים</a></li>
+                <li><a href="#">צור קשר</a></li>
+            </ul>
+            <div class="auth-buttons">
+                <button>רישום</button>
+                <button>כניסה</button>
+            </div>
+        </nav>
+    </header>
+
+    <section class="shop">
+        <h2>חנות</h2>
+        <div class="shop-items">
+            <div class="shop-item">מזון</div>
+            <div class="shop-item">צעצועים</div>
+            <div class="shop-item">קולרים ורצועות</div>
+            <div class="shop-item">מוצרי הדברה</div>
+        </div>
+    </section>
+
+    <section class="services">
+        <h2>השירותים שלנו</h2>
+        <div class="services-items">
+            <div class="service">הזמן פינוק לחייתך</div>
+            <div class="service">דיווח כלבים נטושים</div>
+            <div class="service">מתקן שירות פנסיון</div>
+        </div>
+    </section>
+
+    <section class="subscribe">
+        <h2>הצטרפו למועדון הלקוחות</h2>
+        <form>
+            <input type="text" placeholder="שם">
+            <input type="tel" placeholder="טלפון">
+            <input type="email" placeholder="מייל">
+            <button type="submit">צירף אותי</button>
+        </form>
+    </section>
+
+    <section class="carousel">
+        <div class="carousel-container">
+            <button class="prev">&#10094;</button>
+            <div class="carousel-slide">תמונה 1</div>
+            <div class="carousel-slide">תמונה 2</div>
+            <button class="next">&#10095;</button>
+        </div>
+    </section>
+
+    <section class="location">
+        <h2>הצטרף למשפחה שלנו</h2>
+        <div class="map-container">מפת מיקום</div>
+    </section>
+</body>
+</html>

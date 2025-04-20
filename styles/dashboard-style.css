@@ -1,0 +1,160 @@
+body {
+    font-family: Arial, sans-serif;
+    direction: rtl;
+    background-color: #fefefe;
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+.sidebar {
+    width: 90px;
+    height: 100vh; /* Set height to full screen */
+    background: #fff;
+    padding: 20px;
+    border-right: 2px solid #ccc; /* Change border to right */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: fixed; /* Fix sidebar in place */
+    top: 0;
+    right: 0; /* Move sidebar to the right */
+    overflow: hidden; /* Prevent scrolling */
+    border-left: 1px solid black; /* Add right border line */
+
+}
+.sidebar img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-bottom: 20px;
+}
+.sidebar button {
+    background: none;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 300%;
+    transition: background-color 0.3s ease; /* Add transition for smooth hover effect */
+}
+.sidebar button:hover {
+    background-color: #f0f0f0; /* Change background color on hover */
+}
+
+.sidebar button.active {
+    background: linear-gradient(to right, #ED9D13, #FFA500); /* Add linear gradient */
+    color: white;
+    border-right: 5px solid black; /* Add right border line */
+    width: 145%; /* Ensure the active button takes full width of the sidebar */
+    text-align: center; /* Center the text */
+    box-shadow: -5px 0 10px rgba(0, 0, 0, 0.1), 5px 0 10px rgba(0, 0, 0, 0.1); /* Add shadow to right and left */
+
+}
+.container {
+    flex: 1;
+    padding: 20px;
+    text-align: center;
+    margin-right: 110px; /* Adjust for fixed sidebar width */
+}
+.navbar {
+    display: flex;
+    /*justify-content: space-between;*/
+    align-items: center;
+    padding: 10px;
+    background: #fff;
+    border-bottom: 2px solid #ccc;
+}
+.navbar img {
+    width: 40px;
+    margin: 0 10px;
+}
+
+.nav-item img.user {    
+    width: 40px;
+    margin-right: 1900%; 
+}
+.search-bar {
+    display: flex;
+    align-items: center;
+    background: #f4f4f4;
+    padding: 8px;
+    border-radius: 20px;
+    width: 400px; /* Adjust the width as needed */
+}
+
+.search-bar select.search-by {
+    border: none;
+    outline: none;
+    background: #d3d3d3; /* Set background color to grey */
+    padding: 5px;
+    margin-right: 10px; /* Add some space between the select and input */
+    font-size: 16px;
+    border-radius: 5px; /* Optional: Add border radius for rounded corners */
+    
+}
+
+.search-bar input {
+    border: none;
+    outline: none;
+    background: #d3d3d3; /* Set background color to grey */
+    flex: 1;
+    padding: 5px;
+    margin-right: 10px; /* Add some space between the input and button */
+    border-radius: 5px; /* Optional: Add border radius for rounded corners */
+}
+
+.search-button {
+    background: #d3d3d3; /* Set background color to grey */
+    border: none;
+    cursor: pointer;
+    justify-content: center;
+    padding: 5px 10px;
+    border-radius: 5px; /* Optional: Add border radius for rounded corners */
+}
+.status-buttons {
+    display: flex;
+    justify-content: center; /* Center the status buttons */
+    gap: 10px;
+    margin: 15px 0;
+    position: relative; /* Ensure the buttons are positioned relative to the container */
+    left: 50%;
+    transform: translateX(-50%);
+}
+.status-buttons button {
+    background: #e0c39a;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+.table-container {
+    margin-top: 10px;
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+}
+th {
+    background: #f4f4f4;
+}
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 15px;
+}
+.pagination button {
+    background: #ccc;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    margin: 0 5px;
+}

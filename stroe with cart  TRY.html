@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Small Online Store</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        .store-container {
+            display: flex;
+            gap: 20px;
+        }
+        .products {
+            width: 100%;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .product {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .remove-btn {
+            background-color: #dc3545;
+        }
+        .remove-btn:hover {
+            background-color: #c82333;
+        }
+        /* Cart styles */
+        .cart-container {
+            position: fixed;
+            top: 0;
+            right: -350px; /* Hidden initially */
+            width: 300px;
+            height: 100%;
+            background: white;
+            box-shadow: -4px 0 6px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            transition: right 0.3s ease-in-out;
+        }
+        .cart-container.open {
+            right: 0; /* Show cart when open */
+        }
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .cart-items {
+            margin-top: 10px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🛍️ Small Online Store</h1>
+    
+    <button onclick="toggleCart()">🛒 View Cart</button>
+
+    <div class="store-container">
+        <!-- Store Products -->
+        <div class="products">
+            <h2>🛒 Products</h2>
+            <div class="product">
+                <span>🐶 Dog Food - $10.99</span>
+                <button onclick="addToCart(1, 'Dog Food', 10.99)">Add to Cart</button>
+            </div>
+            <div class="product">
+                <span>🐱 Cat Toy - $5.49</span>
+                <button onclick="addToCart(2, 'Cat Toy', 5.49)">Add to Cart</button>
+            </div>
+            <div class="product">
+                <span>🐾 Pet Shampoo - $7.99</span>
+                <button onclick="addToCart(3, 'Pet Shampoo', 7.99)">Add to Cart</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart (Hidden Initially) -->
+    <div id="cart" class="cart-container">
+        <div class="cart-header">
+            <h2>🛒 Your Cart</h2>
+            <button onclick="toggleCart()">❌</button>
+        </div>
+        <div id="cart-items" class="cart-items"></div>
+        <h3>Total: $<span id="total-price">0.00</span></h3>
+    </div>
+
+    <script>
+        let cart = new Map(); // Using a Map to store cart items
+
+        // Toggle cart visibility
+        function toggleCart() {
+            document.getElementById("cart").classList.toggle("open");
+        }
+
+        // Add item to cart
+        function addToCart(id, name, price) {
+            if (cart.has(id)) {
+                cart.get(id).quantity += 1;
+            } else {
+                cart.set(id, { name, price, quantity: 1 });
+            }
+            updateCart();
+        }
+
+        // Remove item from cart
+        function removeFromCart(id) {
+            cart.delete(id);
+            updateCart();
+        }
+
+        // Update cart display
+        function updateCart() {
+            let cartItemsDiv = document.getElementById("cart-items");
+            let totalPriceSpan = document.getElementById("total-price");
+            cartItemsDiv.innerHTML = ""; // Clear cart before updating
+
+            let total = 0;
+            cart.forEach((item, id) => {
+                total += item.price * item.quantity;
+
+                // Create cart item element
+                let cartItem = document.createElement("div");
+                cartItem.className = "cart-item";
+                cartItem.innerHTML = `
+                    <span>${item.name} (x${item.quantity}) - $${(item.price * item.quantity).toFixed(2)}</span>
+                    <button class="remove-btn" onclick="removeFromCart(${id})">❌</button>
+                `;
+                cartItemsDiv.appendChild(cartItem);
+            });
+
+            totalPriceSpan.textContent = total.toFixed(2);
+        }
+    </script>
+
+</body>
+</html>

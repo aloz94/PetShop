@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>לוח ניהול טיפוח</title>
+    <link rel="stylesheet" href="styles/dashboard-style.css">
+    
+</head>
+<body>
+    <div class="sidebar">
+        <img src="logo.png" alt="Logo">
+        <button class="boarding">פנסיון</button>
+        <button class="grooming active">טיפוח</button>
+        <button class="crm">CRM</button>
+    </div>
+    <div class="container">
+        <div class="navbar">
+            <div class="nav-item">
+                <img src="reports-icon.png" alt="כללי">
+                <br>כללי
+            </div>
+            <div class="nav-item">
+                <img src="analytics-icon.png" alt="דוחות">
+                <br>דוחות
+            </div>
+            <div class="nav-item">
+                <img class="user" src="profile.png" alt="תפריט">
+                
+            </div>
+        </div>
+        
+        <div class="status-buttons">
+            <button>תורים היום 5</button>
+            <button>תורים מבוטלים 5</button>
+        </div>
+        <hr>
+        <div class="header">
+            
+            <div class="search-bar">
+                <select name="search-by" class="search-by" >
+                    <option value="" disabled selected>חיפוש לפי</option>
+                    <option value="all">הכל</option>
+                    <option value="id">מזהה</option>
+                    <option value="date">תאריך</option>
+                    <option value="time">שעה</option>
+                    <option value="client">לקוח</option>
+                    <option value="phone">נייד</option>
+                    <option value="dog">כלב</option>
+                </select>
+                <input type="text" class="search-button" placeholder="חיפוש">
+                <button class="search-icon">🔍</button>
+            </div>
+        </div>
+        <hr>
+        
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>מזהה</th>
+                        <th>תאריך</th>
+                        <th>שעה</th>
+                        <th>לקוח</th>
+                        <th>נייד</th>
+                        <th>כלב</th>
+                        <th>פעולה</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1345</td>
+                        <td>15/10/24</td>
+                        <td>15:30</td>
+                        <td>עלי</td>
+                        <td>0509995555</td>
+                        <td>שם כלב</td>
+                        <td>V/X</td>
+                    </tr>
+                    <tr>
+                        <td>1346</td>
+                        <td>15/10/24</td>
+                        <td>16:00</td>
+                        <td>עלי</td>
+                        <td>0509995555</td>
+                        <td>שם כלב</td>
+                        <td>V/X</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="pagination">
+            <button>&lt;</button>
+            <span>1 / 16</span>
+            <button>&gt;</button>
+        </div>
+    </div>
+</body>
+</html>
