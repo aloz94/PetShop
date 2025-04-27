@@ -23,10 +23,16 @@
             </div>
 
             <!-- Authentication buttons (register/log in)-->
-            <div class="auth-buttons">
+            <div class="auth-buttons" id="auth-buttons">
                 <button onclick="openPopup('loginpopup')"><img src="res/login-icon.png" alt="*">כניסה</button>
                 <button onclick="openPopup('regispopup')"><img src="res/sign up.png" alt="*">רישום</button>
             </div>
+            <div id="profile-icon" style="display: none;">
+                <a href="profile.html">
+                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile" width="40" height="40">
+                </a>
+            </div>
+            
         </nav>
     </header>
 
@@ -112,18 +118,227 @@
             </div>
         </div>
     </footer>
+    <section class="location">
+        <h2>הצטרף למשפחה שלנו</h2>
+        <div class="map-container">מפת מיקום</div>
+    </section>
 
+    <form class="form-container" id="tryRegForm">
+        <h2>Register</h2>
+    
+        <div class="form-group">
+          <label for="id">ID</label>
+          <input type="number" id="id" name="id" required>
+        </div>
+    
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" name="name" required>
+        </div>
+    
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input type="text" id="phone" name="phone" required>
+        </div>
+    
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required>
+        </div>
+    
+        <button type="submit" class="submit-button">Register</button>
+      </form>
+    
+
+<!-- --------------------------------Popups------------------------------------------------- -->
     <!-- popup spa order-->
+
+     <form id="groomingpopup_form"> 
     <div id="groomingpopup" class="popup-container">
         <div class="popup-content">
             <span class="close-btn" onclick="closePopup('groomingpopup')">&times;</span>
             <img src="res/logo.png" alt="Logo">
             <h2>הזמן פינוק לחייתך</h2>
-            <!-- Content -->
+        
+        <div class="input-field">
+            <input type="date">
+        </div>
+        <div class="input-field">
+            <select id="hourSelect">
+                <option>בחר שעה</option>
+                <option>10:00</option>
+                <option>12:00</option>
+                <option>14:00</option>
+            </select>
+        </div>
+        <div class="input-field">
+            
+        </div>
+        
+        <div class="price-label">עלות - ₪500</div>
+        
+        <button class="popup-button">הזמן תור</button>
+    </div>
+</div>
+     </form>
+<!--    abandent popup-->
+<div id="abandentpopup" class="popup-container">
+    <div class="popup-content">
+        <span class="close-btn" onclick="closePopup('abandentpopup')">&times;</span>
+        <img src="logo.png" alt="Logo">
+        <h2>דיווח - כלבים נטושים</h2>
+        
+        <label>גודל הכלב</label>
+        <div class="input-field">
+            <select>
+                <option>בחר גודל</option>
+                <option>קטן</option>
+                <option>בינוני</option>
+                <option>גדול</option>
+            </select>
+        </div>
+        
+        <label>מצב בריאותי</label>
+        <div class="input-field">
+            <select>
+                <option>בחר מצב</option>
+                <option>בריא</option>
+                <option>פצוע</option>
+                <option>לא ידוע</option>
+            </select>
+        </div>
+        
+        <label>כתובת</label>
+        <div class="input-field">
+            <input type="text" placeholder="הכנס כתובת">
+        </div>
+        
+        <label>הערות</label>
+        <textarea class="textarea-field" placeholder="הכנס הערות"></textarea>
+        
+        <label>צרף תמונות</label>
+        <div class="file-upload">
+            <span>+</span>
+            <span>העלה תמונות</span>
+            <input type="file" style="display: none;">
+        </div>
+        
+        <button class="popup-button">שלח פניה</button>
+    </div>
+</div>
+
+<!--    boarding popup-->
+<div id="boardingpopup" class="popup-container">
+    <div class="popup-content">
+        <span class="close-btn" onclick="closePopup('boardingpopup')">&times;</span>
+        <img src="logo.png" alt="Logo">
+        <h2>הזמן שירות פנסיון</h2>
+        
+        <label>תאריך כניסה</label>
+        <div class="input-field">
+            <input type="date">
+        </div>
+        
+        <label>תאריך יציאה</label>
+        <div class="input-field">
+            <input type="date">
+        </div>
+        
+        <label>בחירת כלב</label>
+        <div class="input-field">
+            <select>
+                <option>בחר כלב</option>
+                <option>לברדור</option>
+                <option>שיצו</option>
+                <option>פודל</option>
+            </select>
+        </div>
+        
+        <div class="price-label">עלות - ₪500</div>
+        
+        <button class="popup-button">בדיקת זמינות</button>
+    </div>
+</div>
+<!--    log in popup-->
+    <form id="loginpopup_form">
+<div id="loginpopup" class="popup-container">
+    <div class="popup-content">
+        <span class="close-btn" onclick="closePopup('loginpopup')">&times;</span>
+        <img src="logo.png" alt="Logo">
+        <h2>כניסה</h2>
+        
+        <label>שם משתמש</label>
+        <div class="input-field">
+            <input type="integer" id="log_id" placeholder="הכנס שם משתמש">
+        </div>
+        
+        <label>סיסמא</label>
+        <div class="input-field">
+            <input type="password" id="log_pass" placeholder="הכנס סיסמא">
+        </div>
+        
+        <a href="#" class="forgot-password">שכחת סיסמא?</a>
+        
+        <button class="popup-button" type="submit" onclick="submitlogin()">כניסה</button>
+    </div>
+</div>
+    </form>
+<!--    register popup-->
+    <form id="regispopup_form">
+<div id="regispopup" class="popup-container">
+    <div class="popup-content">
+        <span class="close-btn" onclick="closePopup('regispopup')">&times;</span>
+        <img src="./res/logo.png" alt="Logo">
+        <h2>רישום</h2>
+        
+        <h3>פרטים אישיים</h3>
+        <div class="input-group">
+            <div class="input-field"><input type="number" id="customerId" placeholder="ת.ז. *"></div>
+            <div class="input-field"><input type="text" id="firstName" placeholder="שם פרטי *"></div>
+            <div class="input-field"><input type="text" id="lastName" placeholder="שם משפחה *"></div>
+        </div>
+        <div class="input-group">
+            <div class="input-field"><input type="number" id="telephone" placeholder="נייד *"></div>
+            <div class="input-field"><input type="text" id="address" placeholder="כתובת "></div>
+            <div class="input-field"><input type="text" id="email" placeholder="מייל"></div>
+        </div>
+        <div class="input-group">
+            <div class="input-field"><input type="password" id="pass" placeholder="סיסמא *"></div>
+            <div class="input-field"><input type="passwordconfirm" placeholder="אישור סיסמא *"></div>
+        </div>
+        
+        <h3>פרטי הכלב</h3>
+        <div class="input-group">
+            <div class="input-field"><input type="text" id="dogName" placeholder="שם הכלב *"></div>
+            <div class="input-field"><input type="text" id="dogBreed" placeholder="גזע"></div>
+        </div>
+        <div class="input-group">
+            <div class="input-field"><input type="number" id="dogAge" placeholder="גיל"></div>
+
+            <div class="input-field" >
+                <select id="dogSize">
+                    <option>בחר גודל *</option>
+                    <option>קטן</option>
+                    <option>בינוני</option>
+                    <option>גדול</option>
+                </select>
+            </div>
+        </div>
+        <div class="input-group">
+            <label>מין *</label>
+            <div class="input-field">
+                <label><input type="radio" name="dogGender" value="male"> זכר</label>
+                <label><input type="radio" name="dogGender" value="female"> נקבה</label>
+            </div>
+        </div>
+        <button class="popup-button" type="submit" onclick="submitRegistration()">רישום</button>
         </div>
     </div>
+</form>
 
-    <!-- Other popups -->
+ 
+
+   
     <script src="script/web.js"></script>
 </body>
 </html>
