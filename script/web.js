@@ -1,46 +1,7 @@
-process.on('uncaughtException', (err) => {
-    console.error('Uncaught Exception:', err);
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled Rejection:', reason);
-});
-
-
-
-function submitRegistration() {
-    const data = {
-        customerId: document.getElementById("customerId").value,
-        firstName: document.getElementById("firstName").value,
-        lastName: document.getElementById("lastName").value,
-        phone: document.getElementById("phone").value,
-        address: document.getElementById("address").value,
-        email: document.getElementById("email").value,
-        password: document.getElementById("password").value,
-        dogName: document.getElementById("dogName").value,
-        dogBreed: document.getElementById("dogBreed").value,
-        dogAge: document.getElementById("dogAge").value,
-        dogSize: document.getElementById("dogSize").value
-    };
-    console.log(data);
-
-    fetch("http://localhost:3000/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data)
-    })
-    .then(res => res.json())
-   .then(response => {
-        alert("Registration successful!");
-        // console.log(response);
-   })
-    .catch(err => {
-        alert("Error submitting form.");
-        console.error(err);
-    });
-}
+// This script is for the website and includes the carousel, popup, registration, and login functionalities.
+// It uses the Fetch API to send data to the server and handle responses.
+// It also includes error handling for uncaught exceptions and unhandled promise rejections.
+// It is important to ensure that the server is running and the endpoints are correctly set up to handle the requests.
 
 /* carousel(images) script*/
 let index = 0;
@@ -73,9 +34,7 @@ function closePopup(popupId) {
 }
 
 // registration  validation
-function submitRegistration() {
-    const form = document.getElementById('regispopup_form');
-    form.addEventListener('submit', async (e) => {
+async function submitRegistration(e) {
         e.preventDefault();
 
         const id = parseInt(document.getElementById('customerId').value);
@@ -111,13 +70,11 @@ try{
         console.error('Error during registration:', error);
         alert('An error occurred while registering. Please try again.');
     }
-});
+
 }
 
 // login validation
-function submitlogin() {
-    const logform = document.getElementById('loginpopup_form')
-    logform.addEventListener('submit', async (e) => {
+async function submitlogin(e) {
     e.preventDefault();
     console.log('Login form submitted');
 
@@ -144,8 +101,6 @@ function submitlogin() {
 
     const loginresult = await loginresponse.json(); // 🔥 נכון לקרוא JSON עכשיו
     alert(loginresult);
-    console.log('Parsed response:', loginresult);
-
     console.log('Login result:', loginresult);
     console.log(typeof loginresult)
 
@@ -153,16 +108,12 @@ function submitlogin() {
         alert('התחברת בהצלחה!');
         localStorage.setItem('token', loginresult.token);
 
-        
-            // 🔥 להסתיר את כפתורי ההתחברות
-    document.getElementById('auth-buttons').style.display = 'none';
+      const now = Date.now();
+      const expiry = now + (60 * 60 * 1000); // 1 hour in milliseconds
+     localStorage.setItem('expiry', expiry);
 
-    // 🔥 להציג את אייקון הפרופיל
-    document.getElementById('profile-icon').style.display = 'block';
-
-        // ✅ לשמור את הטוקן
-
-        
+     document.getElementById('auth-buttons').style.display = 'none';
+     document.getElementById('profile-icon').style.display = 'block';
 
     } else {
         alert(loginresult.message || 'שגיאה בהתחברות');
@@ -172,34 +123,38 @@ function submitlogin() {
         console.error('Error during login:', error);
         alert('An error occurred while logging in. Please try again.');
     }
-    
-
-});
      
    }
 
+   //wehn page loads
+   document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('regispopup_form').addEventListener('submit', submitRegistration);
+    document.getElementById('loginpopup_form').addEventListener('submit', submitlogin);
 
-   document.getElementById('tryRegForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
+    // 🔥 Check login status
+    const token = localStorage.getItem('token');
+    const expiry = localStorage.getItem('expiry');
 
-    const id = document.getElementById('id').value;
-    const name = document.getElementById('name').value;
-    const phone = document.getElementById('phone').value;
-    const password = document.getElementById('password').value;
-
-    try {
-      const response = await fetch('http://localhost:3000/tryregister', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ id, name, phone, password })
-      });
-
-      const result = await response.text();
-      alert(result);
-    } catch (error) {
-      console.error('Error:', error);
-      alert('An error occurred while registering.');
+    if (token && expiry) {
+        if (Date.now() > parseInt(expiry)) {
+            // Token expired
+            localStorage.removeItem('token');
+            localStorage.removeItem('expiry');
+            document.getElementById('auth-buttons').style.display = 'block';
+            document.getElementById('profile-icon').style.display = 'none';
+            alert('Session expired. Please login again.');
+        } else {
+            // Token still valid
+            document.getElementById('auth-buttons').style.display = 'none';
+            document.getElementById('profile-icon').style.display = 'block';
+        }
+    } else {
+        document.getElementById('auth-buttons').style.display = 'block';
+        document.getElementById('profile-icon').style.display = 'none';
     }
-  });
+});
+  
+
+
+
+         
