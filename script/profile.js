@@ -1,4 +1,4 @@
-function checkLogin() {
+async function checkLogin() {
     const token = localStorage.getItem('token');
     if (!token) {
         alert('אתה לא מחובר. נא להתחבר.');
@@ -40,12 +40,13 @@ function checkLogin() {
     // הצגת שם המשתמש אם שמרת אותו בלוקאל סטורג'
     const username = localStorage.getItem('username') || 'משתמש';
     document.getElementById('username').innerText = `ברוך הבא, ${username}!`;
-}
+
+
 
 function logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('username');
-    window.location.href = '/index.html'; // חזרה לדף הראשי
+    window.location.href = '\index.html'; // חזרה לדף הראשי
 }
 
 window.onload = checkLogin;
