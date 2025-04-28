@@ -1,7 +1,9 @@
 console.log("Backend server is running ");    
-const {Client} = require('pg');
 const express = require('express');
 const cors = require('cors'); // Import the cors package
+const cookieParser = require('cookie-parser');
+const path = require('path');
+const {Client} = require('pg');
 
 //log in 
 //const bcrypt = require('bcrypt');
@@ -10,8 +12,16 @@ const JWT_SECRET = 'MyProjectJWT!2025_Secret_Key!';
 
 
 const app=express();
-app.use(cors()); // Enable CORS for all routes
+//app.use(cors()); // Enable CORS for all routes
+
+
+app.use(cors({
+    origin: 'http://localhost:3000', // Replace with your client URL
+    credentials: true // Allow cookies to be sent
+}));
 app.use(express.json());
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname)));
 
 
 const con=new Client({
@@ -92,17 +102,18 @@ app.post('/postData',(req,res)=>{
                      { expiresIn: '1h' } // 🔥 הוספת תוקף של שעה
                 );
         
-                logres.status(200).json({
-                    message: 'Login successful',
-                    token: token,
-                    name: user.name
-                });
-            });
-        });
-        
+                logres.cookie('token', token, {
+                    httpOnly: true,
+                    secure: false,   // Set true only if you have HTTPS
+                    maxAge: 60 * 60 * 1000 // 1 hour
+                })
+                logres.status(200) .json({ message: 'Login successful', name: user.name });
+                            });
+                        });
+                        
 
 // Middleware לבדוק טוקן
-function authenticateToken(req, res, next) {
+/*function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
     if (!token) return res.sendStatus(401); // אין טוקן
@@ -113,12 +124,41 @@ function authenticateToken(req, res, next) {
         next();
     });
 }
+*/
+
+function authenticateToken(req, res, next) {
+    let token;
+
+    // קודם לבדוק אם יש Authorization Header
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.split(' ')[1];
+    } else if (req.cookies.token) {
+        // 🔥 אם אין Authorization - לבדוק בקוקי!
+        token = req.cookies.token;
+    }
+
+    if (!token) {
+        return res.sendStatus(401); // אין טוקן בכלל
+    }
+
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) return res.sendStatus(403); // טוקן לא תקין
+        req.user = user;
+        next();
+    });
+}
 
 // מסלול לפרופיל
 app.get('/profile', authenticateToken, (req, res) => {
     res.json({ user: req.user });
 });
 
+app.post('/logout', (req, res) => {
+    res.clearCookie('token'); // 🔥 clear the token cookie
+    res.status(200).json({ message: 'Logout successful' });
+  });
+  
 
 app.listen(3000, () => {
     console.log("Server running on http://localhost:3000");

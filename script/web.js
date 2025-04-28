@@ -95,6 +95,7 @@ async function submitlogin(e) {
             
         },
         body: JSON.stringify({ id:id2,password }),
+        credentials: 'include' // 🔥 חשוב מאוד כדי שהקוקי יישלח אוטומטית
     });  console.log('fetched');
 
     console.log('Response received:', loginresponse);
@@ -106,7 +107,7 @@ async function submitlogin(e) {
 
     if (loginresponse.ok) {
         alert('התחברת בהצלחה!');
-        localStorage.setItem('token', loginresult.token);
+        //localStorage.setItem('token', loginresult.token);
 
       const now = Date.now();
       const expiry = now + (60 * 60 * 1000); // 1 hour in milliseconds
@@ -131,11 +132,13 @@ async function submitlogin(e) {
     document.getElementById('regispopup_form').addEventListener('submit', submitRegistration);
     document.getElementById('loginpopup_form').addEventListener('submit', submitlogin);
 
-    // 🔥 Check login status
-    const token = localStorage.getItem('token');
-    const expiry = localStorage.getItem('expiry');
+    checkLoginStatus(); // 🔥 בדיקה אמיתית דרך השרת
 
-    if (token && expiry) {
+    // 🔥 Check login status
+    //const token = localStorage.getItem('token');
+    //const expiry = localStorage.getItem('expiry');
+
+    /*if (token && expiry) {
         if (Date.now() > parseInt(expiry)) {
             // Token expired
             localStorage.removeItem('token');
@@ -151,9 +154,32 @@ async function submitlogin(e) {
     } else {
         document.getElementById('auth-buttons').style.display = 'block';
         document.getElementById('profile-icon').style.display = 'none';
-    }
+    }*/
 });
-  
+
+async function checkLoginStatus() {
+    try {
+        const response = await fetch('http://localhost:3000/profile', {
+            method: 'GET',
+            credentials: 'include' // 🔥 חשוב
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log('User is logged in:', data);
+
+            document.getElementById('auth-buttons').style.display = 'none';
+            document.getElementById('profile-icon').style.display = 'block';
+        } else {
+            throw new Error('Unauthorized');
+        }
+    } catch (error) {
+        console.log('User not logged in');
+        document.getElementById('auth-buttons').style.display = 'block';
+        document.getElementById('profile-icon').style.display = 'none';
+    }
+}
+
 
 
 
