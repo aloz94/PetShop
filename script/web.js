@@ -127,14 +127,39 @@ async function submitlogin(e) {
      
    }
 
+   function triggerHourLoad() {
+    const selectedDate = document.getElementById('appointmentDate').value;
+    const serviceSelect = document.getElementById('serviceSelect');
+    const selectedOption = serviceSelect.selectedOptions[0];
+  
+    if (!selectedDate || !selectedOption || !selectedOption.dataset.duration) {
+      return;
+    }
+  
+    const selectedDuration = parseInt(selectedOption.dataset.duration);
+    loadAvailableHours(selectedDate, selectedDuration);
+  }
+  
+
    //wehn page loads
    document.addEventListener('DOMContentLoaded', function() {
+   /* document.getElementById('regispopup_form').addEventListener('submit', submitRegistration);
+    document.getElementById('loginpopup_form').addEventListener('submit', submitlogin);
+    document.getElementById('serviceSelect').addEventListener('change', updatePriceLabel);
+    document.getElementById('groomingpopup_form').addEventListener('submit', submitGroomingAppointment);*/
+  
     document.getElementById('regispopup_form').addEventListener('submit', submitRegistration);
     document.getElementById('loginpopup_form').addEventListener('submit', submitlogin);
+    document.getElementById('serviceSelect').addEventListener('change', triggerHourLoad);
+    document.getElementById('appointmentDate').addEventListener('change', triggerHourLoad);
+    document.getElementById('groomingpopup_form').addEventListener('submit', submitGroomingAppointment);
+
 
     checkLoginStatus(); // 🔥 בדיקה אמיתית דרך השרת
-
-    // 🔥 Check login status
+    loadServices(); //load services from the server
+     loadUserDogs();//load dogs from the server
+   // loadAvailableHours(); //load available hours from the server
+    
     //const token = localStorage.getItem('token');
     //const expiry = localStorage.getItem('expiry');
 
@@ -156,6 +181,8 @@ async function submitlogin(e) {
         document.getElementById('profile-icon').style.display = 'none';
     }*/
 });
+let currentUserId = null; // משתנה גלובלי
+
 
 async function checkLoginStatus() {
     try {
@@ -167,6 +194,8 @@ async function checkLoginStatus() {
         if (response.ok) {
             const data = await response.json();
             console.log('User is logged in:', data);
+            currentUserId = data.user.userId; // 🔥 שמרי את ה-ID בזיכרון
+
 
             document.getElementById('auth-buttons').style.display = 'none';
             document.getElementById('profile-icon').style.display = 'block';
@@ -179,8 +208,168 @@ async function checkLoginStatus() {
         document.getElementById('profile-icon').style.display = 'none';
     }
 }
+async function loadServices() {
+    try {
+        const response = await fetch('http://localhost:3000/services');
+        const services = await response.json();
 
+        const serviceSelect = document.getElementById('serviceSelect');
+        const priceLabel = document.querySelector('.price-label');
 
+        // קודם מנקה את התפריט (אם כבר קיים)
+        serviceSelect.innerHTML = '<option value="">בחר שירות</option>';
 
+        services.forEach(service => {
+            const option = document.createElement('option');
+            option.value = service.id; // רק ה-ID!
+            option.dataset.price = service.price; // 🔥 שומר את המחיר בתוך data attribute
+            option.textContent = service.name; // רק את שם השירות
+            option.dataset.duration = service.duration; // 🔥 זה השורה החשובה
+
+            serviceSelect.appendChild(option);
+        });
+
+        // מוסיפה האזנה לשינוי — כדי להציג מחיר בזמן בחירה
+        serviceSelect.addEventListener('change', function () {
+            const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+            const price = selectedOption.dataset.price;
+
+            if (price) {
+                priceLabel.textContent = `עלות - ₪${price}`;
+            } else {
+                priceLabel.textContent = 'עלות - ₪0'; // או טקסט ברירת מחדל
+            }
+        });
+
+    } catch (error) {
+        console.error('Error loading services:', error);
+    }
+}
+
+// 🐶 טען את רשימת הכלבים של המשתמש
+async function loadUserDogs() {
+    try {
+      const res = await fetch('http://localhost:3000/my-dogs', {
+        credentials: 'include'
+      });
+      const dogs = await res.json();
+  
+      const dogSelect = document.getElementById('dogSelect');
+      dogSelect.innerHTML = '<option value="">בחר כלב</option>';
+  
+      dogs.forEach(dog => {
+        const option = document.createElement('option');
+        option.value = dog.id;
+        option.textContent = dog.name;
+        dogSelect.appendChild(option);
+      });
+    } catch (err) {
+      console.error('שגיאה בטעינת הכלבים:', err);
+    }
+  }
+
+  async function submitGroomingAppointment(e) {
+    e.preventDefault();
+    console.log("submitGroomingAppointment הופעלה");
+
+    const appointment_date = document.getElementById('appointmentDate').value;
+    const start_time = document.getElementById('hourSelect').value;
+    const service_id = document.getElementById('serviceSelect').value;
+    const dog_id = document.getElementById('dogSelect').value;
+    const notes = document.getElementById('notes').value;
+    const slot_time = document.getElementById('hourSelect').value;
+
+    if (!appointment_date || !start_time || !service_id || !dog_id) {
+      alert('נא למלא את כל השדות');
+      return;
+    }
+  
+    try {
+      const res = await fetch('http://localhost:3000/grooming-appointments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+body: JSON.stringify({ appointment_date, slot_time, service_id, dog_id, notes })
+      });
+  
+      const result = await res.json();
+      
+      alert(result.message || 'התור נקבע בהצלחה!');
+    } catch (err) {
+      console.error('שגיאה בשליחת התור:', err);
+      alert('שגיאה בשליחת הטופס');
+    }
+  }
+  // 💰 עדכן תצוגת מחיר
+function updatePriceLabel() {
+    const serviceSelect = document.getElementById('serviceSelect');
+    const price = serviceSelect.selectedOptions[0]?.dataset.price || '0';
+    document.getElementById('priceDisplay').textContent = price;
+  }
+
+  function generateWorkingHours() {
+    const hours = [];
+    const startHour = 9;
+    const endHour = 17;
+  
+    for (let hour = startHour; hour < endHour; hour++) {
+      hours.push(`${hour.toString().padStart(2, '0')}:00`);
+      hours.push(`${hour.toString().padStart(2, '0')}:30`);
+    }
+  
+    return hours; // ['09:00', '09:30', ..., '16:30']
+  }
+  
+
+  async function loadAvailableHours(selectedDate, selectedDuration) {
+    if (!selectedDate || !selectedDuration) return;
+  
+    try {
+      const response = await fetch(`http://localhost:3000/appointments?date=${selectedDate}`, {
+        credentials: 'include'
+      });
+      const appointments = await response.json();
+  
+      if (!Array.isArray(appointments)) return;
+  
+      const workingHours = generateWorkingHours();
+      const availableHours = [];
+  
+      workingHours.forEach(hour => {
+        const startDateTime = new Date(`1970-01-01T${hour}:00`);
+        const endDateTime = new Date(startDateTime.getTime() + selectedDuration * 60000);
+  
+        const start = startDateTime.toTimeString().substring(0, 5);
+        const end = endDateTime.toTimeString().substring(0, 5);
+  
+        const conflict = appointments.some(app => {
+          const appStart = new Date(`1970-01-01T${app.slot_time}`);
+          const appEnd = new Date(appStart.getTime() + app.duration * 60000);
+  
+          const appStartStr = appStart.toTimeString().substring(0, 5);
+          const appEndStr = appEnd.toTimeString().substring(0, 5);
+  
+          return !(end <= appStartStr || start >= appEndStr);
+        });
+  
+        if (!conflict) {
+          availableHours.push(hour);
+        }
+      });
+  
+      const hourSelect = document.getElementById('hourSelect');
+      hourSelect.innerHTML = '<option value="">בחר שעה</option>';
+      availableHours.forEach(h => {
+        const option = document.createElement('option');
+        option.value = h;
+        option.textContent = h;
+        hourSelect.appendChild(option);
+      });
+  
+    } catch (error) {
+      console.error('שגיאה בטעינת שעות:', error);
+    }
+  }
+  
 
          

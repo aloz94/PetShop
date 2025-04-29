@@ -160,43 +160,75 @@ app.post('/logout', (req, res) => {
   });
   
 
+  app.get('/services', async (req, res) => {
+    try {
+        const result = await con.query('SELECT * FROM services');
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Error fetching services:', err);
+        res.status(500).json({ error: 'Failed to fetch services' });
+    }
+});
+
+
+// 🔥 קבלת רשימת כלבים של הלקוח הנוכחי
+app.get('/my-dogs', authenticateToken, async (req, res) => {
+    const userId = req.user.userId; // מזהים את הלקוח מתוך הטוקן
+
+    try {
+        const result = await con.query('SELECT id, name FROM dogs WHERE customer_id = $1', [userId]);
+        res.status(200).json(result.rows);
+    } catch (error) {
+        console.error('Error fetching dogs:', error);
+        res.status(500).json({ message: 'שגיאה בקבלת כלבים' });
+    }
+});
+
+
+app.get('/appointments', authenticateToken, async (req, res) => {
+    const { date } = req.query;
+    if (!date) return res.status(400).json({ message: 'חסר תאריך' });
+  
+    try {
+      const query = `
+        SELECT 
+          ga.slot_time,
+          ga.service_id,
+          s.duration
+        FROM grooming_appointments ga
+        JOIN services s ON ga.service_id = s.id
+        WHERE ga.appointment_date = $1
+      `;
+  
+      const result = await con.query(query, [date]);
+      res.status(200).json(result.rows);
+    } catch (err) {
+      console.error('שגיאה בקבלת תורים:', err);
+      res.status(500).json({ message: 'שגיאה בקבלת תורים' });
+    }
+  });
+  
+  app.post('/grooming-appointments', authenticateToken, async (req, res) => {
+    const { appointment_date, slot_time, service_id, dog_id, notes } = req.body;
+    const customer_id = req.user.userId;
+  
+    try {
+      await con.query(
+        `INSERT INTO grooming_appointments (appointment_date, slot_time, service_id, dog_id, customer_id, notes)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [appointment_date, slot_time, service_id, dog_id, customer_id, notes]
+      );
+  
+      res.status(200).json({ message: 'התור נשמר בהצלחה!' });
+    } catch (err) {
+      console.error('שגיאה בהוספת תור:', err);
+      res.status(500).json({ message: 'שגיאה בשמירת התור' });
+    }
+  });
+  
+
 app.listen(3000, () => {
     console.log("Server running on http://localhost:3000");
 });
 
 
-
-//login route first version
-/*app.post('/login',(logreq,logres)=>{
-    const {id,password}=logreq.body;
-    const login_query = 'SELECT * FROM customers WHERE id = $1 AND password = $2';
-    
-    con.query(login_query,[id,password],(err, loginresult) => {
-        if (err) {
-            console.error('Database error:', err);
-            logres.status(500).json({ message: 'Error login data' });
-        }
-        if(loginresult.rows.length === 0) {
-            return logres.status(400).json({ message: 'user not found' });//500
-        }
-
-        const user = loginresult.rows[0];
-        if (password !== user.password) {
-            return logres.status(401).json({ message: 'Invalid credentials' });//400
-        }
-       // logres.send("login successfully");//was here
-       const token = `${user.id}-${Date.now()}`;
-        
-       logres.status(200).json({
-        message: 'Login successful',
-        token: token,
-        name: user.name // תחזירי גם את שם המשתמש אם יש עמודה כזו
-    });
-});
-});
-
-       
-        } else {
-            console.log(loginresult);
-            logres.send("login successfully");
-        }*///retreave this 

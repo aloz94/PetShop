@@ -153,39 +153,58 @@
 <!-- --------------------------------Popups------------------------------------------------- -->
     <!-- popup spa order-->
 
-     <form id="groomingpopup_form"> 
-    <div id="groomingpopup" class="popup-container">
-        <div class="popup-content">
+    <form id="groomingpopup_form"> 
+        <div id="groomingpopup" class="popup-container">
+          <div class="popup-content">
             <span class="close-btn" onclick="closePopup('groomingpopup')">&times;</span>
             <img src="res/logo.png" alt="Logo">
             <h2>הזמן פינוק לחייתך</h2>
-        
-        <div class="input-field">
-            <input type="date">
-        </div>
-        <div class="input-field">
-            <select id="hourSelect">
-                <option>בחר שעה</option>
-                <option>10:00</option>
-                <option>12:00</option>
-                <option>14:00</option>
-            </select>
-        </div>
-        <div class="input-field">
+      
+            <!-- תאריך -->
+            <div class="input-field">
+              <input type="date" id="appointmentDate" required>
+            </div>
+      
+            <!-- שעה -->
+            <div class="input-field">
+              <select id="hourSelect" required>
+                <option value="">בחר שעה</option>
+              </select>
+            </div>
+      
+            <!-- שירות -->
+            <div class="input-field">
+              <select id="serviceSelect" required>
+                <option value="">בחר שירות</option>
+              </select>
+            </div>
+      
+            <!-- כלב -->
+            <div class="input-field">
+              <select id="dogSelect" required>
+                <option value="">בחר כלב</option>
+              </select>
+            </div>
+      
+            <!-- הערות -->
+            <div class="input-field">
+              
+              <textarea id="notes" rows="3" placeholder="האם יש משהו חשוב שנדע?"></textarea>
+            </div>
+      
+            <!-- מחיר -->
+                <div id="priceDisplay" class="price-label">עלות - ₪0</div>
             
+                    
+            <!-- כפתור שליחה -->
+            <button class="popup-button" type="submit">הזמן תור</button>
+          </div>
         </div>
-        
-        <div class="price-label">עלות - ₪500</div>
-        
-        <button class="popup-button">הזמן תור</button>
-    </div>
-</div>
-     </form>
-<!--    abandent popup-->
+      </form><!--    abandent popup-->
 <div id="abandentpopup" class="popup-container">
     <div class="popup-content">
         <span class="close-btn" onclick="closePopup('abandentpopup')">&times;</span>
-        <img src="logo.png" alt="Logo">
+        <img src="res/logo.png" alt="Logo">
         <h2>דיווח - כלבים נטושים</h2>
         
         <label>גודל הכלב</label>
@@ -231,7 +250,7 @@
 <div id="boardingpopup" class="popup-container">
     <div class="popup-content">
         <span class="close-btn" onclick="closePopup('boardingpopup')">&times;</span>
-        <img src="logo.png" alt="Logo">
+        <img src="res/logo.png" alt="Logo">
         <h2>הזמן שירות פנסיון</h2>
         
         <label>תאריך כניסה</label>
@@ -264,7 +283,7 @@
 <div id="loginpopup" class="popup-container">
     <div class="popup-content">
         <span class="close-btn" onclick="closePopup('loginpopup')">&times;</span>
-        <img src="logo.png" alt="Logo">
+        <img src="res/logo.png" alt="Logo">
         <h2>כניסה</h2>
         
         <label>שם משתמש</label>
