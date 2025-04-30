@@ -252,37 +252,40 @@
       
 
 <!--    boarding popup-->
-<div id="boardingpopup" class="popup-container">
-    <div class="popup-content">
+<<form id="boardingpopup_form">
+    <div id="boardingpopup" class="popup-container">
+      <div class="popup-content">
         <span class="close-btn" onclick="closePopup('boardingpopup')">&times;</span>
-        <img src="res/logo.png" alt="Logo">
+        <img src="res/logo.png" alt="Logo" />
         <h2>הזמן שירות פנסיון</h2>
-        
+  
         <label>תאריך כניסה</label>
         <div class="input-field">
-            <input type="date">
+          <input type="date" id="checkinDate" required />
         </div>
-        
+  
         <label>תאריך יציאה</label>
         <div class="input-field">
-            <input type="date">
+          <input type="date" id="checkoutDate" required />
         </div>
-        
+  
         <label>בחירת כלב</label>
         <div class="input-field">
-            <select>
-                <option>בחר כלב</option>
-                <option>לברדור</option>
-                <option>שיצו</option>
-                <option>פודל</option>
-            </select>
+          <select id="boardingDogSelect" required>
+            <option value="">בחר כלב</option>
+          </select>
         </div>
-        
-        <div class="price-label">עלות - ₪500</div>
-        
-        <button class="popup-button">בדיקת זמינות</button>
+  
+        <label>הערות</label>
+        <div class="input-field">
+          <textarea id="boardingNotes" placeholder="הכנס הערות נוספות"></textarea>
+        </div>
+  
+        <button type="submit" class="popup-button" " >שלח בקשה</button>
+      </div>
     </div>
-</div>
+  </form>
+  
 <!--    log in popup-->
     <form id="loginpopup_form">
 <div id="loginpopup" class="popup-container">

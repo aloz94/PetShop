@@ -153,12 +153,15 @@ async function submitlogin(e) {
     document.getElementById('serviceSelect').addEventListener('change', triggerHourLoad);
     document.getElementById('appointmentDate').addEventListener('change', triggerHourLoad);
     document.getElementById('groomingpopup_form').addEventListener('submit', submitGroomingAppointment);
+    document.getElementById('boardingpopup_form').addEventListener('submit', submitBoardingAppointment);
 
 
     checkLoginStatus(); // 🔥 בדיקה אמיתית דרך השרת
     loadServices(); //load services from the server
      loadUserDogs();//load dogs from the server
    // loadAvailableHours(); //load available hours from the server
+   loadUserDogsForBoarding(); // 🚀 קריאה לטעינת הכלבים לטופס הפנסיון
+
     
     //const token = localStorage.getItem('token');
     //const expiry = localStorage.getItem('expiry');
@@ -442,5 +445,86 @@ function updatePriceLabel() {
   });
   
 
+  async function loadUserDogsForBoarding() {
+    try {
+      const res = await fetch('http://localhost:3000/my-dogs', {
+        credentials: 'include'
+      });
+      const dogs = await res.json();
+  
+      const dogSelect = document.getElementById('boardingDogSelect');
+      dogSelect.innerHTML = '<option value="">בחר כלב</option>';
+  
+      dogs.forEach(dog => {
+        const option = document.createElement('option');
+        option.value = dog.id;
+        option.textContent = dog.name;
+        dogSelect.appendChild(option);
+      });
+    } catch (err) {
+      console.error('שגיאה בטעינת הכלבים לטופס הפנסיון:', err);
+    }
+  }
+  
+  async function checkBoardingAvailability(startDate, endDate) {
+    console.log('Check-in:', startDate, 'Check-out:', endDate);
 
+    try {
+      const response = await fetch(`http://localhost:3000/boarding-availability?start_date=${startDate}&end_date=${endDate}`, {
+        credentials: 'include'
+      });
+      const result = await response.json();
+      console.log('Availability result:', result);
+  
+      if (result.available) {
+        return true;
+      } else {
+        alert('אין תאים פנויים בכל התאריכים שנבחרו. ימים לא זמינים:\n' + result.unavailableDates.join('\n'));
+        return false;
+      }
+    } catch (error) {
+      console.error('שגיאה בבדיקת זמינות:', error);
+      alert('שגיאה בבדיקת זמינות הפנסיון');
+      return false;
+    }
+  }
+
+  async function submitBoardingAppointment(e) {
+    e.preventDefault();
+ // async function submitBoardingAppointment() {
+    const startDate = document.getElementById('checkinDate').value;
+    const endDate = document.getElementById('checkoutDate').value;
+    const dogId = document.getElementById('boardingDogSelect').value;
+    const notes = document.getElementById('boardingNotes').value;
+  
+    if (!startDate || !endDate || !dogId) {
+      alert('נא למלא את כל השדות');
+      return;
+    }
+  
+    const available = await checkBoardingAvailability(startDate, endDate);
+    if (!available) return;
+  
+    try {
+      const response = await fetch('http://localhost:3000/boarding-appointments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+body: JSON.stringify({
+  check_in: startDate,
+  check_out: endDate,
+  dog_id: dogId,
+  notes: notes
+})
+      });
+  
+      const result = await response.json();
+      console.log('Boarding appointment result:', result);
+      alert(result.message || 'התור נקבע בהצלחה!');
+    } catch (error) {
+      console.error('שגיאה בשליחת התור:', error);
+      alert('שגיאה בשליחת הטופס');
+    }
+  }
+  
       

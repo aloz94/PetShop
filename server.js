@@ -267,6 +267,72 @@ app.post('/report-dog', authenticateToken, upload.single('image'), async (req, r
   });
     
   
+  app.get('/boarding-availability', authenticateToken, async (req, res) => {
+    const { start_date, end_date } = req.query;
+    if (!start_date || !end_date) {
+      return res.status(400).json({ message: 'יש לספק תאריכי התחלה וסיום' });
+    }
+  
+    try {
+      const query = `
+        SELECT check_in AS appointment_date, COUNT(*) as count
+        FROM boarding_appointments
+        WHERE check_in BETWEEN $1 AND $2
+        GROUP BY check_in
+
+
+      `;
+      const result = await con.query(query, [start_date, end_date]);
+  
+      const unavailableDates = result.rows
+        .filter(row => parseInt(row.count) >= 10)
+        .map(row => row.appointment_date);
+  
+      if (unavailableDates.length > 0) {
+        res.status(200).json({ available: false, unavailableDates });
+      } else {
+        res.status(200).json({ available: true });
+      }
+    } catch (err) {
+      console.error('שגיאה בבדיקת זמינות:', err);
+      res.status(500).json({ message: 'שגיאה בבדיקת זמינות' });
+    }
+  });
+
+  app.post('/boarding-appointments', authenticateToken, async (req, res) => {
+    const { check_in, check_out, dog_id, notes } = req.body;
+    const customer_id = req.user.userId;
+  
+    try {
+      const result = await con.query(
+        `SELECT COUNT(*) FROM boarding_appointments
+         WHERE ($1, $2) OVERLAPS (check_in, check_out)`,
+        [check_in, check_out]
+      );
+  
+      const activeCount = parseInt(result.rows[0].count);
+      const MAX_CAPACITY = 10;
+  
+      if (activeCount >= MAX_CAPACITY) {
+        return res.status(400).json({ message: 'אין מקום פנוי בפנסיון בתאריכים שנבחרו' });
+      }
+  
+      await con.query(
+        `INSERT INTO boarding_appointments (customer_id, dog_id, check_in, check_out, notes, status)
+         VALUES ($1, $2, $3, $4, $5, 'פתוחה')`,
+        [customer_id, dog_id, check_in, check_out, notes]
+      );
+  
+      res.status(200).json({ message: 'התור נשמר בהצלחה!' });
+    } catch (err) {
+      console.error('שגיאה בשמירת תור:', err);
+      res.status(500).json({ message: 'שגיאה בשמירת התור' });
+    }
+  });
+
+ 
+  
+
 
 app.listen(3000, () => {
     console.log("Server running on http://localhost:3000");
