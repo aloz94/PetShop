@@ -4,6 +4,9 @@ const cors = require('cors'); // Import the cors package
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const {Client} = require('pg');
+const multer = require('multer');
+
+
 
 //log in 
 //const bcrypt = require('bcrypt');
@@ -225,6 +228,44 @@ app.get('/appointments', authenticateToken, async (req, res) => {
       res.status(500).json({ message: 'שגיאה בשמירת התור' });
     }
   });
+
+
+// הגדרת מיקום שמירת קבצים
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/'); // ודאי שיש תיקייה בשם uploads
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const baseName = path.basename(file.originalname, ext);
+    const safeName = baseName.replace(/[^\w\-]/g, ''); // מסיר תווים בעייתיים כולל עברית
+    const uniqueName = Date.now() + '-' + safeName + ext;
+    cb(null, uniqueName);
+  }
+});
+const upload = multer({ storage });
+
+
+app.post('/report-dog', authenticateToken, upload.single('image'), async (req, res) => {
+    const { size, health, address, notes } = req.body;
+    const customer_id = req.user.userId;
+    const image_path = req.file ? req.file.filename : null;
+  
+    try {
+      await con.query(
+        `INSERT INTO abandoned_dog_reports (customer_id, dog_size, health_status, address, notes, image_path)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [customer_id, size, health, address, notes, image_path]
+      );
+  
+      res.status(200).json({ message: 'הפנייה התקבלה בהצלחה!' });
+    } catch (err) {
+      console.error('שגיאה בשליחת פנייה:', err);
+      res.status(500).json({ message: 'שגיאה בשמירת הפנייה' });
+    }
+    
+  });
+    
   
 
 app.listen(3000, () => {

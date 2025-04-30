@@ -366,10 +366,81 @@ function updatePriceLabel() {
         hourSelect.appendChild(option);
       });
   
+      /*document.addEventListener('DOMContentLoaded', function () {
+        // מאזין לשליחת טופס הדיווח
+        document.getElementById('abandentpopup_form').addEventListener('submit', async function (e) {
+          e.preventDefault(); // מונע ריענון של הדף
+          console.log("i entered abandoned form");
+      
+          const form = document.getElementById('abandentpopup_form');
+          const formData = new FormData(form); // כולל גם את הקובץ אם צורף
+      
+          try {
+            const response = await fetch('http://localhost:3000/report-dog', {
+              method: 'POST',
+              body: formData,
+              credentials: 'include'
+            });
+      
+            const result = await response.json();
+            alert(result.message || 'הפנייה נשלחה בהצלחה!');
+          } catch (err) {
+            console.error('שגיאה בשליחת הפנייה:', err);
+            alert('שגיאה בשליחת הטופס');
+          }
+        });
+        }); 
+        */
+      } catch (error) {
+        console.error('Error in loadAvailableHours:', error);
+      }
+    }
+  async function submitAbandonedDogForm() {
+    const size = document.getElementById('dogSizeSelect').value;
+    const health = document.getElementById('healthStatusSelect').value;
+    const address = document.getElementById('abandon_address').value;
+    const notes = document.getElementById('abandon_notes').value;
+    const image = document.getElementById('picupload').files[0];
+  
+    const formData = new FormData();
+    formData.append('size', size);
+    formData.append('health', health);
+    formData.append('address', address);
+    formData.append('notes', notes);
+    if (image) formData.append('image', image);
+  
+    try {
+      const res = await fetch('http://localhost:3000/report-dog', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+  
+    //  const result = await res.json();
+      //alert(result.message || 'הדיווח נשלח בהצלחה!');
+      if (response.ok) {
+        const result = await response.json();
+        alert(result.message || 'הפנייה נשלחה בהצלחה!');
+        
+      } else {
+        const errorText = await response.json(); // מנסה לקרוא את הטקסט של השגיאה
+        console.error('Server error:', errorText);
+      }
+      
     } catch (error) {
-      console.error('שגיאה בטעינת שעות:', error);
+     console.error('שגיאה בשליחת הדיווח:', error);
+      alert('שגיאה בשליחת הדיווח'); // למ רות שהנתונים נשמרים , ההודעה מוצגת
     }
   }
   
+  
+  document.querySelector('.file-upload span').addEventListener('click', () => {
+    document.getElementById('picupload').click();
 
-         
+  //  document.querySelector('.popup-button').addEventListener('click', submitAbandonedDogForm);
+
+  });
+  
+
+
+      

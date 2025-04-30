@@ -200,51 +200,56 @@
             <button class="popup-button" type="submit">הזמן תור</button>
           </div>
         </div>
-      </form><!--    abandent popup-->
-<div id="abandentpopup" class="popup-container">
-    <div class="popup-content">
-        <span class="close-btn" onclick="closePopup('abandentpopup')">&times;</span>
-        <img src="res/logo.png" alt="Logo">
-        <h2>דיווח - כלבים נטושים</h2>
-        
-        <label>גודל הכלב</label>
-        <div class="input-field">
-            <select>
+      </form>
+      <!--    abandent popup-->
+
+      <form id="abandentpopup_form" enctype="multipart/form-data">
+        <div id="abandentpopup" class="popup-container">
+          <div class="popup-content">
+            <span class="close-btn" onclick="closePopup('abandentpopup')">&times;</span>
+            <img src="res/logo.png" alt="Logo">
+            <h2>דיווח - כלבים נטושים</h2>
+      
+            <label>גודל הכלב</label>
+            <div class="input-field">
+              <select id="dogSizeSelect" name="size">
                 <option>בחר גודל</option>
                 <option>קטן</option>
                 <option>בינוני</option>
                 <option>גדול</option>
-            </select>
-        </div>
-        
-        <label>מצב בריאותי</label>
-        <div class="input-field">
-            <select>
+              </select>
+            </div>
+      
+            <label>מצב בריאותי</label>
+            <div class="input-field">
+              <select id="healthStatusSelect" name="health">
                 <option>בחר מצב</option>
                 <option>בריא</option>
                 <option>פצוע</option>
                 <option>לא ידוע</option>
-            </select>
+              </select>
+            </div>
+      
+            <label>כתובת</label>
+            <div class="input-field">
+              <input type="text" id="abandon_address" name="address" placeholder=" כתובת">
+            </div>
+      
+            <label>הערות</label>
+            <textarea class="textarea-field" id="abandon_notes" name="notes" placeholder="הכנס הערות"></textarea>
+      
+            <label>צרף תמונות</label>
+            <div class="file-upload">
+              <span>+</span>
+              <span>העלה תמונות</span>
+              <input type="file" id="picupload" name="image" accept="image/*">
+            </div>
+      
+            <button type="submit" class="popup-button" onclick="submitAbandonedDogForm()">שלח פניה</button>
+          </div>
         </div>
-        
-        <label>כתובת</label>
-        <div class="input-field">
-            <input type="text" placeholder="הכנס כתובת">
-        </div>
-        
-        <label>הערות</label>
-        <textarea class="textarea-field" placeholder="הכנס הערות"></textarea>
-        
-        <label>צרף תמונות</label>
-        <div class="file-upload">
-            <span>+</span>
-            <span>העלה תמונות</span>
-            <input type="file" style="display: none;">
-        </div>
-        
-        <button class="popup-button">שלח פניה</button>
-    </div>
-</div>
+      </form>
+      
 
 <!--    boarding popup-->
 <div id="boardingpopup" class="popup-container">
