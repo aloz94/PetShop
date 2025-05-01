@@ -1,50 +1,309 @@
-body {
+/* ==============================
+   Reset ו-Global Styles
+   ============================== */
+   body {
     margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(to bottom right, #ffe0b2, #ffcc80);
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.profile-container {
-    text-align: center;
-}
-
-.profile-card {
-    background-color: white;
+    font-family: "Heebo", sans-serif;
+    background-color: #fef9f4;
+    direction: rtl;
+  }
+  
+  /* ==============================
+     Profile Container & Card
+     ============================== */
+  .profile-container {
+    max-width: 600px;
+    margin: 50px auto;
     padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
-    width: 300px;
-}
-
-.avatar {
+    background-color: #fffdf9;
+    border-radius: 20px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    text-align: center;
+  }
+  
+  .profile-card {
+    margin-bottom: 30px;
+  }
+  
+  .profile-avatar {
     width: 120px;
     height: 120px;
     border-radius: 50%;
-    margin-bottom: 15px;
-}
-
-#username {
-    font-size: 24px;
-    color: #333;
-    margin-bottom: 20px;
-}
-
-.logout-btn {
-    background-color: #ff9800;
-    border: none;
-    color: white;
+    border: 4px solid #ffe0c4;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  #username {
+    margin-top: 10px;
+    color: #5a4a42;
+  }
+  
+  .logout-btn {
+    margin-top: 10px;
     padding: 10px 20px;
+    background-color: #f3af89;
+    border: none;
+    border-radius: 25px;
+    color: #fff;
     font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  .logout-btn:hover {
+    background-color: #f19c6f;
+  }
+  
+  /* ==============================
+     Profile Section (Details, Dogs, Past Appointments, Reports)
+     ============================== */
+  .profile-section {
+    background-color: #fffaf5;
+    border: 1px solid #ffe0c4;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.04);
+    text-align: right;
+  }
+  
+  .profile-section h3 {
+    margin: 0 0 16px;
+    font-size: 20px;
+    color: #5a4a42;
+    border-bottom: 2px solid #f3af89;
+    padding-bottom: 8px;
+  }
+  
+  .profile-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .profile-section li {
+    margin-bottom: 12px;
+    font-size: 16px;
+    color: #333;
+    line-height: 1.6;
+  }
+  .profile-section li strong {
+    color: #805947;
+    display: inline-block;
+    width: 120px;
+  }
+  .profile-section li span {
+    color: #555;
+  }
+  
+  /* ==============================
+     Appointments List
+     ============================== */
+  .profile-selec {
+    background-color: #ffffff;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  
+  .profile-selec h3 {
+    margin: 0 0 16px;
+    font-size: 20px;
+    color: #5a4a42;
+    border-bottom: 2px solid #f3af89;
+    padding-bottom: 8px;
+  }
+  
+  .appointment-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .appointment-list li {
+    background-color: #fffaf5;
+    border: 1px solid #ffe0c4;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    font-size: 16px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.2s;
+  }
+  .appointment-list li:hover {
+    background-color: #fff3e6;
+  }
+  .appointment-list li::before {
+    content: "📅 ";
+    margin-right: 8px;
+  }
+  .appointment-list li strong {
+    color: #805947;
+    margin-right: 6px;
+  }
+  
+  /* ==============================
+     Popup (Reuse for All Forms)
+     ============================== */
+  .popup-container {
+    display: none;            /* Hide by default */
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .popup-content {
+    background: #fff;
+    border-radius: 20px;
+    padding: 20px;
+    width: 300px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    position: relative;
+  }
+  
+  .popup-content img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+  }
+  
+  .popup-content h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+  
+  .input-field {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #000;
+    border-radius: 10px;
+    padding: 5px 10px;
+    margin-bottom: 10px;
+  }
+  
+  .input-field input,
+  .input-field select,
+  .textarea-field {
+    border: none;
+    outline: none;
+    flex: 1;
+    padding: 5px;
+    font-size: 14px;
+    text-align: right;
+  }
+  
+  .textarea-field {
+    height: 80px;
+    resize: none;
+  }
+  
+  .popup-button {
+    background: #c49b6c;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    width: 100%;
     border-radius: 10px;
     cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.logout-btn:hover {
-    background-color: #fb8c00;
-}
+    font-size: 16px;
+  }
+  
+  .close-btn {
+    position: absolute;
+    top: 15px; right: 15px;
+    font-size: 20px;
+    cursor: pointer;
+  }
+  
+  /* ==============================
+     Dogs Grid & Cards
+     ============================== */
+  .profile-section.dog-cards {
+    margin-bottom: 30px;
+  }
+  
+  .profile-section.dog-cards h3 {
+    font-size: 22px;
+    color: #5a4a42;
+    border-bottom: 2px solid #f3af89;
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+  }
+  
+  .dog-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+    gap: 20px;
+  }
+  
+  .dog-card {
+    background-color: #fffaf5;
+    border: 1px solid #ffe0c4;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .dog-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  
+  .dog-card .dog-name {
+    font-size: 18px;
+    font-weight: bold;
+    color: #5a4a42;
+    margin-bottom: 10px;
+  }
+  
+  .dog-card .dog-info {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 12px 0;
+    width: 100%;
+  }
+  
+  .dog-card .dog-info li {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #444;
+    padding: 4px 0;
+    border-bottom: 1px dashed #eee;
+  }
+  .dog-card .dog-info li:last-child {
+    border-bottom: none;
+  }
+  
+  .add-dog-btn {
+    margin-top: 10px;
+    padding: 8px 16px;
+    background-color: #f3af89;
+    border: none;
+    border-radius: 20px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+  }
+  .add-dog-btn:hover {
+    background-color: #e7976e;
+  }
+  .report-image img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover; /* Ensures the image fills the box without distortion */
+    border-radius: 8px; /* Optional: rounded corners */
+  }
+  

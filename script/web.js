@@ -115,6 +115,8 @@ async function submitlogin(e) {
 
      document.getElementById('auth-buttons').style.display = 'none';
      document.getElementById('profile-icon').style.display = 'block';
+     window.location.href = 'index.html';
+
 
     } else {
         alert(loginresult.message || 'שגיאה בהתחברות');
