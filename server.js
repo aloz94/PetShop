@@ -514,7 +514,7 @@ app.get('/profile/boarding', authenticateToken, async (req, res) => {
 });
 
 // GET abandoned reports for current user
-app.get('/profile/reports', authenticateToken, async (req, res) => {
+/*app.get('/profile/reports', authenticateToken, async (req, res) => {
   console.log("FEtching reports")
   const customer_id = req.user.userId;
   try {
@@ -536,6 +536,32 @@ app.get('/profile/reports', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error('Error fetching abandoned reports:', err);
     res.status(500).json({ message: 'שגיאה בשליפת דיווחים' });
+  }
+});
+*/
+app.get('/profile/reports', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+
+  try {
+    const query = `
+      SELECT 
+        r.id,
+        r.dog_size,
+        r.health_status,
+        r.address,
+        r.notes,
+        r.status,
+        r.image_path
+      FROM abandoned_dog_reports r
+      WHERE r.customer_id = $1
+      ORDER BY r.id DESC;
+    `;
+    const { rows } = await con.query(query, [userId]);
+    // console.log(rows);  // DEBUG: בדוק שהשורות מגיעות עם כל השדות
+    return res.json(rows);
+  } catch (err) {
+    console.error('Error fetching reports:', err);
+    return res.status(500).json({ message: 'שגיאה בשליפת דיווחים' });
   }
 });
 
