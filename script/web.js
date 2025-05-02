@@ -112,11 +112,16 @@ async function submitlogin(e) {
       const now = Date.now();
       const expiry = now + (60 * 60 * 1000); // 1 hour in milliseconds
      localStorage.setItem('expiry', expiry);
-
+     if (loginresponse.ok) {
+      if (loginresult.role === 'customer') {
      document.getElementById('auth-buttons').style.display = 'none';
      document.getElementById('profile-icon').style.display = 'block';
      window.location.href = 'index.html';
-
+      } else {
+        window.location.href = 'grooming dashboard.html';
+      }
+    } 
+  
 
     } else {
         alert(loginresult.message || 'שגיאה בהתחברות');

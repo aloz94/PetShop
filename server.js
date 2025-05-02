@@ -77,8 +77,7 @@ app.post('/postData',(req,res)=>{
     
 })
 
-
-        app.post('/login', (logreq, logres) => {
+      /*  app.post('/login', (logreq, logres) => {
             const { id, password } = logreq.body;
             const login_query = 'SELECT * FROM customers WHERE id = $1 AND password = $2';
         
@@ -113,22 +112,80 @@ app.post('/postData',(req,res)=>{
                 })
                 logres.status(200) .json({ message: 'Login successful', name: user.name });
                             });
+                        }); */
+
+                        app.post('/login', (logreq, logres) => {
+                          const { id, password } = logreq.body;
+                        
+                          // 1. מנסים קודם ב־customers
+                          const customerQuery = 'SELECT id, first_name || \' \' || last_name AS name, password FROM customers WHERE id = $1';
+                          con.query(customerQuery, [id], (err, custResult) => {
+                            if (err) {
+                              console.error('Database error (customers):', err);
+                              return logres.status(500).json({ message: 'Database error' });
+                            }
+                        
+                            if (custResult.rows.length > 0) {
+                              // לקוח נמצא
+                              const user = custResult.rows[0];
+                              if (password !== user.password) {
+                                return logres.status(401).json({ message: 'Invalid credentials' });
+                              }
+                              // מייצרים טוקן עם role=customer
+                              const token = jwt.sign(
+                                { userId: user.id, name: user.name, role: 'customer' },
+                                JWT_SECRET,
+                                { expiresIn: '1h' }
+                              );
+                              logres.cookie('token', token, {
+                                httpOnly: true,
+                                secure: false,
+                                maxAge: 60 * 60 * 1000
+                              });
+                              return logres
+                                .status(200)
+                                .json({ message: 'Login successful', role: 'customer' });
+                            }
+                        
+                            // 2. אם לא ב־customers – מנסים בטבלת employees
+                            const employeeQuery = 'SELECT id, password, role FROM employees WHERE id = $1';
+                            con.query(employeeQuery, [id], (err2, empResult) => {
+                              if (err2) {
+                                console.error('Database error (employees):', err2);
+                                return logres.status(500).json({ message: 'Database error' });
+                              }
+                        
+                              if (empResult.rows.length > 0) {
+                                // עובד נמצא
+                                const user = empResult.rows[0];
+                                if (password !== user.password) {
+                                  return logres.status(401).json({ message: 'Invalid credentials' });
+                                }
+                                // מייצרים טוקן עם role לפי שדה ה־employees.role
+                                const token = jwt.sign(
+                                  { userId: user.id, role: user.role },
+                                  JWT_SECRET,
+                                  { expiresIn: '1h' }
+                                );
+                                logres.cookie('token', token, {
+                                  httpOnly: true,
+                                  secure: false,
+                                  maxAge: 60 * 60 * 1000
+                                });
+                                return logres
+                                  .status(200)
+                                  .json({ message: 'Login successful', role: user.role });
+                              }
+                        
+                              // 3. לא נמצא בשתי הטבלאות
+                              return logres.status(400).json({ message: 'User not found' });
+                            });
+                          });
                         });
                         
+                        
 
-// Middleware לבדוק טוקן
-/*function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-    if (!token) return res.sendStatus(401); // אין טוקן
-
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) return res.sendStatus(403); // טוקן לא תקין או פג
-        req.user = user;
-        next();
-    });
-}
-*/
+//  פונקציה לאימות טוקן
 
 function authenticateToken(req, res, next) {
     let token;
@@ -138,7 +195,7 @@ function authenticateToken(req, res, next) {
     if (authHeader && authHeader.startsWith('Bearer ')) {
         token = authHeader.split(' ')[1];
     } else if (req.cookies.token) {
-        // 🔥 אם אין Authorization - לבדוק בקוקי!
+        //  אם אין Authorization - לבדוק בקוקי!
         token = req.cookies.token;
     }
 

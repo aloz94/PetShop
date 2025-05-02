@@ -1,0 +1,77 @@
+
+*,
+::after,
+::before{
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+a{
+  text-decoration: none;
+  color:black;
+}
+li{
+  list-style: none;
+}
+h2{
+    color: #3e4455;
+}
+
+img{
+    vertical-align: middle;
+  max-width: 100%;
+  
+}
+body{
+  font-family: 'Poppins', sans-serif;
+  
+}
+.container{
+    display: flex;
+ 
+}
+
+/* sidebar layout and functionality */
+#sidebar{
+    display: flex;
+    flex-direction: column;
+    background-color: #d9534f;
+}
+
+#toggler{
+    display: node;
+}
+.toggler-btn{
+    display: flex;
+    align-items: center;
+    font-size: 1.5rem;
+    color: #fff;
+    padding: 1.5rem;
+
+}
+.toggle-btn span{
+    font-size: 1rem;
+    margin-left: 0.85rem;
+    font-weight: 600;
+}
+
+.sidebar-nav{
+    width: 85px;
+    min-width: 85px;
+    padding: 25px 0;
+    flex: 1 1 auto;
+    transition: all .25s ease-in-out;
+}
+
+#sidebar input[type="checkbox"]:checked ~ .sidebar-nav{
+    width: 260px;
+    min-width: 26opx;
+}
+
+a.sidebar-link{
+ padding:0.625rem 1.625rem;
+ color: #fff;
+ display: block;
+ white-space: nowrap;
+ border-right:3px solid transparent;
+}
