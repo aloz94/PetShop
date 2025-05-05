@@ -1,79 +1,238 @@
 <!DOCTYPE html>
-<html lang="he">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Pet Business Homepage</title>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>לוח בקרה</title>
+  <link rel="stylesheet" href="styles/dashboard.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
+        integrity="sha512-pHBxJ2ZVaGLc/SHYSLKa1sH1hc8+DJYxK5/mdTzjs6zB3hgR0KJ+zY5RH65KpoCz3+FxdRDo5V0XiN7gtM8z+w==" 
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-        <link rel="stylesheet" href="styles/dashboard.css">
-    </head>
-    <body>
-        <div class="container">
-            <aside id="sidebar">
-                <input type="checkbox" id="toggle" >
-                <label for="toggle" class="toggle-btn">
-                <span>Aloz</span>
-            </label>
-            <ul class="sidebar-nav">
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link">
-                    <span>profile  </span>
-                </a>
-                </li>
-            </ul>
+  <link rel="stylesheet" href="styles/kpi-dashboard.css"/>
+</head>
+<body>
 
-            <ul class="sidebar-nav">
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link">
-                    <span>profile  </span>
-                </a>
-                </li>
-            </ul>
+ <div class="container">
+    <aside class="sidebar">
+      <img src="res\logo.png" alt="Logo" class="sidebar-logo" style="width: 80px; display: block; margin: 16px auto;" />
+      <div class="sidebar-top">Aloz</div>
+      <ul>
+        <li><a href="#" data-target="profile">פנסיון</a></li>
+        <li><a href="#" data-target="reports">טיפוח</a></li>
+        <li><a href="#" data-target="earnings">הזמנות</a></li>
+        <li><a href="#" data-target="users">מלאי</a></li>
+        <li><a href="#" data-target="settings">פניות נטושים</a></li>
+        <li><a href="#" data-target="delivry">שליחים</a></li>
+        <li><a href="#" data-target="support">גורמי סיוע</a></li>
 
-            <ul class="sidebar-nav">
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link">
-                    <span>profile  </span>
-                </a>
-                </li>
-            </ul>
+        <li><a href="#" data-target="help">לקוחות</a></li>
+      </ul>
+      <button class="sidebar-bottom" onclick="logout()">התנתקות</button>
+    </aside>
 
+    
 
-            <ul class="sidebar-nav">
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link">
-                    <span>profile  </span>
-                </a>
-                </li>
-            </ul>
+    <main class="main">
+      <div class="navbar">
+        <section class="filters-bar">
+          <!-- שדה חיפוש חופשי -->
+          <div class="filter-item search-box">
+            <input type="text" id="globalSearch" placeholder="🔍 חפש לקוח, ת.ז. או כלב..." />
+          </div>
+    
+          <!-- סינון לפי תאריך -->
+          <div class="filter-item">
+            <select id="filterDate">
+              <option value="">תאריך (הכל)</option>
+              <option value="today">היום</option>
+              <option value="this-week">השבוע</option>
+              <option value="this-month">החודש</option>
+            </select>
+          </div>
+    
+          <!-- סינון לפי סטטוס -->
+          <div class="filter-item">
+            <select id="filterStatus">
+              <option value="">סטטוס (הכל)</option>
+              <option value="pending">ממתין</option>
+              <option value="confirmed">מאושר</option>
+              <option value="completed">הושלם</option>
+            </select>
+          </div>
+    
+      </div>
 
-            <ul class="sidebar-nav">
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link">
-                    <span>profile  </span>
-                </a>
-                </li>
-            </ul>
+<!-- דאשבורד פנסיון-->
+      <section class="content content--active" id="profile">
+        <div class="dashboard-card">
 
-            <ul class="sidebar-nav">
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link">
-                    <span>profile  </span>
-                </a>
-                </li>
-            </ul>
-
-<div class="sidebar-footer">
-    <a href="#" class="sidebar-link">
-<span>log out</span>
-</a>
-</div>
-         </aside>  
+          <div class="card" id="checkins-today">
+            <h6 class="title">התקדמות חברים</h6>
+            <h6 class="amount">₪71,540</h6>
+            <div class="badge">
+              <span class="text-bg">+6.85%</span>
+              <span class="badge-text">מאז החודש שעבר</span>
+            </div>
+          </div>
+          
+          <div class="card" id="checkouts-today">
+            <h6 class="title">סה"כ משתמשים</h6>
+            <h6 class="amount">₪71,540</h6>
+            <div class="badge">
+              <span class="text-bg">+6.85%</span>
+              <span class="badge-text">מאז החודש שעבר</span>
+            </div>
+          </div>
         </div>
+<button class="btn btn--primary" id="openGroomingBtn">הוסף תור</button>
+        <h1>ניהול פנסיון</h1>
+        <table id="posts">
+          <thead>
+            <tr>
+              <th>מס' תור</th>
+              <th>תאריך כניסה</th>
+              <th>תאריך יציאה</th>
+              <th>שם לקוח</th>
+              <th>טלפון</th>
+              <th>שם כלב</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- ימולא ב-JS -->
+          </tbody>
+        </table>
+
+      </section>
+    
+<!-- דאשבורד טיפוח-->
+
+      <section class="content" id="reports">
+        <header class="kpi-bar">
+          <div class="kpi-card green">
+            <div class="icon"><i class="fa-solid fa-calendar-check"></i></div>
+            <div class="value">12</div>
+            <div class="label">תורים לסיום היום</div>
+          </div>
+      
+          <div class="kpi-card blue">
+            <div class="icon"><i class="fa-solid fa-calendar-plus"></i></div>
+            <div class="value">5</div>
+            <div class="label">תורים חדשים היום</div>
+          </div>
+      
+          <div class="kpi-card yellow">
+            <div class="icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="value">2</div>
+            <div class="label">מבוטלים / שכחו לבוא</div>
+          </div>
+      
+          <div class="kpi-card red">
+            <div class="icon"><i class="fa-solid fa-clock"></i></div>
+            <div class="value">4</div>
+            <div class="label">שעות פנויים</div>
+          </div>
+        </header>
+      
+
+        <h2>ממוצע הכנסות סוכנים</h2>
+        <table class="dashboard-table" id="grooming-posts">
+          <thead>
+            <tr>
+              <th>מס' תור</th>
+              <th>תאריך</th>
+              <th>שעה</th>
+              <th>שירות</th>
+              <th>לקוח</th>
+              <th>טלפון</th>
+              <th>כלב</th>
 
 
+            </tr>
+          </thead>
+          <tbody>
+            
+          </tbody>
+        </table>
+      </section>
+    <section class="content" id="earnings">
+      <h2>הכנסות</h2>
+      <p>כאן יופיעו נתוני הכנסות</p>
+    </section>
+  
+    <section class="content" id="users">
+      <h2>משתמשים</h2>
+      <p>כאן יהיה טבלת המשתמשים</p>
+    </section>
+  
+    <section class="content" id="settings">
+      <h2>הגדרות</h2>
+      <p>כאן הגדרות שונות</p>
+    </section>
+  
+    <section class="content" id="help">
+      <h2>עזרה</h2>
+      <p>כאן סימוכין לעזרה</p>
+    </section>
+  </div>
 
+</main>
 
-        <script src="script/dashboard.js"></script>
-    </body>
+<!-- popup spa order-->
+
+<form id="groomingpopup_form"> 
+  <div id="groomingpopup" class="popup-container">
+    <div class="popup-content">
+      <span class="close-btn" onclick="closePopup('groomingpopup')">&times;</span>
+      <img src="res/logo.png" alt="Logo">
+      <h2>הזמן פינוק לחייתך</h2>
+
+      <div class="input-field">
+        <input type="number" id="customerIdInput" placeholder="ת.ז. הלקוח" required>
+      </div>
+
+      <!-- תאריך -->
+      <div class="input-field">
+        <input type="date" id="appointmentDate" required>
+      </div>
+
+      <!-- שעה -->
+      <div class="input-field">
+        <select id="hourSelect" required>
+          <option value="">בחר שעה</option>
+        </select>
+      </div>
+
+      <!-- שירות -->
+      <div class="input-field">
+        <select id="serviceSelect" required>
+          <option value="">בחר שירות</option>
+        </select>
+      </div>
+
+      <!-- כלב -->
+      <div class="input-field">
+        <select id="dogSelect" required>
+          <option value="">בחר כלב</option>
+        </select>
+      </div>
+
+      <!-- הערות -->
+      <div class="input-field">
+        
+        <textarea id="notes" rows="3" placeholder="האם יש משהו חשוב שנדע?"></textarea>
+      </div>
+
+      <!-- מחיר -->
+          <div id="priceDisplay" class="price-label">עלות - ₪0</div>
+      
+              
+      <!-- כפתור שליחה -->
+      <button class="popup-button" type="submit">הזמן תור</button>
+    </div>
+  </div>
+</form>
+
+  <script src="script/dashboard.js"></script>
+</body>
 </html>

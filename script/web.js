@@ -118,7 +118,7 @@ async function submitlogin(e) {
      document.getElementById('profile-icon').style.display = 'block';
      window.location.href = 'index.html';
       } else {
-        window.location.href = 'grooming dashboard.html';
+        window.location.href = 'dashboard.html';
       }
     } 
   
@@ -218,6 +218,7 @@ async function checkLoginStatus() {
         document.getElementById('profile-icon').style.display = 'none';
     }
 }
+
 async function loadServices() {
     try {
         const response = await fetch('http://localhost:3000/services');

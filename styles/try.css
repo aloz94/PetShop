@@ -1,0 +1,13 @@
+#manager-calendar {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  
+  /* override FullCalendar day colors */
+  .fc-daygrid-day.fc-day-other {
+    background: #f9f9f9; /* grey out days outside this month */
+  }
+  

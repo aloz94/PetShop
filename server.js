@@ -323,13 +323,15 @@ app.get('/appointments', authenticateToken, async (req, res) => {
   
   app.post('/grooming-appointments', authenticateToken, async (req, res) => {
     const { appointment_date, slot_time, service_id, dog_id, notes } = req.body;
-    const customer_id = req.user.userId;
+
+      // If the user is an employee and customer_id is provided, use it. Otherwise, use the logged-in user's id.
+    const realCustomerId = (req.user.role === 'employee' && customer_id) ? customer_id : req.user.userId;
   
     try {
       await con.query(
         `INSERT INTO grooming_appointments (appointment_date, slot_time, service_id, dog_id, customer_id, notes)
          VALUES ($1, $2, $3, $4, $5, $6)`,
-        [appointment_date, slot_time, service_id, dog_id, customer_id, notes]
+        [appointment_date, slot_time, service_id, dog_id, realCustomerId, notes]
       );
   
       res.status(200).json({ message: 'התור נשמר בהצלחה!' });
@@ -339,6 +341,26 @@ app.get('/appointments', authenticateToken, async (req, res) => {
     }
   });
 
+  //dashboard grooming appointments
+  
+  app.post('/grooming-appointments', authenticateToken, async (req, res) => {
+    const { appointment_date, slot_time, service_id, dog_id, notes } = req.body;
+    const realCustomerId = (req.user.role === 'employee' && customer_id) ? customer_id : req.user.userId;
+
+    try {
+      await con.query(
+        `INSERT INTO grooming_appointments (appointment_date, slot_time, service_id, dog_id, customer_id, notes)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+
+        [appointment_date, slot_time, service_id, dog_id, realCustomerId, notes]
+      );
+  
+      res.status(200).json({ message: 'התור נשמר בהצלחה!' });
+    } catch (err) {
+      console.error('שגיאה בהוספת תור:', err);
+      res.status(500).json({ message: 'שגיאה בשמירת התור' });
+    }
+  });
 
 // הגדרת מיקום שמירת קבצים
 const storage = multer.diskStorage({
@@ -622,9 +644,175 @@ app.get('/profile/reports', authenticateToken, async (req, res) => {
   }
 });
 
+app.get('/boardings', async (req, res) => {
+  try {
+    const q = `
+      SELECT 
+        ba.id,
+        to_char(ba.check_in,  'YYYY-MM-DD') AS check_in,
+        to_char(ba.check_out, 'YYYY-MM-DD') AS check_out,
+        c.first_name || ' ' || c.last_name   AS customer_name,
+        c.phone                              AS phone,
+        d.name                               AS dog_name
+      FROM boarding_appointments ba
+      JOIN customers          c ON ba.customer_id = c.id
+      JOIN dogs                d ON ba.dog_id      = d.id
+      ORDER BY ba.check_in;
+    `;
+    const result = await con.query(q);
+    res.json(result.rows);
+  }
+  catch(err) {
+    console.error(err);
+    res.status(500).json({ message: 'DB error fetching boardings' });
+  }
+});
+
+// server.js
+
+app.get('/boarding/stats', authenticateToken, async (req, res) => {
+  try {
+    // ברירת מחדל: היום
+    const today = new Date().toISOString().split('T')[0]; // 'YYYY-MM-DD'
+    // אפשר לקבל ?date=2025-05-10 מ־query
+    const date = req.query.date || today;
+
+    // שאילתא לכניסות
+    const checkinsQ = `
+      SELECT COUNT(*) AS cnt
+      FROM boarding_appointments
+      WHERE check_in = $1
+    `;
+    // שאילתא ליציאות
+    const checkoutsQ = `
+      SELECT COUNT(*) AS cnt
+      FROM boarding_appointments
+      WHERE check_out = $1
+    `;
+    const inRes  = await con.query(checkinsQ,  [date]);
+    const outRes = await con.query(checkoutsQ, [date]);
+
+    res.json({
+      date,
+      checkins:  parseInt(inRes.rows[0].cnt, 10),
+      checkouts: parseInt(outRes.rows[0].cnt, 10)
+    });
+  }
+  catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error fetching boarding stats' });
+  }
+});
+
+// מטפל בבקשה להחזרת תורים לטיפוח
+app.get('/grooming/appointments', authenticateToken, async (req, res) => {
+  try {
+    // דוגמה: בוחרים id, תאריך ושעה, שירות, dog_id, customer_id
+    const query = `
+      SELECT
+  ga.id,
+  ga.appointment_date AS date,
+  ga.slot_time       AS time,
+  s.name             AS service,
+  c.first_name || ' ' || c.last_name AS customer_name,
+  c.phone,
+  d.name             AS dog_name
+FROM grooming_appointments ga
+  JOIN services  s ON ga.service_id  = s.id
+  JOIN customers c ON ga.customer_id = c.id
+  JOIN dogs      d ON ga.dog_id      = d.id    -- <-- כאן מצטרפים לטבלת הכלבים
+ORDER BY
+  ga.appointment_date,
+  ga.slot_time;
+
+    `;
+    const result = await con.query(query);
+    return res.status(200).json(result.rows);
+  }
+  catch(err) {
+    console.error('Error fetching grooming appointments:', err);
+    return res.status(500).json({ message: 'שגיאה בטעינת תורים' });
+  }
+});
+
 app.listen(3000, () => {
     console.log("Server running on http://localhost:3000");
 });
 
 
+
+/*
+//trying calendar and appointments stuff
+// server.js (Express)
+
+
+//add appoitment to calendar
+
+app.get('/manager/appointments', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  try {
+    // grooming query
+    const groomQ = `
+      SELECT 
+        ga.appointment_date AS start_date,
+        ga.slot_time       AS start_time,
+        /* compute end_time here if needed 
+        'grooming'         AS type,
+        d.name             AS dog_name,
+        s.name             AS service_name
+      FROM grooming_appointments ga
+      JOIN dogs d    ON ga.dog_id     = d.id
+      JOIN services s ON ga.service_id = s.id
+      WHERE ga.customer_id = $1
+    `;
+
+    // boarding query
+    const boardQ = `
+      SELECT 
+        ba.check_in  AS start_date,
+        ba.check_out AS end_date,
+        'boarding'   AS type,
+        d.name       AS dog_name
+      FROM boarding_appointments ba
+      JOIN dogs d ON ba.dog_id = d.id
+      WHERE ba.customer_id = $1
+    `;
+
+    const groomR = await con.query(groomQ, [userId]);
+    const boardR = await con.query(boardQ, [userId]);
+
+    // combine & sort by start_date (+ optional time)
+    const all = [
+      ...groomR.rows.map(r => ({ ...r, end_date: r.start_date, /* you can compute real end_time  })),
+      ...boardR.rows
+    ];
+    all.sort((a,b) => new Date(a.start_date) - new Date(b.start_date));
+
+    return res.json(all);
+  }
+  catch(err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Cannot fetch appointments' });
+  }
+});
+*/
+
+//calenar and appointments stuff - Template for manager
+
+// מחזיר את רשימת הכלבים של לקוח לפי ת"ז
+app.get('/customers/:id/dogs', authenticateToken, async (req, res) => {
+  const customerId = req.params.id;
+  try {
+    const query = `
+      SELECT id, name 
+      FROM dogs 
+      WHERE customer_id = $1
+    `;
+    const { rows } = await con.query(query, [customerId]);
+    return res.json(rows);
+  } catch (err) {
+    console.error('Error fetching customer dogs:', err);
+    return res.status(500).json({ message: 'שגיאה בטעינת כלבי הלקוח' });
+  }
+});
 

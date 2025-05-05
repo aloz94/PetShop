@@ -1,77 +1,807 @@
+/* -------------- מבנה כללי -------------- */
+html[dir="rtl"] {
+  direction: rtl;
+}
 
-*,
-::after,
-::before{
+body, html {
+  height: 100%;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+
+}
+
+.container {
+  display: flex;
+  flex-direction: row-reverse;
+  height: 100vh;     /* תופס גובה מלא */
+  margin: 0;
+  padding: 0;
+}
+
+/* -------------- סיידבר (ייפתח ימינה) -------------- */
+.sidebar {
+  width: 200px;
+  background: #222;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  order: 1;               /* אל תשתנה */
+  padding: 0;        /* מאפס פדיּנג פנימי */
+  margin: 0;         /* מאפס מרג'ן חיצוני */
+}
+
+.sidebar-logo {
+  display: block;
+  width: 64px;       /* אם רוצים קטן יותר */
+  height: auto;
+  margin: 16px auto 2px; /* reduced bottom margin from 8px to 2px */
+}
+
+/* -------------- MAIN (ימוקם משמאל לסיידבר) -------------- */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #f5f5f5;
+  order: 0;
+}
+
+/* -------------- ניווט עליון -------------- */
+.navbar {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  background: #fff;
+  border-bottom: 1px solid #ddd;
+  flex-direction: row-reverse;  /* כפתורים ימינה, שדה חפש משמאל להם */
+}
+
+.navbar input[type="text"] {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  text-align: right; /* placeholder גם יהיה מימין */
+  margin-left: 0;    /* אסור שיהיה מרווח משמאל */
+  margin-right: 0.5rem; /* הכפתור יעמוד משמאל */
+}
+
+.navbar button {
+  margin-left: 0;     /* ביטול מרווח שמאלי */
+  margin-right: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #0a7e07;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.navbar .avatar {
+  margin-left: 0;
+  margin-right: 1rem; /* האייקון מימין */
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+/* -------------- תפריט צדדי - רשימה מימין -------------- */
+/* רשימת הקישורים */
+.sidebar ul {
+  list-style: none;
+  padding: 0;        /* איפוס פדיּנג */
+  margin: 2px 0;     /* reduced top margin from 8px to 2px */
+}
+
+.sidebar ul li {
+  margin: 0;         /* אין מרג'ן בין הפריטים */
+}
+
+.sidebar ul li a {
+  display: block;
+  padding: 10px 16px;    /* הצמצום כאן */
+  color: #ccc;
+  text-decoration: none;
+  text-align: right;     /* טקסט מימין */
+  font-size: 0.95rem;
+  transition: background 0.15s;
+}
+
+.sidebar ul li a:hover,
+.sidebar ul li a.active-link {
+  background: #444;
+  color: #fff;
+}
+
+/* כותרת הסיידבר (שם המשתמש) */
+.sidebar-top {
+  font-size: 1.25rem;
+  text-align: center;
+  padding: 8px 0;    /* פדיּנג מצומצם */
+  border-bottom: 1px solid #444;
+  margin: 0;         /* איפוס מרג'ן */
+}
+/* -------------- כפתור התנתקות -------------- */
+/* הכפתור התחתון */
+.sidebar-bottom {
+  background: none;
+  border: none;
+  color: #ccc;
+  padding: 12px 16px;    /* פדיּנג אחיד */
+  margin: 0;             /* אין מרג'ן */
+  border-top: 1px solid #444;
+  text-align: center;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.sidebar-bottom:hover {
+  color: #fff;
+}
+
+.sidebar-bottom a {
+  color: #ccc;
+  text-decoration: none;
+}
+
+
+
+/* -------------- תוכן עיקרי -------------- */
+.content {
+  display: none;
+
+  flex: 1;
+  flex-direction: row-reverse;
+
+  padding: 1.5rem;
+  overflow-y: auto;
+  text-align: right;
+}
+
+.content--active {
+  display: block;
+}
+
+.content h2 {
+  font-size: 1.4rem;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+/* כרטיסי סטטיסטיקה ירוקים */
+.dashboard-card {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.card {
+  background: #0a7e07;
+  color: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 120px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+.card .title,
+.card .amount {
+  text-align: right;
+}
+
+.badge {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.badge .text-bg {
+  background: rgba(255,255,255,0.2);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  margin-left: 0.5rem;
+}
+
+.badge .badge-text {
+  opacity: 0.9;
+}
+
+/* טבלה */
+#posts {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+#posts th, #posts td {
+  padding: 0.75rem 1rem;
+  text-align: right;
+  border-bottom: 1px solid #eee;
+}
+#posts thead {
+  background: #6a0dad;
+  color: #fff;
+}/* ---------------------------------------------
+   אקורדיון + טבלאות פנסיון – שינויים בלבד
+   --------------------------------------------- */
+
+/* 1. הסתרת ה־tbody המקורי */
+#posts tbody {
+  display: none !important;
+}
+
+/* 2. מבנה האקורדיון (הוספת מרווח תחתון בין הפריטים) */
+.accordion {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+/* 3. כותרת אקורדיון */
+.accordion-header {
+  padding: 0.75rem 1rem;
+  background: #f9f9f9;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.2s;
+}
+
+/* כותרת פתוחה */
+.accordion-header.open {
+  background: #eee;
+}
+
+/* 4. גוף האקורדיון */
+.accordion-body {
+  display: none;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+}
+
+/* גוף פתוח */
+.accordion-header.open + .accordion-body {
+  display: block;
+}
+
+/* ---------- עיצוב ספציפי לטבלת ה־Boarding ------------ */
+/* ---------------------------------------------
+   עיצוב אקורדיון וטבלת Boarding – גרסה צבעונית
+   --------------------------------------------- */
+
+/* טבלת המקור מוסתרת */
+#posts tbody {
+  display: none !important;
+}
+
+/* קונטיינר אקורדיון ראשי */
+.accordion {
+  width: calc(100% - 200px);
+  max-width: 1200px;
+  margin: 0 auto 1.5rem;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  background: #fafafa;
+}
+
+/* כותרת אקורדיון */
+.accordion-header {
+  padding: 0.75rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #006e2e;          /* ירוק כהה */
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.accordion-header:hover {
+  background: #00561f;
+}
+.accordion-header.open {
+  background: #004d1a;          /* גוון פתוח */
+}
+
+/* אייקון או ציון פתוח/סגור */
+.accordion-header::after {
+  content: '⯈';
+  transition: transform 0.3s;
+}
+.accordion-header.open::after {
+  transform: rotate(90deg);
+}
+
+/* גוף האקורדיון */
+.accordion-body {
+  display: none;
+  padding: 1rem;
+  background: #fff;
+  border-top: 1px solid #ddd;
+  transition: all 0.3s;
+}
+.accordion-header.open + .accordion-body {
+  display: block;
+}
+
+/*------------------------------------------------*/
+/* מבנה טבלה לכלל */
+#posts {
+  display: block;
+  overflow-x: auto;
+  margin: 0 auto 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+/* כותרות טבלה */
+#posts thead {
+  background: linear-gradient(90deg, #6a0dad, #8c2ecb);
+  color: #fff;
+}
+#posts thead th {
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 2px solid #6322a0;
+}
+
+/* שורות וערכים */
+#posts tbody tr {
+  border-bottom: 1px solid #eee;
+  transition: background 0.2s;
+}
+#posts tbody tr:nth-child(even) {
+  background: #f7f7f7;
+}
+#posts tbody tr:hover {
+  background: #e8f4e8;
+}
+
+#posts tbody td {
+  padding: 0.6rem 1rem;
+  text-align: right;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+/* מדבקות נתונים במובייל */
+@media (max-width: 768px) {
+  #posts thead { display: none; }
+  #posts tbody tr {
+    display: block;
+    margin-bottom: 1rem;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  #posts tbody td {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.6rem;
+    border: none;
+    border-bottom: 1px solid #eee;
+  }
+  #posts tbody td:last-child {
+    border-bottom: none;
+  }
+  #posts tbody td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    color: #555;
+    margin-left: 0.5rem;
+  }
+}
+
+/* רוחבי עמודות קבועים */
+#posts th:nth-child(1),
+#posts td:nth-child(1) { width: 60px; }
+#posts th:nth-child(2),
+#posts td:nth-child(2),
+#posts th:nth-child(3),
+#posts td:nth-child(3) { width: 140px; }
+#posts th:nth-child(4),
+#posts td:nth-child(4) { width: 200px; }
+#posts th:nth-child(5),
+#posts td:nth-child(5) { width: 120px; }
+#posts th:nth-child(6),
+#posts td:nth-child(6) { width: 160px; }
+
+
+/* -------------- עיצוב כללי לטבלאות Dashboard -------------- */
+.dashboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+  background: #fff;
+  overflow-x: auto; /* גלילה אופקית במובייל */
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* כותרת הטבלה */
+.dashboard-table thead {
+  background: #6a0dad;
+  color: #fff;
+}
+.dashboard-table thead th {
+  padding: 0.75rem 1rem;
+  text-align: right;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* שורות גוף הטבלה */
+.dashboard-table tbody tr {
+  border-bottom: 1px solid #eee;
+  transition: background .2s;
+}
+.dashboard-table tbody tr:hover {
+  background: #f0f0f0;
+}
+
+/* תאי גוף הטבלה */
+.dashboard-table tbody td {
+  padding: 0.5rem 1rem;
+  text-align: right;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+/* קישורים בתוך הטabela */
+.dashboard-table a {
+  color: #6a0dad;
+  text-decoration: none;
+}
+.dashboard-table a:hover {
+  text-decoration: underline;
+}
+
+/* רספונסיביות במובייל */
+@media (max-width: 768px) {
+  .dashboard-table thead {
+    display: none;
+  }
+  .dashboard-table,
+  .dashboard-table tbody tr {
+    display: block;
+    width: 100%;
+  }
+  .dashboard-table tbody td {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem;
+    border-bottom: 1px solid #ddd;
+  }
+  .dashboard-table tbody td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    margin-left: 0.5rem;
+  }
+}
+
+
+/*.popup-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup-content {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}*/
+
+
+/* -----------------------------------------------------------------------------------
+----------------------------------------------------------------------------
+--------------------------------------------פ */
+/* עיצוב פופאפ – גרסה צבעונית
+   --------------------------------------------- */
+/* popup-container מוסתר */
+.popup-container {
+  display: none; /* Hide the popup by default */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+}
+.popup-content {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  width: 300px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+.popup-content img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  margin-bottom: 10px;
+}
+.popup-content h2 {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+.input-field {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #000;
+  border-radius: 10px;
+  padding: 5px 10px;
+  margin-bottom: 10px;
+}
+.input-field input, .input-field select {
+  border: none;
+  outline: none;
+  flex: 1;
+  padding: 5px;
+  font-size: 14px;
+  text-align: right;
+}
+.price-label {
+  background: #e0c39a;
+  padding: 8px;
+  border-radius: 15px;
+  display: inline-block;
+  margin-bottom: 10px;
+}
+.popup-button {
+  background: #c49b6c;
+  color: white;
+  border: none;
+  padding: 10px;
+  width: 100%;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+}
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  cursor: pointer;
+  font-size: 20px;
+}
+.textarea-field {
+  width: 100%;
+  height: 80px;
+  border: 1px solid #000;
+  border-radius: 10px;
+  padding: 10px;
+  resize: none;
+  margin-bottom: 10px;
+}
+.file-upload {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #000;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+/** עיצוב אקורדיון – גרסה צבעונית
+   --------------------------------------------- */
+/* מבנה גוף האקורדיון */
+.accordion-body {
+  display: flex;
+  flex-direction: row;   /* כל ה-span בשורה אחת */
+  gap: 2rem;             /* ריווח בין עמודות */
+  align-items: center;   /* יישור אנכי */
+  padding: 0.75rem 1rem;     /* ריווח פנימי */
+  background-color: #fafafa; /* רקע עדין */
+  border-left: 3px solid #0a7e07; /* קו צבע בצד שמאל (בסגנון RTL יופיע מימין) */
+  margin-bottom: 1rem;       /* ריווח מתחת לגוף */
+  border-radius: 4px;        /* קצוות מעוגלות */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  text-align: right;   
+  font-family: 'Courier New', Courier, monospace;  /* יישור טקסט לימין */
+
+}
+
+/* עיצוב כל שורה (span) */
+.accordion-body span {
+  min-width: 110px;
+  font-size: 0.95rem;
+  color: #333;
+  padding: 0.25rem 0; 
+  margin-right: 10%;       /* פדיּנג עליון תחתון קל */
+  border-bottom: 1px dashed #ddd; /* קו הפרדה עדין בין השורות */
+  text-align: right;     /* יישור טקסט לימין */
+  direction: rtl;        /* תמיכה בעברית */
+}
+
+
+
+
+/* הסרת קו תחתון מהשורה האחרונה */
+.accordion-body span:last-child {
+  border-bottom: none;
+}
+
+/* אם רוצים להדגיש את תווית השדה (לדוגמה "מס' תור") */
+.accordion-body span::before {
+  content: attr(data-label) ": ";
+  font-weight: bold;
+  color: #0a7e07;
+}
+
+/* דוגמא לאופן השימוש ב־data-label ב־JS: 
+   <span data-label="מס' תור">123</span>
+*/
+
+/* ---------------------------------------------
+   עיצוב כרטיסי KPI – גרסה צבעונית
+   --------------------------------------------- */
+/* Reset בסיסי */
+* {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
-a{
-  text-decoration: none;
-  color:black;
-}
-li{
-  list-style: none;
-}
-h2{
-    color: #3e4455;
+
+/* גוף הדף */
+body {
+  font-family: "Arial", sans-serif;
+  background: #f5f5f5;
+  color: #333;
+  padding: 16px;
 }
 
-img{
-    vertical-align: middle;
-  max-width: 100%;
-  
-}
-body{
-  font-family: 'Poppins', sans-serif;
-  
-}
-.container{
-    display: flex;
- 
+/* קונטיינר ה-KPI BAR */
+.kpi-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
 }
 
-/* sidebar layout and functionality */
-#sidebar{
-    display: flex;
-    flex-direction: column;
-    background-color: #d9534f;
+/* עיצוב כל כרטיס KPI */
+.kpi-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-#toggler{
-    display: node;
-}
-.toggler-btn{
-    display: flex;
-    align-items: center;
-    font-size: 1.5rem;
-    color: #fff;
-    padding: 1.5rem;
-
-}
-.toggle-btn span{
-    font-size: 1rem;
-    margin-left: 0.85rem;
-    font-weight: 600;
+/* אפקט הובר */
+.kpi-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-.sidebar-nav{
-    width: 85px;
-    min-width: 85px;
-    padding: 25px 0;
-    flex: 1 1 auto;
-    transition: all .25s ease-in-out;
+/* אייקון בכרטיס */
+.kpi-card .icon {
+  font-size: 28px;
+  margin-bottom: 12px;
+  color: #fff;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-#sidebar input[type="checkbox"]:checked ~ .sidebar-nav{
-    width: 260px;
-    min-width: 26opx;
+/* ערך מספרי */
+.kpi-card .value {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 8px;
 }
 
-a.sidebar-link{
- padding:0.625rem 1.625rem;
- color: #fff;
- display: block;
- white-space: nowrap;
- border-right:3px solid transparent;
+/* תיאור קצר */
+.kpi-card .label {
+  font-size: 0.95rem;
+  opacity: 0.8;
+  direction: rtl;
+}
+
+/* צבעים לפי סוג KPI */
+.kpi-card.green    { background-color: #e1f5e8; }
+.kpi-card.green .icon { background-color: #0a7e07; }
+
+.kpi-card.blue     { background-color: #e6f0fa; }
+.kpi-card.blue .icon  { background-color: #0b61d6; }
+
+.kpi-card.yellow   { background-color: #fff8e1; }
+.kpi-card.yellow .icon { background-color: #e6a800; }
+
+.kpi-card.red      { background-color: #fce8e6; }
+.kpi-card.red .icon   { background-color: #d32f2f; }
+
+/* רספונסיביות – מרווח פנימי במובייל */
+@media (max-width: 480px) {
+  .kpi-card {
+    padding: 12px;
+  }
+  .kpi-card .value {
+    font-size: 1.6rem;
+  }
+  .kpi-card .label {
+    font-size: 0.85rem;
+  }
+}
+
+/* סרגל הפילטרים */
+.filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+  align-items: center;
+  justify-content: flex-start; /* ב־RTL זה ייפתח מימין */
+}
+
+.filter-item {
+  position: relative;
+}
+
+.filters-bar select,
+.filters-bar input[type="text"] {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  min-width: 160px;
+  text-align: right; /* RTL */
+}
+
+.search-box {
+  flex: 1;
+  min-width: 200px;
+}
+
+#clearFilters {
+  padding: 8px 12px;
+  background: #e74c3c;
+  border: none;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+#clearFilters:hover {
+  background: #c0392b;
 }

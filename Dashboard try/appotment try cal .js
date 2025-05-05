@@ -1,5 +1,5 @@
 //web.js
-async function loadAvailableHours(selectedDate, selectedDuration) {
+/*async function loadAvailableHours(selectedDate, selectedDuration) {
     console.log('נכנסתי ל-loadAvailableHours');
     console.log('תאריך שנבחר:', selectedDate);
     console.log('משך שירות:', selectedDuration);
@@ -172,4 +172,137 @@ app.get('/appointments', authenticateToken, async (req, res) => {
         console.error('Error fetching appointments:', error);
         res.status(500).json({ message: 'שגיאה בקבלת תורים' });
     }
+});
+*/
+
+//calendar.js TRY
+
+document.addEventListener('DOMContentLoaded', async function() {
+  const calendarEl = document.getElementById('manager-calendar');
+
+  // 1) Fetch all boarding appointments from your server:
+  //    Each appointment has check_in, check_out (ISO dates), plus dog info if needed.
+  let events = [];
+  try {
+    const res = await fetch('http://localhost:3000/manager/appointments', {
+      credentials: 'include'
+    });
+    
+    // assuming your server returns: 
+    // [{id, dog_id, dog_name, check_in:"2025-05-02", check_out:"2025-05-07"}, …]
+    const data = await res.json();
+
+    // 2) Convert each booking into a FullCalendar “event”
+    data.forEach(b => {
+      events.push({
+        id: b.id,
+        title: `פנסיון: ${b.dog_name}`,    // show dog’s name
+        start: b.check_in,                 // fullcalendar understands ISO YYYY-MM-DD
+        end: moment(b.check_out).add(1,'days').format('YYYY-MM-DD'), 
+          /* FullCalendar’s end date is exclusive, so add 1 day */
+        allDay: true,
+        backgroundColor: '#e74c3c',        // red for busy
+        borderColor: '#c0392b'
+      });
+    });
+  }
+  catch(err) {
+    console.error('Error loading bookings:', err);
+  }
+
+  // 3) Instantiate the calendar
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    locale: 'he',                       // Hebrew locale (RTL)
+    firstDay: 0,                        // Sunday = 0
+    height: 'auto',
+    headerToolbar: {
+      left:   'prev,next today',
+      center: 'title',
+      right:  'dayGridMonth,listWeek'
+    },
+    events,                             // the array we built
+    eventDidMount: function(info) {
+      // optional: add a tooltip with the booking details
+      const tooltipText = `${info.event.title}\nמ־${moment(info.event.start).format('DD/MM/YYYY')} עד־${moment(info.event.end).subtract(1,'days').format('DD/MM/YYYY')}`;
+      info.el.setAttribute('title', tooltipText);
+    },
+    dateClick: function(info) {
+      // optional: click on a day shows availability or create new booking
+      if (info.dayEl.classList.contains('fc-day-disabled')) return;
+      alert(`לחצת על תאריך ${moment(info.date).format('DD/MM/YYYY')}`);
+    },
+    dayCellDidMount: function(arg) {
+      // color all free days green
+      if (!arg.el.classList.contains('fc-day-disabled')) {
+        if (!arg.el.querySelector('.fc-daygrid-day-events').children.length) {
+          arg.el.style.backgroundColor = '#e9f8f1';
+        }
+      }
+    }
+  });
+
+  calendar.render();
+});
+
+document.addEventListener('DOMContentLoaded', async function() {
+  const calendarEl = document.getElementById('manager-calendar');
+
+  let events = [];
+  try {
+    // 1) Fetch combined appointments
+    const res = await fetch('http://localhost:3000/manager/appointments', {
+      credentials: 'include'
+    });
+    if (!res.ok) throw new Error('Network response was not OK');
+
+    const data = await res.json();
+    // data = [
+    //   { start_date:"2025-05-02", end_date:"2025-05-07", type:"boarding", dog_name:"Dog3" },
+    //   { start_date:"2025-05-15", start_time:"11:30", type:"grooming", dog_name:"Ausky", service_name:"…"},
+    //   …
+    // ]
+
+    // 2) Convert each booking into a FullCalendar event
+    data.forEach(b => {
+      if (b.type === 'boarding') {
+        events.push({
+          title: `פנסיון: ${b.dog_name}`,
+          start: b.start_date,
+          end:   moment(b.end_date).add(1,'days').format('YYYY-MM-DD'),
+          allDay: true,
+          backgroundColor: '#c0392b'
+        });
+      } else {
+        // for grooming, we’ll treat it as a single-day event (all day),
+        // or you can set start_time/end_time if you prefer timeGrid view
+        events.push({
+          title: `טיפוח: ${b.dog_name}`,
+          start: b.start_date,
+          allDay: true,
+          backgroundColor: '#2980b9'
+        });
+      }
+    });
+  }
+  catch(err) {
+    console.error('Error loading bookings:', err);
+  }
+
+  // 3) Render FullCalendar
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    locale: 'he',
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,listWeek'
+    },
+    events,
+    dateClick(info) {
+      alert(`You clicked on ${moment(info.date).format('DD/MM/YYYY')}`);
+    }
+  });
+
+  calendar.render();
 });
