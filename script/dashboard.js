@@ -27,50 +27,46 @@ function closePopup(popupId) {
 
 document.addEventListener('DOMContentLoaded', async() => {
     await checkLogin(); // <--- Add this line
-
     // בוחרים את כל הלינקים בסיידבר
     const links = document.querySelectorAll('.sidebar ul li a');
     // וגם את כל המקטעים בתוכן
     const sections = document.querySelectorAll('main .content');
-
     const openGroomBtn = document.getElementById('openGroomingBtn');
 if (openGroomBtn) {
   openGroomBtn.addEventListener('click', () => {
     openPopup('groomingpopup');
   });
-}
+  //sidebar content activation
+  links.forEach(link => {
+    link.addEventListener('click', ev => {
+      ev.preventDefault();
 
+      // 1. איזה section נבחר
+      const targetId = link.getAttribute('data-target');
+
+      // 2. מסירים את המחלקה .content--active מכל המקטעים
+      sections.forEach(sec => sec.classList.remove('content--active'));
+
+      // 3. מסמנים את המקטע המתאים כפעיל
+      const targetSection = document.getElementById(targetId);
+      if (targetSection) {
+        targetSection.classList.add('content--active');
+      }
+      // 4. אופציונלי – מסמנים גם את הלינק הפעיל בסיידבר
+      links.forEach(l => l.classList.remove('active-link'));
+      link.classList.add('active-link');
+    });
+  });
+
+}
     loadBoardingData();
     loadBoardingStats();
     loadGroomingAppointments();
     loadServices();
-
-
-
-
-    links.forEach(link => {
-      link.addEventListener('click', ev => {
-        ev.preventDefault();
-  
-        // 1. איזה section נבחר
-        const targetId = link.getAttribute('data-target');
-  
-        // 2. מסירים את המחלקה .content--active מכל המקטעים
-        sections.forEach(sec => sec.classList.remove('content--active'));
-  
-        // 3. מסמנים את המקטע המתאים כפעיל
-        const targetSection = document.getElementById(targetId);
-        if (targetSection) {
-          targetSection.classList.add('content--active');
-        }
-  
-        // 4. אופציונלי – מסמנים גם את הלינק הפעיל בסיידבר
-        links.forEach(l => l.classList.remove('active-link'));
-        link.classList.add('active-link');
-      });
-    });
-
-
+    loadAbandonedReports()
+    loadHandlersAccordion()
+    loadCareProvidersAccordion()
+    loadCustomersAccordion()
     document
     .getElementById('customerIdInput')
     .addEventListener('change', loadCustomerDogsById);
@@ -80,7 +76,7 @@ if (openGroomBtn) {
     .getElementById('groomingpopup_form')
     .addEventListener('submit', submitGroomingAppointment);
 
-
+  
 
   });//end of DOMContentLoaded
   
@@ -96,7 +92,71 @@ document.querySelectorAll('.sidebar-nav a').forEach(link => {
     });
   });
   
+  //build the designed openning accordion table
+  function buildAccordionFromData(data, container, headerKeys, bodyKeys, labels) {
+    // אם קיבלת מחרוזת – שלוף את האלמנט
+    if (typeof container === 'string') {
+      container = document.getElementById(container);
+    }
+    if (!container) {
+      console.error('Accordion container not found');
+      return;
+    }
   
+    // נקה מה שהיה שם
+    container.innerHTML = '';
+  
+    data.forEach(item => {
+      const accordion = document.createElement('div');
+      accordion.classList.add('accordion');
+  
+      // כותרת
+      const header = document.createElement('div');
+      header.classList.add('accordion-header');
+      header.innerHTML = headerKeys
+        .map(key => `<span>${labels[key]}: ${item[key] || ''}</span>`)
+        .join('');
+  
+      // גוף
+      const body = document.createElement('div');
+      body.classList.add('accordion-body');
+      body.style.display = 'none';
+      body.innerHTML = bodyKeys
+        .map(key => `<span data-label="${labels[key]}">${item[key] || ''}</span>`)
+        .join('');
+  
+      // טריגר פתיחה/סגירה
+      header.addEventListener('click', () => {
+        const open = header.classList.toggle('open');
+        body.style.display = open ? 'flex' : 'none';
+      });
+  
+      accordion.append(header, body);
+      container.append(accordion);
+    });
+  }
+  
+  
+  // פונקציה גנרית שאחראית על כל ההמרה לטבלה לאקורדיון
+function transformTableToAccordion(cfg) {
+  const { tableId, containerId, headerKeys, bodyKeys, labels } = cfg;
+  const table     = document.getElementById(tableId);
+  const container = document.getElementById(containerId);
+  const rows      = Array.from(table.tBodies[0].rows);
+
+  const data = rows.map(row => {
+    const cells = row.cells;
+    const obj = {};
+    Object.keys(labels).forEach((key, i) => {
+      obj[key] = cells[i]?.innerText.trim() || '';
+    });
+    return obj;
+  });
+
+  table.style.display = 'none';
+  buildAccordionFromData(data, container, headerKeys, bodyKeys, labels);
+}
+
   // טעינת נתוני פנסיון
   async function loadBoardingData() {
     try {
@@ -104,56 +164,35 @@ document.querySelectorAll('.sidebar-nav a').forEach(link => {
       if (!res.ok) throw new Error('Network error');
       const data = await res.json();
   
-      const table = document.getElementById('posts');
-      // Optionally hide the table itself:
-      table.style.display = 'none';
-  
-      // בנה את האקורדיון על סמך response JSON
-      buildAccordionFromData(data);
+      
+
+       const table = document.getElementById('boarding-posts');
+ if (table) table.style.display = 'none';
+
+ // וכאן—קרא לבניית האקורדיון מתוך ה־JSON
+ buildAccordionFromData(
+   data,
+   'accordion-boarding',
+   ['check_in','check_out','dog_name'],   // כותרת
+   ['id','customer_name','phone'],        // גוף
+   {                                      // תוויות
+     id: "מס' תור",
+     check_in: "תאריך כניסה",
+     check_out: "תאריך יציאה",
+     dog_name: "שם כלב",
+     customer_name: "שם לקוח",
+     phone: "טלפון"
+   }
+ );
+
   
     } catch (err) {
       console.error(err);
       alert('שגיאה בטעינת הפנסיון');
     }
   }
-  
-  function buildAccordionFromData(data) {
-    const table = document.getElementById('posts');
-    const accordion = document.createElement('div');
-    accordion.classList.add('accordion');
-  
-    data.forEach(item => {
-      const { id, check_in, check_out, customer_name, phone, dog_name } = item;
-  
-      const header = document.createElement('div');
-      header.classList.add('accordion-header');
-      header.innerHTML = `
-        <span>כניסה: ${check_in}</span>
-        <span>יציאה: ${check_out}</span>
-        <p> ${dog_name}</p>
 
-      `;
-  
-      const body = document.createElement('div');
-      body.classList.add('accordion-body');
-      body.style.display = 'none';
-      body.innerHTML = `
-        <span>מס' תור - ${id}</span>
-         <span>שם לקוח - ${customer_name}</span>
-         <span>טלפון -  ${phone}</span>
-      `;
-  
-      header.addEventListener('click', () => {
-        const open = header.classList.toggle('open');
-        body.style.display = open ? 'block' : 'none';
-      });
-  
-      accordion.append(header, body);
-    });
-  
-    table.insertAdjacentElement('afterend', accordion);
-  }
-   
+
 
   async function loadBoardingStats(date) {
     try {
@@ -178,15 +217,22 @@ document.querySelectorAll('.sidebar-nav a').forEach(link => {
   }
 
   
-
-  function formatHebTime(isoString) {
-    const d = new Date(isoString);
-    if (isNaN(d)) return isoString; // אם לא תקין, תחזיר כמו שהוא
+  // פונקציה להמרת תאריך ושעה לפורמט עברי  
+  function formatHebTime(timeString) {
+    // אם זה כבר במשפט HH:mm או HH:mm:ss
+    const m = timeString.match(/^(\d{2}):(\d{2})/);
+    if (m) {
+      // תחזיר "HH:mm"
+      return `${m[1]}:${m[2]}`;
+    }
+    // אחרת תנסה לפרש בתור תאריך מלא
+    const d = new Date(timeString);
+    if (isNaN(d)) return timeString; 
     const hh = String(d.getHours()).padStart(2, '0');
     const mm = String(d.getMinutes()).padStart(2, '0');
     return `${hh}:${mm}`;
   }
-  function formatHebDate(isoString) {
+    function formatHebDate(isoString) {
     const d = new Date(isoString);
     const day   = String(d.getDate()).padStart(2, '0');
     const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -194,65 +240,6 @@ document.querySelectorAll('.sidebar-nav a').forEach(link => {
     return `${day}/${month}/${year}`;
   }
 
-
-  /*async function loadGroomingAppointments() {
-    try {
-      const res = await fetch('http://localhost:3000/grooming/appointments', {
-        credentials: 'include'
-      });
-      if (!res.ok) throw new Error(`Server error: ${res.status}`);
-      const data = await res.json();
-  
-      console.log(data); // כדי לוודא שוב
-  
-      if (!Array.isArray(data)) 
-        throw new Error('Invalid response, expected an array');
-  
-      const tbody = document.querySelector('#grooming-posts tbody');
-      tbody.innerHTML = '';  // נקה קודם
-
-      
-
-      data.forEach(item => {
-        /*const dt = new Date(item.date + 'T' + item.time);
-
-        // מפיקים תאריך ושעה בפורמט עברי
-        const hebDate = dt.toLocaleDateString('he-IL', {
-          year : 'numeric',
-          month: '2-digit',
-          day  : '2-digit'
-        }); // => "07.05.2025"
-        item.date = hebDate; // עדכון התאריך בפורמט עברי
-        
-      
-        const hebTime = dt.toLocaleTimeString('he-IL', {
-          hour  : '2-digit',
-          minute: '2-digit'
-        }); // => "14:30"
-      item.time = hebTime; // עדכון השעה בפורמט עברי
-      -----------------------
-        const tr = document.createElement('tr');
-      
-        tr.innerHTML = `
-          <td data-label="מס' תור">${item.id}</td>
-          <td data-label="תאריך">${item.date}</td>
-          <td data-label="שעה">${item.time}</td>
-          <td data-label="שירות">${item.service}</td>
-          <td data-label="שם לקוח">${item.customer_name}</td>
-          <td data-label="טלפון">${item.phone}</td>
-          <td data-label="שם כלב">${item.dog_name}</td>   <!-- ה-TD החדש -->
-        `;
-      
-        tbody.appendChild(tr);
-      });
-        
-    } catch (err) {
-      console.error('Error loading grooming appointments:', err);
-      alert('שגיאה בטעינת תורי טיפוח');
-    }
-  }
-    */
-  
   async function loadGroomingAppointments() {
     try {
       const res = await fetch('http://localhost:3000/grooming/appointments', {
@@ -261,33 +248,40 @@ document.querySelectorAll('.sidebar-nav a').forEach(link => {
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
       const data = await res.json();
   
-      const tbody = document.querySelector('#grooming-posts tbody');
-      tbody.innerHTML = '';  // נקה קודם
+      // 1. פורמט תאריך ושעה בעברית
+      const formatted = data.map(item => ({
+        ...item,
+        date: formatHebDate(item.date),      // e.g. "07/05/2025"
+        time: formatHebTime(item.time)       // e.g. "14:30"
+      }));
   
-      data.forEach(item => {
-        // הפורמט של date ו־time מגיע כ־ISO. בוא נמיר כל אחד בנפרד:
-        const formattedDate = formatHebDate(item.date);    // "dd/MM/yyyy"
-        const formattedTime = item.time.slice(0, 5);    // "HH:mm"
+      // 2. הסתר את הטבלה הסטטית (tbody כבר לא בשימוש)
+      const table = document.getElementById('grooming-posts');
+      if (table) table.style.display = 'none';
   
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td data-label="מס' תור">${item.id}</td>
-          <td data-label="תאריך">${formattedDate}</td>
-          <td data-label="שעה">${formattedTime}</td>
-          <td data-label="שירות">${item.service}</td>
-          <td data-label="שם לקוח">${item.customer_name}</td>
-          <td data-label="טלפון">${item.phone}</td>
-          <td data-label="שם כלב">${item.dog_name}</td>
-        `;
-        tbody.appendChild(tr);
-      });
+      // 3. תבנה אקורדיון מתוך המערך שהמירנו
+      buildAccordionFromData(
+        formatted,
+        'accordion-grooming',             // id של הקונטיינר
+        ['date','time','service'],         // HEADER keys
+        ['id','customer_name','phone','dog_name'], // BODY keys
+        {
+          id:            "מס' תור",
+          date:          "תאריך",
+          time:          "שעה",
+          service:       "שירות",
+          customer_name: "שם לקוח",
+          phone:         "טלפון",
+          dog_name:      "שם כלב"
+        }
+      );
   
     } catch (err) {
       console.error('Error loading grooming appointments:', err);
       alert('שגיאה בטעינת תורי טיפוח');
     }
   }
-
+    
 
   async function loadCustomerDogsById() {
     const customerId = document.getElementById('customerIdInput').value.trim();
@@ -317,50 +311,7 @@ document.querySelectorAll('.sidebar-nav a').forEach(link => {
     }
   }
 
-  async function submitGroomingAppointment(e) {
-  e.preventDefault();
-  const customerId = document.getElementById('customerIdInput').value.trim();
-  const appointment_date = document.getElementById('appointmentDate').value;
-  const slot_time        = document.getElementById('hourSelect').value;
-  const service_id       = document.getElementById('serviceSelect').value;
-  const dog_id           = document.getElementById('dogSelect').value;
-  const notes            = document.getElementById('notes').value;
 
-  if (!customerId) {
-    alert('יש להזין ת.ז. של לקוח');
-    return;
-  }
-  // בדיקות נוספות לפי הצורך...
-
-  try {
-    const res = await fetch('http://localhost:3000/grooming-appointments', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        customer_id: customerId,
-        appointment_date, slot_time, service_id, dog_id, notes
-      })
-    });
-    const result = await res.json();
-    if (!res.ok) throw new Error(result.message || 'Error');
-    alert('התור נקבע בהצלחה');
-    closePopup('groomingpopup');
-    // אופציונלי: ריענון לוח תורים
-    loadGroomingAppointments();
-  } catch (err) {
-    console.error(err);
-    alert('שגיאה בשמירת התור');
-  }
-}
-
-// 1. פתח/סגור פופאפ
-function openPopup(id) {
-  document.getElementById(id).style.display = 'flex';
-}
-function closePopup(id) {
-  document.getElementById(id).style.display = 'none';
-}
 
 // 2. אתחול: טעינת שירותים פעם אחת
 async function loadServices() {
@@ -507,4 +458,247 @@ document.getElementById('groomingpopup_form')
     }
   });
 
+    async function submitGroomingAppointment(e) {
+  e.preventDefault();
+  const customerId = document.getElementById('customerIdInput').value.trim();
+  const appointment_date = document.getElementById('appointmentDate').value;
+  const slot_time        = document.getElementById('hourSelect').value;
+  const service_id       = document.getElementById('serviceSelect').value;
+  const dog_id           = document.getElementById('dogSelect').value;
+  const notes            = document.getElementById('notes').value;
 
+  if (!customerId) {
+    alert('יש להזין ת.ז. של לקוח');
+    return;
+  }
+  // בדיקות נוספות לפי הצורך...
+
+  try {
+    const res = await fetch('http://localhost:3000/grooming-appointments', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customer_id: customerId,
+        appointment_date, slot_time, service_id, dog_id, notes
+      })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || 'Error');
+    alert('התור נקבע בהצלחה');
+    closePopup('groomingpopup');
+    // אופציונלי: ריענון לוח תורים
+    loadGroomingAppointments();
+  } catch (err) {
+    console.error(err);
+    alert('שגיאה בשמירת התור');
+  }
+}
+
+
+  async function loadAbandonedReports() {
+    console.log('calling loadAbandonedReports…');
+  
+    try {
+      // 1. קבל נתונים מהשרת
+      const res = await fetch('http://localhost:3000/dashboard/reports', {
+        credentials: 'include',
+        cache: 'no-cache'     // <-- always force a fresh cop
+        
+      });
+     
+      if (!res.ok) {
+        // pull the text (or JSON) for debugging
+        const errText = await res.text();
+        throw new Error(`Server error ${res.status}: ${errText}`);
+      }
+      const data = await res.json();
+      console.log('abandoned data:', data);
+
+      // 2. הסתר את הטבלה הסטטית
+      const table = document.getElementById('abandoned-posts');
+      if (data.length > 0) {
+        table.style.display = 'none';
+      } else {
+        table.style.display = ''; // השאר אותה גלויה
+      }
+      
+      // 3. בנה אקורדיון מתוך ה־JSON
+      const formatted = data.map(item => ({
+        ...item,
+        handler_id:    item.handler_id    ?? 'לא שובץ',
+
+        care_provider: item.care_provider ?? 'לא שובץ',
+      
+        image_path: `<img src="/uploads/${item.image_path}" alt="תמונה" style="max-width:100px;">`
+      }));
+  
+      buildAccordionFromData(
+        formatted,
+        'accordion-abandoned',
+        ['id','customer_name','phone','dog_size','health_status','care_provider','handler_id'],
+        ['address','notes','status','image_path','report_date'],
+        {
+          id:             "מס' דוח",
+          customer_name:  "שם לקוח",
+          phone:          "טלפון",
+          dog_size:       "גודל כלב",
+          health_status:  "מצב בריאות",
+          report_date:    "תאריך דיווח",
+          address:        "כתובת",
+          notes:          "הערות",
+          status:         "סטטוס",
+          handler_id:       "שליח",
+          care_provider: "גורם מטפל ",
+          image_path:     "תמונה"
+        }
+      );
+    
+    } catch (err) {
+      console.error('Error loading abandoned reports:', err);
+      alert('שגיאה בטעינת פניות לכלבים נטושים');
+    }
+  }
+  
+  async function loadHandlersAccordion() {
+    try {
+      const res = await fetch('http://localhost:3000/handlers', {
+        credentials: 'include'
+      });
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+      const data = await res.json();
+  
+      // הסתרת הטבלה
+      const table = document.getElementById('handlers-posts');
+      if (table) table.style.display = 'none';
+  
+      // בניית אקורדיון
+      buildAccordionFromData(
+        data,
+        'accordion-handlers',
+        ['name','phone','vehicle_type'],                        // שדות בכותרת
+        ['id','address','email'], // שדות בגוף
+        {
+          id:            "מס' שליח",
+          name:          "שם",
+          phone:         "טלפון",
+          address:       "כתובת",
+          vehicle_type:  "סוג רכב",
+          email:         "אימייל"
+        }
+      );
+  
+    } catch (err) {
+      console.error('Error loading handlers:', err);
+      alert('שגיאה בטעינת שליחים');
+    }
+  }
+  
+
+  async function loadCareProvidersAccordion() {
+    try {
+      const res = await fetch('http://localhost:3000/care-providers', {
+        credentials: 'include'
+      });
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+      const data = await res.json();
+  
+      // הסתרת הטבלה
+      const table = document.getElementById('support-posts');
+      if (table) table.style.display = 'none';
+  
+      // בניית אקורדיון
+      buildAccordionFromData(
+        data,
+        'accordion-support',
+        ['id','name'],                         // כותרת
+        ['address','phone','additional_phone','type'], // גוף
+        {
+          id:               "מס' גורם",
+          name:             "שם",
+          address:          "כתובת",
+          phone:            "טלפון",
+          additional_phone: "טלפון נוסף",
+          type:             "סוג"
+        }
+      );
+  
+    } catch (err) {
+      console.error('Error loading care providers:', err);
+      alert('שגיאה בטעינת גורמי סיוע');
+    }
+  }
+  
+  async function loadCustomersAccordion() {
+    try {
+      const res = await fetch('http://localhost:3000/dashboard/customers', {
+        credentials: 'include'
+      });
+      console.log('res:', res);
+      if (!res.ok) throw new Error(`Server error ${res.status}`);
+      const data = await res.json();
+  
+      // נסתרת הטבלה
+      const table = document.getElementById('customers-posts');
+      if (table) table.style.display = 'none';
+  
+      // בונים אקורדיון
+      const container = document.getElementById('accordion-customers');
+      container.innerHTML = ''; 
+  
+      data.forEach(cust => {
+        const accordion = document.createElement('div');
+        accordion.classList.add('accordion');
+  
+        // כותרת
+        const header = document.createElement('div');
+        header.classList.add('accordion-header');
+        header.innerHTML = `
+          <span>מס' לקוח: ${cust.id}</span>
+          <span>שם: ${cust.customer_name}</span>
+          <span>טלפון: ${cust.phone}</span>
+        `;
+  
+        // גוף
+        const body = document.createElement('div');
+        body.classList.add('accordion-body');
+        body.style.display = 'none';
+  
+        // פרטי לקוח
+        let html = `
+          <div class="cust-info">
+          <div class="email">📧 אימייל: ${cust.email}</div>
+         <div class="address">📍 כתובת: ${cust.address}</div>
+        </div>
+          <h4>🐶 כלבים:</h4>
+  <div class="dog-cards">
+    ${cust.dogs.map(d => `
+      <div class="dog-card">
+        <h5>${d.name}</h5>
+        <div>גזע: ${d.breed}</div>
+        <div>גיל: ${d.age}</div>
+        <div>מין: ${d.gender}</div>
+        <div>גודל: ${d.size}</div>
+      </div>
+    `).join('')}
+  </div>
+`;
+        html += '</ul>';
+        body.innerHTML = html;
+  
+        header.addEventListener('click', () => {
+          const open = header.classList.toggle('open');
+          body.style.display = open ? 'block' : 'none';
+        });
+  
+        accordion.append(header, body);
+        container.append(accordion);
+      });
+  
+    } catch (err) {
+      console.error('Error loading customers:', err);
+      alert('שגיאה בטעינת לקוחות');
+    }
+  }
+  
+  

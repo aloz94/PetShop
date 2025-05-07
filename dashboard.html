@@ -6,7 +6,6 @@
   <title>לוח בקרה</title>
   <link rel="stylesheet" href="styles/dashboard.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
-        integrity="sha512-pHBxJ2ZVaGLc/SHYSLKa1sH1hc8+DJYxK5/mdTzjs6zB3hgR0KJ+zY5RH65KpoCz3+FxdRDo5V0XiN7gtM8z+w==" 
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 
   <link rel="stylesheet" href="styles/kpi-dashboard.css"/>
@@ -65,8 +64,8 @@
 
 <!-- דאשבורד פנסיון-->
       <section class="content content--active" id="profile">
-        <div class="dashboard-card">
 
+        <div class="dashboard-card">
           <div class="card" id="checkins-today">
             <h6 class="title">התקדמות חברים</h6>
             <h6 class="amount">₪71,540</h6>
@@ -85,9 +84,11 @@
             </div>
           </div>
         </div>
+        
 <button class="btn btn--primary" id="openGroomingBtn">הוסף תור</button>
+
         <h1>ניהול פנסיון</h1>
-        <table id="posts">
+        <table class="dashboard-table" id="boarding-posts">
           <thead>
             <tr>
               <th>מס' תור</th>
@@ -102,6 +103,7 @@
             <!-- ימולא ב-JS -->
           </tbody>
         </table>
+        <div id="accordion-boarding"></div>
 
       </section>
     
@@ -146,15 +148,17 @@
               <th>לקוח</th>
               <th>טלפון</th>
               <th>כלב</th>
-
-
             </tr>
           </thead>
           <tbody>
             
           </tbody>
         </table>
+        <div id="accordion-grooming"></div>
+
       </section>
+
+
     <section class="content" id="earnings">
       <h2>הכנסות</h2>
       <p>כאן יופיעו נתוני הכנסות</p>
@@ -163,19 +167,83 @@
     <section class="content" id="users">
       <h2>משתמשים</h2>
       <p>כאן יהיה טבלת המשתמשים</p>
+      
     </section>
   
     <section class="content" id="settings">
-      <h2>הגדרות</h2>
-      <p>כאן הגדרות שונות</p>
-    </section>
-  
-    <section class="content" id="help">
-      <h2>עזרה</h2>
-      <p>כאן סימוכין לעזרה</p>
-    </section>
-  </div>
+      <h2>פניות לכלבים נטושים</h2>
 
+      <table class="dashboard-table" id="abandoned-posts">
+        <thead>
+          <tr>
+            <th>מס' דוח</th>
+            <th>גודל כלב</th>
+            <th>מצב בריאות</th>
+            <th>כתובת</th>
+            <th>הערות</th>
+            <th>סטטוס</th>
+            <th>שליח</th>
+            <th>גורם מטפל</th>
+            <th>תמונה</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- ימולא ב-JS -->
+        </tbody>
+      </table>
+      
+      <div id="accordion-abandoned"></div>
+          </section>
+          <SECTION CLASS="content" ID="delivry">
+            <H2>שליחים</H2>
+            <h2>שליחים</h2>
+
+            <table class="dashboard-table" id="handlers-posts">
+              <thead>
+                <tr>
+                  <th>מס' שליח</th>
+                  <th>שם</th>
+                </tr>
+              </thead>
+              <tbody>
+      
+              </tbody>
+            </table>
+          
+            <div id="accordion-handlers"></div>
+      
+      </section>
+      <section class="content" id="support">
+        <h2>גורמי סיוע</h2>
+
+        <table class="dashboard-table" id="support-posts">
+          <thead>
+            <tr>
+              <th>מס' גורם</th>
+              <th>שם</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      
+        <div id="accordion-support"></div>
+      </section>
+    <section class="content" id="help">
+      <table class="dashboard-table" id="customers-posts">
+        <thead>
+          <tr>
+            <th>מס' לקוח</th>
+            <th>שם</th>
+            <th>טלפון</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    
+      <!-- כאן נבנה את האקורדיון -->
+      <div id="accordion-customers"></div>
+    
+    </section>
 </main>
 
 <!-- popup spa order-->

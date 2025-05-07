@@ -303,8 +303,6 @@ body, html {
 #dashboard-table th:nth-child(6),
 #dashboard-table td:nth-child(6) { width: 160px; }
 
-/* -------------- 2עיצוב כללי לטבלאות Dashboard -------------- */
-
 
 /* 2. מבנה האקורדיון (הוספת מרווח תחתון בין הפריטים) */
 
@@ -336,7 +334,7 @@ body, html {
 
 /* כותרת פתוחה */
 .accordion-header.open {
-  background: #da800c;
+  background: #eee;
 }
 
 /* אייקון או ציון פתוח/סגור */
@@ -357,11 +355,9 @@ body, html {
 
 
 .accordion-body {
-  display: none;
-  flex-wrap: wrap;         /* תעביר לשורה שנייה אם צריפות */
-
+  display: flex;
   flex-direction: row;   /* כל ה-span בשורה אחת */
-  gap: 1rem;               /* רווח בין שורות/עמודות */
+  gap: 2rem;             /* ריווח בין עמודות */
   align-items: center;   /* יישור אנכי */
   padding: 0.75rem 1rem;     /* ריווח פנימי */
   background-color: #fafafa; /* רקע עדין */
@@ -404,7 +400,78 @@ body, html {
 }
 
 
+/* -------------- עיצוב כללי לטבלאות Dashboard -------------- */
+.dashboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+  background: #fff;
+  overflow-x: auto; /* גלילה אופקית במובייל */
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
 
+/* כותרת הטבלה */
+.dashboard-table thead {
+  background: #6a0dad;
+  color: #fff;
+}
+.dashboard-table thead th {
+  padding: 0.75rem 1rem;
+  text-align: right;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* שורות גוף הטבלה */
+.dashboard-table tbody tr {
+  border-bottom: 1px solid #eee;
+  transition: background .2s;
+}
+.dashboard-table tbody tr:hover {
+  background: #f0f0f0;
+}
+
+/* תאי גוף הטבלה */
+.dashboard-table tbody td {
+  padding: 0.5rem 1rem;
+  text-align: right;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+/* קישורים בתוך הטabela */
+.dashboard-table a {
+  color: #6a0dad;
+  text-decoration: none;
+}
+.dashboard-table a:hover {
+  text-decoration: underline;
+}
+
+/* רספונסיביות במובייל */
+@media (max-width: 768px) {
+  .dashboard-table thead {
+    display: none;
+  }
+  .dashboard-table,
+  .dashboard-table tbody tr {
+    display: block;
+    width: 100%;
+  }
+  .dashboard-table tbody td {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem;
+    border-bottom: 1px solid #ddd;
+  }
+  .dashboard-table tbody td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    margin-left: 0.5rem;
+  }
+}
 
 /* עיצוב פופאפ – גרסה צבעונית
  --------------------------------------------- */
@@ -588,113 +655,4 @@ padding: 0;
     font-size: 0.85rem;
   }
 }
-/* target only the abandoned-reports accordion */
-#accordion-abandoned .accordion-header {
-  display: flex;
-  flex-wrap: wrap;    /* allow items to flow onto a second row */
-  overflow-x: auto;   /* still allow scrolling if you really want it */
-  background: #090;    /* keep your green header color */
-  padding: 0.5rem;
-}
 
-/* allow each field to shrink and grow as needed */
-#accordion-abandoned .accordion-header span {
-  flex: 1 1 100px;    /* at least 100px, but can shrink below or grow */
-  margin: 0 0.5rem;
-  color: #fff;
-  font-weight: bold;
-  white-space: normal; /* let the text wrap if it’s too long */
-}
-
-/* same treatment for the body rows */
-#accordion-abandoned .accordion-body {
-  display: flex;
-  flex-wrap: wrap;
-  padding: 0.5rem;
-}
-
-#accordion-abandoned .accordion-body span {
-  flex: 1 1 120px;
-  margin: 0.5rem;
-  white-space: normal;
-}
-
-
-.dog-cards {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
-}
-.dog-card {
-  flex: 1 1 calc(33% - 8px);
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  font-size: 0.9em;
-}
-.dog-card h5 {
-  margin: 0 0 4px;
-  font-size: 1em;
-}
-
-/* 1. תוודאו שהסלקטור ב־CSS תואם למה שבאמת מיוצר ב־JS */
-.accordion-body .dogs-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;          /* המרווח בין הכרטיסים */
-  margin-top: 8px;    /* ריווח מעל */
-}
-
-/* 2. עיצוב הכרטיס */
-.accordion-body .dog-card {
-  flex: 1 1 calc(33.33% - 12px);  /* שליש רוחב מינוס המרווח */
-  min-width: 220px;               /* כדי שלא יתכווץ יותר מדי */
-  background: #fff;
-  border-radius: 6px;
-  padding: 10px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-}
-
-/* 3. כותרת כלב */
-.accordion-body .dog-card .dog-header {
-  font-weight: bold;
-  margin-bottom: 6px;
-}
-
-/* 4. אימייל וכתובת בשורה אחת */
-.accordion-body .cust-info {
-  display: flex;
-  flex-direction: row-reverse; /* RTL */
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;          /* ריווח בין אימייל לכתובת */
-  margin-bottom: 12px;
-}
-
-.status-badge {
-  display:inline-block;
-  padding:0.2em 0.4em;
-  border-radius:0.2em;
-  color:#fff;
-  font-size:0.85em;
-}
-.status-pending    { background:#f0ad4e; }
-.status-inprogress { background:#5bc0de; }
-.status-completed  { background:#5cb85c; }
-.status-cancelled  { background:#d9534f; }
-
-.action-btn {
-  margin:0 0.25em;
-  padding:0.2em 0.5em;
-  font-size:0.85em;
-  border:none;
-  border-radius:0.2em;
-  color:#fff;
-  cursor:pointer;
-}
-.btn-start    { background:#5bc0de; }
-.btn-complete { background:#5cb85c; }
-.btn-cancel   { background:#d9534f; }

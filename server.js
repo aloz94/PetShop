@@ -17,7 +17,6 @@ const JWT_SECRET = 'MyProjectJWT!2025_Secret_Key!';
 const app=express();
 //app.use(cors()); // Enable CORS for all routes
 
-
 app.use(cors({
     origin: 'http://localhost:3000', // Replace with your client URL
     credentials: true // Allow cookies to be sent
@@ -735,6 +734,151 @@ ORDER BY
   }
 });
 
+// מחזיר את רשימת הכלבים של לקוח לפי ת"ז
+app.get('/customers/:id/dogs', authenticateToken, async (req, res) => {
+  const customerId = req.params.id;
+  try {
+    const query = `
+      SELECT id, name 
+      FROM dogs 
+      WHERE customer_id = $1
+    `;
+    const { rows } = await con.query(query, [customerId]);
+    return res.json(rows);
+  } catch (err) {
+    console.error('Error fetching customer dogs:', err);
+    return res.status(500).json({ message: 'שגיאה בטעינת כלבי הלקוח' });
+  }
+});
+
+app.use('/styles', express.static(path.join(__dirname, 'styles'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css'); //Set the correct header for css files
+    }
+  }
+}));
+
+// רק עובדים מורשים לקרוא את הדיווחים
+app.get('/dashboard/reports', authenticateToken, async (req, res) => {
+  try {
+    
+      ({ rows } = await con.query(`
+              SELECT
+        r.id,
+        r.dog_size,
+        r.health_status,
+        r.address,
+        r.notes,
+        r.status,
+        r.image_path,
+        r.report_date,
+        r.handler_id,
+        r.care_provider,
+        -- pull in full customer name & phone:
+        c.first_name || ' ' || c.last_name AS customer_name,
+        c.phone
+      FROM abandoned_dog_reports AS r
+      JOIN customers AS c
+        ON r.customer_id = c.id
+      ORDER BY r.id DESC
+
+      `));
+    
+    res.json(rows);
+      }
+   catch (err) {
+    console.error('Error fetching dashboard reports:', err);
+    res.status(500).json({ message: 'שגיאה בשליפת פניות לכלבים נטושים' });
+  }
+});
+
+// רק משתמשים מורשים
+app.get('/handlers', authenticateToken, async (req, res) => {
+  try {
+    const result = await con.query(`
+      SELECT
+        id,
+        name,
+        phone,
+        address,
+        vehicle_type,
+        email
+      FROM handlers
+      ORDER BY id
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching handlers:', err);
+    res.status(500).json({ message: 'שגיאה בטעינת השליחים' });
+  }
+});
+
+
+// מחזיר את רשימת גורמי הסיוע
+app.get('/care-providers', authenticateToken, async (req, res) => {
+  try {
+    const result = await con.query(`
+      SELECT
+        id,
+        name,
+        address,
+        phone,
+        additional_phone,
+        type
+      FROM care_provider
+      ORDER BY name
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching care providers:', err);
+    res.status(500).json({ message: 'שגיאה בשליפת גורמי סיוע' });
+  }
+});
+
+
+// רשימת לקוחות עם כל הכלבים שלהם
+app.get('/dashboard/customers', authenticateToken, async (req, res) => {
+  // רק עובדים יכולים לקרוא
+
+  try {
+    const { rows } = await con.query(`
+      SELECT 
+        c.id,
+        c.first_name || ' ' || c.last_name AS customer_name,
+        c.phone,
+        c.email,
+        c.address,
+        COALESCE(
+          JSON_AGG(
+            JSON_BUILD_OBJECT(
+              'id',        d.id,
+              'name',      d.name,
+              'breed',     d.breed,
+              'age',       d.age,
+              'gender',    d.gender,
+              'size',      d.size
+            )
+          ) FILTER (WHERE d.id IS NOT NULL)
+        , '[]') AS dogs
+      FROM customers c
+      LEFT JOIN dogs d
+        ON d.customer_id = c.id
+      GROUP BY c.id
+      ORDER BY c.id;
+    `);
+
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching customers:', err);
+    res.status(500).json({ message: 'שגיאה בשליפת לקוחות' });
+  }
+});
+
+
+
+
+
 app.listen(3000, () => {
     console.log("Server running on http://localhost:3000");
 });
@@ -798,21 +942,4 @@ app.get('/manager/appointments', authenticateToken, async (req, res) => {
 */
 
 //calenar and appointments stuff - Template for manager
-
-// מחזיר את רשימת הכלבים של לקוח לפי ת"ז
-app.get('/customers/:id/dogs', authenticateToken, async (req, res) => {
-  const customerId = req.params.id;
-  try {
-    const query = `
-      SELECT id, name 
-      FROM dogs 
-      WHERE customer_id = $1
-    `;
-    const { rows } = await con.query(query, [customerId]);
-    return res.json(rows);
-  } catch (err) {
-    console.error('Error fetching customer dogs:', err);
-    return res.status(500).json({ message: 'שגיאה בטעינת כלבי הלקוח' });
-  }
-});
 
