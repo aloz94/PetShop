@@ -67,6 +67,8 @@ if (openGroomBtn) {
     loadHandlersAccordion()
     loadCareProvidersAccordion()
     loadCustomersAccordion()
+    
+    // טען את כלבים של לקוח לפי ת"ז
     document
     .getElementById('customerIdInput')
     .addEventListener('change', loadCustomerDogsById);
@@ -157,40 +159,171 @@ function transformTableToAccordion(cfg) {
   buildAccordionFromData(data, container, headerKeys, bodyKeys, labels);
 }
 
-  // טעינת נתוני פנסיון
-  async function loadBoardingData() {
+// 0) גלובליים
+let _boardingDataCache = [];
+let editingBoardingId  = null;
+
+// 1) החלף לגמרי את loadBoardingData שלך ב־:
+
+async function loadBoardingData() {
+  try {
+    const res   = await fetch('http://localhost:3000/boardings', { credentials: 'include' });
+    if (!res.ok) throw new Error('Network error');
+    const items = await res.json();
+
+    // cache מלא לשימוש בעריכה
+    _boardingDataCache = items;
+
+    // מיפוי צבעים ותוויות
+    const classMap = {
+      pending:    'status-pending',
+      inprogress: 'status-inprogress',
+      completed:  'status-completed',
+      cancelled:  'status-cancelled'
+    };
+    const labelMap = {
+      pending:    'ממתין',
+      inprogress: 'בתהליך',
+      completed:  'הושלם',
+      cancelled:  'בוטל'
+    };
+
+    // 2) הכן את המערך לתצוגה
+    const data = items.map(item => ({
+      ...item,
+      statusBadge: `
+        <span class="status-badge ${classMap[item.status] || ''}">
+          ${labelMap[item.status] || item.status}
+        </span>`,
+      statusSelect: `
+        <select class="status-select" data-id="${item.id}">
+          <option value="pending"    ${item.status==='pending'    ? 'selected' : ''}>ממתין</option>
+          <option value="inprogress" ${item.status==='inprogress' ? 'selected' : ''}>בתהליך</option>
+          <option value="completed"  ${item.status==='completed'  ? 'selected' : ''}>הושלם</option>
+          <option value="cancelled"  ${item.status==='cancelled'  ? 'selected' : ''}>בוטל</option>
+        </select>`,
+      editHtml: `<button class="action-btn btn-edit" data-id="${item.id}">ערוך</button>`
+    }));
+
+
+    
+    // 3) הסתר את הטבלה הקבועה
+    const table = document.getElementById('boarding-posts');
+    if (table) table.style.display = 'none';
+
+    // 4) בנה אקורדיון עם 6 עמודות
+    buildAccordionFromData(
+      data,
+      'accordion-boarding',
+      ['id','check_in','check_out','dog_name','statusBadge'],  // HEADERS
+      ['customer_name','phone','notes','statusSelect','editHtml'],                                       // BODY
+      {
+        id:            "מס'" ,
+        check_in:      "תאריך כניסה",
+        check_out:     "תאריך יציאה",
+        dog_name:      " כלב",
+        customer_name: " לקוח",
+        phone:         "טלפון",
+        notes:         "הערות",
+        statusBadge:   "סטטוס ",
+        statusSelect:  " עדכן סטטוס",
+        editHtml:      ""
+      }
+    );
+
+  } catch (err) {
+    console.error(err);
+    alert('שגיאה בטעינת הפנסיון');
+  }
+}
+
+// 5) לטפל ב־click ו־change בתוך האקורדיון:
+const acc = document.getElementById('accordion-boarding');
+acc.addEventListener('click', async e => {
+  // a) עריכה
+  const editBtn = e.target.closest('button.btn-edit');
+  if (editBtn) {
+    openEditPopup(editBtn.dataset.id);
+    return;
+  }
+});
+acc.addEventListener('change', async e => {
+  // b) שינוי סטטוס
+  if (!e.target.matches('select.status-select')) return;
+  const id     = e.target.dataset.id;
+  const status = e.target.value;
+  await fetch(`http://localhost:3000/boarding-appointments/${id}/status`, {
+    method:      'PUT',
+    credentials: 'include',
+    headers:     { 'Content-Type':'application/json' },
+    body:        JSON.stringify({ status })
+  });
+  loadBoardingData();
+});
+
+// 6) פונקציית פתיחת הפופאפ לעריכה
+function openEditPopup(id) {
+  const item = _boardingDataCache.find(i => String(i.id) === String(id));
+  if (!item) return alert('לא נמצא פרטי תור');
+  editingBoardingId = id;
+
+  // מלא את השדות בפופאפ
+  document.getElementById('checkinDate').value   = item.check_in;
+  document.getElementById('checkoutDate').value  = item.check_out;
+  document.getElementById('boardingNotes').value = item.notes || '';
+
+  // בנה רשימת כלבים (אם טרם נבנתה)
+  const dogSel = document.getElementById('boardingDogSelect');
+  if (dogSel.options.length <= 1) {
+    const seen = new Set();                // <-- כאן
+    _boardingDataCache
+      .filter(i => i.dog_id != null)       // רק תורים שבהם dog_id יש
+      .forEach(i => {
+        if (!seen.has(i.dog_id)) {
+          seen.add(i.dog_id);
+          const opt = document.createElement('option');
+          opt.value = i.dog_id;
+          opt.textContent = i.dog_name;
+          dogSel.appendChild(opt);
+        }
+      });
+  }
+  dogSel.value = item.dog_id;
+
+  openPopup('boardingpopup');
+}
+// 7) בשורת ה־submit של הפופאפ תבדוק editingBoardingId ותשלח PUT במקום POST:
+document.getElementById('boardingpopup_form')
+  .addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const body = {
+      check_in:  document.getElementById('checkinDate').value,
+      check_out: document.getElementById('checkoutDate').value,
+      dog_id:    +document.getElementById('boardingDogSelect').value,
+      notes:     document.getElementById('boardingNotes').value
+    };
+    const url    = editingBoardingId
+                  ? `http://localhost:3000/boarding-appointments/${editingBoardingId}`
+                  : 'http://localhost:3000/boarding-appointments';
+    const method = editingBoardingId ? 'PUT' : 'POST';
+
     try {
-      const res  = await fetch('http://localhost:3000/boardings', { credentials: 'include' });
-      if (!res.ok) throw new Error('Network error');
-      const data = await res.json();
-  
-      
-
-       const table = document.getElementById('boarding-posts');
- if (table) table.style.display = 'none';
-
- // וכאן—קרא לבניית האקורדיון מתוך ה־JSON
- buildAccordionFromData(
-   data,
-   'accordion-boarding',
-   ['check_in','check_out','dog_name'],   // כותרת
-   ['id','customer_name','phone'],        // גוף
-   {                                      // תוויות
-     id: "מס' תור",
-     check_in: "תאריך כניסה",
-     check_out: "תאריך יציאה",
-     dog_name: "שם כלב",
-     customer_name: "שם לקוח",
-     phone: "טלפון"
-   }
- );
-
-  
+      const res = await fetch(url, {
+        method,
+        credentials: 'include',
+        headers:     { 'Content-Type':'application/json' },
+        body:        JSON.stringify(body)
+      });
+      if (!res.ok) throw new Error('Error saving');
+      closePopup('boardingpopup');
+      editingBoardingId = null;
+      this.reset();
+      loadBoardingData();
     } catch (err) {
       console.error(err);
-      alert('שגיאה בטעינת הפנסיון');
+      alert('שגיאה בשמירת תור');
     }
-  }
+  });
 
 
 
@@ -208,8 +341,9 @@ function transformTableToAccordion(cfg) {
       if (!res.ok) throw new Error('Network response was not OK');
       const { checkins, checkouts } = await res.json();
   
-      document.getElementById('checkins-today').textContent = `כניסה היום: ${checkins}`;
-     document.getElementById('checkouts-today').textContent = `יציאה היום:${checkouts}`;
+      document.getElementById('checkins-today').textContent = ` ${checkins}`;
+     document.getElementById('checkouts-today').textContent = `${checkouts}`;
+     document.getElementById('cancelled-today').textContent = `${cancelled}`;
     }
     catch (err) {
       console.error('Failed to load boarding stats:', err);
@@ -248,40 +382,94 @@ function transformTableToAccordion(cfg) {
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
       const data = await res.json();
   
-      // 1. פורמט תאריך ושעה בעברית
-      const formatted = data.map(item => ({
-        ...item,
-        date: formatHebDate(item.date),      // e.g. "07/05/2025"
-        time: formatHebTime(item.time)       // e.g. "14:30"
-      }));
+      // 1. הגדרת כל הסטטוסים במקום אחד
+      const statuses = [
+        { value: 'scheduled',    label: 'נקבע'       },
+        { value: 'arrived',      label: 'הגיע'       },
+        { value: 'in_treatment', label: 'בטיפול'     },
+        { value: 'waiting_pick', label: 'ממתין לאיסוף' },
+        { value: 'completed',    label: 'הושלם'      },
+        { value: 'cancelled',    label: 'בוטל'       }
+      ];
   
-      // 2. הסתר את הטבלה הסטטית (tbody כבר לא בשימוש)
+      // 2. המרה + יצירת badge + select עם selected
+      const formatted = data.map(item => {
+        // מציאת התווית וה־class
+        const st = statuses.find(s => s.value === item.status) || { value: item.status, label: item.status };
+        return {
+          ...item,
+          date: formatHebDate(item.date),
+          time: formatHebTime(item.time),
+  
+          // ה–badge הנוכחי
+          statusBadge: `
+            <span class="status-badge status-${st.value}">
+              ${st.label}
+            </span>
+          `,
+  
+          // ה–dropdown המעודכן
+          statusSelect: `
+            <select class="status-select" data-id="${item.id}">
+              ${statuses.map(s => `
+                <option value="${s.value}" ${s.value === item.status ? 'selected' : ''}>
+                  ${s.label}
+                </option>
+              `).join('')}
+            </select>
+          `
+        };
+      });
+  
+      // 3. הסתרת הטבלה הקבועה
       const table = document.getElementById('grooming-posts');
       if (table) table.style.display = 'none';
   
-      // 3. תבנה אקורדיון מתוך המערך שהמירנו
+      // 4. בניית האקורדיון עם שני העמודות החדשים
       buildAccordionFromData(
         formatted,
-        'accordion-grooming',             // id של הקונטיינר
-        ['date','time','service'],         // HEADER keys
-        ['id','customer_name','phone','dog_name'], // BODY keys
+        'accordion-grooming',
+        ['date','time','service','statusBadge','statusSelect'],    // כותרות
+        ['id','customer_name','phone','dog_name'],                  // פרטי גוף
         {
           id:            "מס' תור",
           date:          "תאריך",
           time:          "שעה",
           service:       "שירות",
+          statusBadge:   "סטטוס נוכחי",
+          statusSelect:  "עדכן סטטוס",
           customer_name: "שם לקוח",
           phone:         "טלפון",
           dog_name:      "שם כלב"
         }
       );
   
+      // 5. מאזין לשינוי – שולח PUT ועושה רענון
+      document
+        .getElementById('accordion-grooming')
+        .addEventListener('change', async e => {
+          const sel = e.target.closest('select.status-select');
+          if (!sel) return;
+          const appointmentId = sel.dataset.id;
+          const newStatus     = sel.value;
+          await fetch(
+            `http://localhost:3000/grooming-appointments/${appointmentId}/status`,
+            {
+              method: 'PUT',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: newStatus })
+            }
+          );
+          loadGroomingAppointments();
+        });
+  
     } catch (err) {
       console.error('Error loading grooming appointments:', err);
       alert('שגיאה בטעינת תורי טיפוח');
     }
   }
-    
+          
 
   async function loadCustomerDogsById() {
     const customerId = document.getElementById('customerIdInput').value.trim();

@@ -64,46 +64,92 @@
 
 <!-- דאשבורד פנסיון-->
       <section class="content content--active" id="profile">
-
-        <div class="dashboard-card">
-          <div class="card" id="checkins-today">
-            <h6 class="title">התקדמות חברים</h6>
-            <h6 class="amount">₪71,540</h6>
-            <div class="badge">
-              <span class="text-bg">+6.85%</span>
-              <span class="badge-text">מאז החודש שעבר</span>
+        <h1>ניהול פנסיון</h1>
+        <header class="kpi-bar">
+          <div class="kpi-card green" >
+            <div class="icon"><i class="fas fa-sign-in-alt"></i>
             </div>
+            <div class="value" id="checkins-today">12</div>
+            <div class="label">כניסה היום</div>
           </div>
+      
+          <div class="kpi-card blue">
+            <div class="icon"><i class="fas fa-sign-out-alt"></i>
+            </div>
+            <div class="value" id="checkouts-today">5</div>
+            <div class="label">יציאה היום</div>
+          </div>
+      
+          <div class="kpi-card red">
+            <div class="icon"><i class="fas fa-times-circle"></i>
+            </div>
+            <div class="value" id="cancelled-today">2</div>
+            <div class="label">מבוטלים </div>
+          </div>
+      
           
-          <div class="card" id="checkouts-today">
-            <h6 class="title">סה"כ משתמשים</h6>
-            <h6 class="amount">₪71,540</h6>
-            <div class="badge">
-              <span class="text-bg">+6.85%</span>
-              <span class="badge-text">מאז החודש שעבר</span>
-            </div>
-          </div>
-        </div>
+        </header>
+
+
+        
         
 <button class="btn btn--primary" id="openGroomingBtn">הוסף תור</button>
 
-        <h1>ניהול פנסיון</h1>
+       
         <table class="dashboard-table" id="boarding-posts">
           <thead>
             <tr>
               <th>מס' תור</th>
               <th>תאריך כניסה</th>
               <th>תאריך יציאה</th>
+               <th>סטטוס</th>
+              <th>שם כלב</th>
               <th>שם לקוח</th>
               <th>טלפון</th>
-              <th>שם כלב</th>
-            </tr>
+              <th>פעולות</th>
+                   </tr>
           </thead>
           <tbody>
             <!-- ימולא ב-JS -->
           </tbody>
         </table>
         <div id="accordion-boarding"></div>
+
+        <form id="boardingpopup_form">
+          <div id="boardingpopup" class="popup-container">
+            <div class="popup-content">
+              <span class="close-btn" onclick="closePopup('boardingpopup')">&times;</span>
+              <img src="res/logo.png" alt="Logo" />
+              <h2>הזמן / ערוך תור פנסיון</h2>
+    
+              <label>תאריך כניסה</label>
+              <div class="input-field">
+                <input type="date" id="checkinDate" required />
+              </div>
+    
+              <label>תאריך יציאה</label>
+              <div class="input-field">
+                <input type="date" id="checkoutDate" required />
+              </div>
+    
+              <label>בחירת כלב</label>
+              <div class="input-field">
+                <select id="boardingDogSelect" required>
+                  <option value="">בחר כלב</option>
+                  <!-- אפשר כאן למלא options סטטית, או לטעון דינמית דרך JS -->
+                </select>
+              </div>
+    
+              <label>הערות</label>
+              <div class="input-field">
+                <textarea id="boardingNotes" placeholder="הכנס הערות נוספות"></textarea>
+              </div>
+    
+              <button type="submit" class="popup-button">שמור</button>
+            </div>
+          </div>
+        </form>
+
 
       </section>
     
@@ -155,6 +201,8 @@
           </tbody>
         </table>
         <div id="accordion-grooming"></div>
+
+    
 
       </section>
 

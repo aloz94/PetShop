@@ -643,6 +643,13 @@ app.get('/profile/reports', authenticateToken, async (req, res) => {
   }
 });
 
+
+
+// server.js
+
+// … your require()/middleware setup above …
+
+// 1) list all boardings
 app.get('/boardings', async (req, res) => {
   try {
     const q = `
@@ -650,58 +657,115 @@ app.get('/boardings', async (req, res) => {
         ba.id,
         to_char(ba.check_in,  'YYYY-MM-DD') AS check_in,
         to_char(ba.check_out, 'YYYY-MM-DD') AS check_out,
+        ba.status                          AS status,
+
+        c.id                                AS customer_id,
+        d.id                                AS dog_id,            -- <–– הוספנו כאן
+
         c.first_name || ' ' || c.last_name   AS customer_name,
         c.phone                              AS phone,
         d.name                               AS dog_name
       FROM boarding_appointments ba
-      JOIN customers          c ON ba.customer_id = c.id
-      JOIN dogs                d ON ba.dog_id      = d.id
+      JOIN customers c ON ba.customer_id = c.id
+      JOIN dogs      d ON ba.dog_id      = d.id
       ORDER BY ba.check_in;
     `;
     const result = await con.query(q);
     res.json(result.rows);
-  }
-  catch(err) {
+  } catch(err) {
     console.error(err);
     res.status(500).json({ message: 'DB error fetching boardings' });
   }
 });
 
-// server.js
+// 2) **NEW**: change a single booking’s status
+app.put(
+  '/boarding-appointments/:id/status',
+  authenticateToken,
+  async (req, res) => {
+    const { id }     = req.params;
+    const { status } = req.body;
+    try {
+      const upd = await con.query(
+        `UPDATE boarding_appointments
+           SET status = $1
+         WHERE id = $2
+         RETURNING *`,
+        [status, id]
+      );
+      if (upd.rowCount === 0) {
+        return res.status(404).json({ message: 'Booking not found' });
+      }
+      res.json(upd.rows[0]);
+    } catch (err) {
+      console.error('Error updating boarding status:', err);
+      res.status(500).json({ message: 'שגיאה בעדכון סטטוס' });
+    }
+  }
+);
 
+// אחרי ה־POST ל־boarding-appointments, הוסף:
+app.put('/boarding-appointments/:id', authenticateToken, async (req, res) => {
+  const id = req.params.id;
+  const { check_in, check_out, dog_id, notes } = req.body;
+  try {
+    const result = await con.query(
+      `UPDATE boarding_appointments
+         SET check_in  = $1,
+             check_out = $2,
+             dog_id    = $3,
+             notes     = $4
+       WHERE id = $5`,
+      [check_in, check_out, dog_id, notes, id]
+    );
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+    res.json({ message: 'Appointment updated' });
+  } catch (err) {
+    console.error('Error updating boarding appointment:', err);
+    res.status(500).json({ message: 'שגיאה בעדכון התור' });
+  }
+});
+
+
+// 3) your boarding stats route
 app.get('/boarding/stats', authenticateToken, async (req, res) => {
   try {
-    // ברירת מחדל: היום
-    const today = new Date().toISOString().split('T')[0]; // 'YYYY-MM-DD'
-    // אפשר לקבל ?date=2025-05-10 מ־query
-    const date = req.query.date || today;
+    const today = new Date().toISOString().split('T')[0];
+    const date  = req.query.date || today;
 
-    // שאילתא לכניסות
-    const checkinsQ = `
-      SELECT COUNT(*) AS cnt
-      FROM boarding_appointments
-      WHERE check_in = $1
-    `;
-    // שאילתא ליציאות
-    const checkoutsQ = `
-      SELECT COUNT(*) AS cnt
-      FROM boarding_appointments
-      WHERE check_out = $1
-    `;
-    const inRes  = await con.query(checkinsQ,  [date]);
-    const outRes = await con.query(checkoutsQ, [date]);
+    const inRes  = await con.query(
+      `SELECT COUNT(*) AS cnt FROM boarding_appointments WHERE check_in = $1`,
+      [date]
+    );
+    const outRes = await con.query(
+      `SELECT COUNT(*) AS cnt FROM boarding_appointments WHERE check_out = $1`,
+      [date]
+    );
+    const cancelRes = await con.query(
+      `SELECT COUNT(*) AS cnt
+         FROM boarding_appointments
+        WHERE status = 'cancelled'
+          AND check_in = $1`,   // or whatever date field makes sense
+      [date]
+    );
+
 
     res.json({
       date,
       checkins:  parseInt(inRes.rows[0].cnt, 10),
-      checkouts: parseInt(outRes.rows[0].cnt, 10)
+      checkouts: parseInt(outRes.rows[0].cnt, 10),
+      cancelled:  parseInt(cancelRes.rows[0].cnt, 10)
+
     });
-  }
-  catch (err) {
+  } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Error fetching boarding stats' });
   }
 });
+
+// … the rest of your server.js …
 
 // מטפל בבקשה להחזרת תורים לטיפוח
 app.get('/grooming/appointments', authenticateToken, async (req, res) => {
@@ -712,6 +776,7 @@ app.get('/grooming/appointments', authenticateToken, async (req, res) => {
   ga.id,
   ga.appointment_date AS date,
   ga.slot_time       AS time,
+  ga.status,
   s.name             AS service,
   c.first_name || ' ' || c.last_name AS customer_name,
   c.phone,
@@ -731,6 +796,24 @@ ORDER BY
   catch(err) {
     console.error('Error fetching grooming appointments:', err);
     return res.status(500).json({ message: 'שגיאה בטעינת תורים' });
+  }
+});
+
+// ייפתח לעדכון סטטוס
+app.put('/grooming-appointments/:id/status', authenticateToken, async (req, res) => {
+  const id     = req.params.id;
+  const { status } = req.body;
+  try {
+    await con.query(
+      `UPDATE grooming_appointments
+         SET status = $1
+       WHERE id = $2`,
+      [status, id]
+    );
+    res.json({ message: 'Status updated' });
+  } catch (err) {
+    console.error('Error updating grooming status:', err);
+    res.status(500).json({ message: 'שגיאה בעדכון סטטוס' });
   }
 });
 
