@@ -688,7 +688,8 @@ app.put(
     try {
       const upd = await con.query(
         `UPDATE boarding_appointments
-           SET status = $1
+           SET status = $1,
+               status_updated_at = NOW()   -- Add this line to update the timestamp
          WHERE id = $2
          RETURNING *`,
         [status, id]
@@ -703,6 +704,34 @@ app.put(
     }
   }
 );
+
+/*app.get('/boarding/cancelled-today', authenticateToken, async (req, res) => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const q = `
+      SELECT 
+        ba.id,
+        to_char(ba.check_in,'YYYY-MM-DD') AS check_in,
+        to_char(ba.check_out,'YYYY-MM-DD') AS check_out,
+        ba.status,
+        c.first_name||' '||c.last_name AS customer_name,
+        c.phone,
+        d.name AS dog_name,
+        to_char(ba.status_updated_at,'YYYY-MM-DD HH24:MI') AS cancelled_at
+      FROM boarding_appointments ba
+      JOIN customers c ON ba.customer_id = c.id
+      JOIN dogs      d ON ba.dog_id      = d.id
+      WHERE ba.status = 'cancelled'
+        AND DATE(ba.status_updated_at) = $1
+      ORDER BY ba.status_updated_at DESC;
+    `;
+    const { rows } = await con.query(q, [today]);
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error fetching cancelled today' });
+  }
+});*/
 
 // אחרי ה־POST ל־boarding-appointments, הוסף:
 app.put('/boarding-appointments/:id', authenticateToken, async (req, res) => {
@@ -747,7 +776,7 @@ app.get('/boarding/stats', authenticateToken, async (req, res) => {
       `SELECT COUNT(*) AS cnt
          FROM boarding_appointments
         WHERE status = 'cancelled'
-          AND check_in = $1`,   // or whatever date field makes sense
+          AND DATE(status_updated_at) = $1`,   // or whatever date field makes sense
       [date]
     );
 

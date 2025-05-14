@@ -33,34 +33,6 @@
     
 
     <main class="main">
-      <div class="navbar">
-        <section class="filters-bar">
-          <!-- שדה חיפוש חופשי -->
-          <div class="filter-item search-box">
-            <input type="text" id="globalSearch" placeholder="🔍 חפש לקוח, ת.ז. או כלב..." />
-          </div>
-    
-          <!-- סינון לפי תאריך -->
-          <div class="filter-item">
-            <select id="filterDate">
-              <option value="">תאריך (הכל)</option>
-              <option value="today">היום</option>
-              <option value="this-week">השבוע</option>
-              <option value="this-month">החודש</option>
-            </select>
-          </div>
-    
-          <!-- סינון לפי סטטוס -->
-          <div class="filter-item">
-            <select id="filterStatus">
-              <option value="">סטטוס (הכל)</option>
-              <option value="pending">ממתין</option>
-              <option value="confirmed">מאושר</option>
-              <option value="completed">הושלם</option>
-            </select>
-          </div>
-    
-      </div>
 
 <!-- דאשבורד פנסיון-->
       <section class="content content--active" id="profile">
@@ -80,20 +52,46 @@
             <div class="label">יציאה היום</div>
           </div>
       
-          <div class="kpi-card red">
+          <div class="kpi-card red" >
             <div class="icon"><i class="fas fa-times-circle"></i>
             </div>
-            <div class="value" id="cancelled-today">2</div>
-            <div class="label">מבוטלים </div>
+            <div class="value" id="cancelled-today">-</div>
+            <div class="label">מבוטלים היום</div>
           </div>
       
           
         </header>
 
+        <!-- Search bar for Boarding -->
+        <div class="filter-item boarding-search">
+          <label for="boardingSearchCategory">חפש לפי:</label>
+          <select id="boardingSearchCategory">
+            <option value="id">מס' תור</option>
+            <option value="customer_id">מס' לקוח (ID)</option>
+            <option value="customer_name">שם לקוח</option>
+            <option value="dog_id">מס' כלב (ID)</option>
+            <option value="dog_name">שם כלב</option>
+            <option value="check_in">תאריך כניסה</option>
+            <option value="check_out">תאריך יציאה</option>
+            <option value="status">סטטוס</option>
+          </select>
+        
+          <input  type="text"   id="boardingSearchText" placeholder="מס' תור"/>
+          <select id="boardingSearchStatusSelect" style="display:none">
+            <option value="">כל הסטטוסים</option>
+            <option value="pending">ממתין</option>
+            <option value="inprogress">בתהליך</option>
+            <option value="completed">הושלם</option>
+            <option value="cancelled">בוטל</option>
+          </select>
+        
+          <button id="boardingSearchBtn">🔍 חפש</button>
+          <button id="boardingClearBtn" type="button">✖ נקה</button>
 
+        </div>
         
         
-<button class="btn btn--primary" id="openGroomingBtn">הוסף תור</button>
+        
 
        
         <table class="dashboard-table" id="boarding-posts">
@@ -181,7 +179,8 @@
             <div class="label">שעות פנויים</div>
           </div>
         </header>
-      
+        <button class="btn btn--primary" id="openGroomingBtn">הוסף תור</button>
+
 
         <h2>ממוצע הכנסות סוכנים</h2>
         <table class="dashboard-table" id="grooming-posts">

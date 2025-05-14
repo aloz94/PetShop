@@ -1,3 +1,4 @@
+// =================== LOGIN & LOGOUT ===================
 async function checkLogin() {
     try {
         const res = await fetch('http://localhost:3000/profile', { credentials: 'include' });
@@ -13,7 +14,7 @@ async function logout() {
     });
     window.location.href = '/index.html';
 }
-
+// =================== POPUP HANDLERS ===================
 function openPopup(popupId) {
     document.getElementById(popupId).style.display = "flex";
 }
@@ -21,10 +22,7 @@ function openPopup(popupId) {
 function closePopup(popupId) {
     document.getElementById(popupId).style.display = "none";
 }
-//window.onload = checkLogin;
-
-
-
+// =================== DOM READY & INITIAL LOADS ===================
 document.addEventListener('DOMContentLoaded', async() => {
     await checkLogin(); // <--- Add this line
     // בוחרים את כל הלינקים בסיידבר
@@ -59,16 +57,16 @@ if (openGroomBtn) {
   });
 
 }
-    loadBoardingData();
-    loadBoardingStats();
-    loadGroomingAppointments();
-    loadServices();
-    loadAbandonedReports()
-    loadHandlersAccordion()
-    loadCareProvidersAccordion()
-    loadCustomersAccordion()
-    
-    // טען את כלבים של לקוח לפי ת"ז
+await loadBoardingData();
+await loadBoardingStats();
+await loadGroomingAppointments();
+await loadServices();
+await loadAbandonedReports();
+await loadHandlersAccordion();
+await loadCareProvidersAccordion();
+await loadCustomersAccordion();
+
+  // טען את כלבים של לקוח לפי ת"ז
     document
     .getElementById('customerIdInput')
     .addEventListener('change', loadCustomerDogsById);
@@ -82,6 +80,7 @@ if (openGroomBtn) {
 
   });//end of DOMContentLoaded
   
+  // =================== SIDEBAR SECTION SWITCHING ===================
   // מעבר בין סקשנים
 document.querySelectorAll('.sidebar-nav a').forEach(link => {
     link.addEventListener('click', e => {
@@ -94,8 +93,8 @@ document.querySelectorAll('.sidebar-nav a').forEach(link => {
     });
   });
   
-  //build the designed openning accordion table
-  function buildAccordionFromData(data, container, headerKeys, bodyKeys, labels) {
+// =================== ACCORDION BUILDERS ===================
+function buildAccordionFromData(data, container, headerKeys, bodyKeys, labels) {
     // אם קיבלת מחרוזת – שלוף את האלמנט
     if (typeof container === 'string') {
       container = document.getElementById(container);
@@ -137,9 +136,7 @@ document.querySelectorAll('.sidebar-nav a').forEach(link => {
       container.append(accordion);
     });
   }
-  
-  
-  // פונקציה גנרית שאחראית על כל ההמרה לטבלה לאקורדיון
+// =================== TABLE TO ACCORDION TRANSFORMER ===================
 function transformTableToAccordion(cfg) {
   const { tableId, containerId, headerKeys, bodyKeys, labels } = cfg;
   const table     = document.getElementById(tableId);
@@ -159,20 +156,17 @@ function transformTableToAccordion(cfg) {
   buildAccordionFromData(data, container, headerKeys, bodyKeys, labels);
 }
 
+// =================== BOARDING DATA ===================
 // 0) גלובליים
 let _boardingDataCache = [];
 let editingBoardingId  = null;
-
-// 1) החלף לגמרי את loadBoardingData שלך ב־:
-
+// 1) טען את כל התורים ובנה אקורדיון
 async function loadBoardingData() {
   try {
     const res   = await fetch('http://localhost:3000/boardings', { credentials: 'include' });
     if (!res.ok) throw new Error('Network error');
     const items = await res.json();
-
-    // cache מלא לשימוש בעריכה
-    _boardingDataCache = items;
+    _boardingDataCache = items; // שמור
 
     // מיפוי צבעים ותוויות
     const classMap = {
@@ -188,7 +182,7 @@ async function loadBoardingData() {
       cancelled:  'בוטל'
     };
 
-    // 2) הכן את המערך לתצוגה
+    // הכנת מערך להצגה
     const data = items.map(item => ({
       ...item,
       statusBadge: `
@@ -205,50 +199,177 @@ async function loadBoardingData() {
       editHtml: `<button class="action-btn btn-edit" data-id="${item.id}">ערוך</button>`
     }));
 
-
-    
-    // 3) הסתר את הטבלה הקבועה
+    // הסתרת הטבלה המקורית
     const table = document.getElementById('boarding-posts');
     if (table) table.style.display = 'none';
 
-    // 4) בנה אקורדיון עם 6 עמודות
+    // בניית האקורדיון
     buildAccordionFromData(
       data,
       'accordion-boarding',
-      ['id','check_in','check_out','dog_name','statusBadge'],  // HEADERS
-      ['customer_name','phone','notes','statusSelect','editHtml'],                                       // BODY
+      ['id','check_in','check_out','dog_name','statusBadge'],
+      ['customer_name','phone','notes','statusSelect','editHtml'],
       {
-        id:            "מס'" ,
+        id:            "מס' ",
         check_in:      "תאריך כניסה",
         check_out:     "תאריך יציאה",
-        dog_name:      " כלב",
-        customer_name: " לקוח",
+        dog_name:      "שם כלב",
+        customer_name: "שם לקוח",
         phone:         "טלפון",
         notes:         "הערות",
         statusBadge:   "סטטוס ",
-        statusSelect:  " עדכן סטטוס",
-        editHtml:      ""
+        statusSelect:  "עדכן סטטוס",
+        editHtml:      "ערוך"
       }
     );
-
   } catch (err) {
     console.error(err);
     alert('שגיאה בטעינת הפנסיון');
   }
 }
+// 2) חיפוש לפי קטגוריה
+function applyBoardingFilter() {
+  const catSel = document.getElementById('boardingSearchCategory');
+  const txtIn  = document.getElementById('boardingSearchText');
+  const stSel  = document.getElementById('boardingSearchStatusSelect');
+  const c      = catSel.value;
+  const txt    = txtIn.value.trim();
+  const st     = stSel.value;
 
-// 5) לטפל ב־click ו־change בתוך האקורדיון:
+  // Filter the cache
+  const filtered = _boardingDataCache.filter(item => {
+    if (c === 'status') {
+      return st === '' || item.status === st;
+    }
+    if (c === 'check_in' || c === 'check_out') {
+      return item[c] === txt;
+    }
+    return String(item[c] || '').includes(txt);
+  });
+
+  // Map to add HTML fields (just like in loadBoardingData)
+  const classMap = {
+    pending:    'status-pending',
+    inprogress: 'status-inprogress',
+    completed:  'status-completed',
+    cancelled:  'status-cancelled'
+  };
+  const labelMap = {
+    pending:    'ממתין',
+    inprogress: 'בתהליך',
+    completed:  'הושלם',
+    cancelled:  'בוטל'
+  };
+
+  const data = filtered.map(item => ({
+    ...item,
+    statusBadge: `
+      <span class="status-badge ${classMap[item.status] || ''}">
+        ${labelMap[item.status] || item.status}
+      </span>`,
+    statusSelect: `
+      <select class="status-select" data-id="${item.id}">
+        <option value="pending"    ${item.status==='pending'    ? 'selected' : ''}>ממתין</option>
+        <option value="inprogress" ${item.status==='inprogress' ? 'selected' : ''}>בתהליך</option>
+        <option value="completed"  ${item.status==='completed'  ? 'selected' : ''}>הושלם</option>
+        <option value="cancelled"  ${item.status==='cancelled'  ? 'selected' : ''}>בוטל</option>
+      </select>`,
+    editHtml: `<button class="action-btn btn-edit" data-id="${item.id}">ערוך</button>`
+  }));
+
+  buildAccordionFromData(
+    data,
+    'accordion-boarding',
+    ['id','check_in','check_out','dog_name','statusBadge'],
+    ['customer_name','phone','notes','statusSelect','editHtml'],
+    {
+      id:            "מס' תור",
+      check_in:      "תאריך כניסה",
+      check_out:     "תאריך יציאה",
+      dog_name:      "שם כלב",
+      customer_name: "שם לקוח",
+      phone:         "טלפון",
+      notes:         "הערות",
+      statusBadge:   "סטטוס נוכחי",
+      statusSelect:  "עדכן סטטוס",
+      editHtml:      "ערוך"
+    }
+  );
+}
+// 3) התקשרות לאירועים אחרי הטעינה
+document.addEventListener('DOMContentLoaded', () => {
+  
+  loadBoardingData();
+
+  const catSel = document.getElementById('boardingSearchCategory');
+  const txtIn  = document.getElementById('boardingSearchText');
+  const stSel  = document.getElementById('boardingSearchStatusSelect');
+  const btn    = document.getElementById('boardingSearchBtn');
+
+  // כשהקטגוריה משתנה – החלף בין input ל־status-select
+  catSel.addEventListener('change', () => {
+    if (catSel.value === 'status') {
+      txtIn.style.display = 'none';
+      stSel.style.display = 'inline-block';
+    } else {
+      stSel.style.display   = 'none';
+      txtIn.style.display   = 'inline-block';
+
+      // Set input type to date for check_in/check_out, otherwise text
+      if (catSel.value === 'check_in' || catSel.value === 'check_out') {
+        txtIn.type = 'date';
+      } else {
+        txtIn.type = 'text';
+      }
+
+      // עדכון placeholder
+      const phMap = {
+        id:            "מס' תור",
+        customer_id:   "מס' לקוח (ID)",
+        customer_name: "שם לקוח",
+        dog_id:        "מס' כלב (ID)",
+        dog_name:      "שם כלב",
+        check_in:      "YYYY-MM-DD",
+        check_out:     "YYYY-MM-DD"
+      };
+      txtIn.placeholder = phMap[catSel.value] || 'חפש...';
+    }
+    // נקה שדה טקסט
+    txtIn.value = '';
+    stSel.value = '';
+  });
+
+  // כפתור חיפוש
+  btn.addEventListener('click', applyBoardingFilter);
+
+  // חיפוש בלחיצה על Enter
+  txtIn.addEventListener('keyup', e => {
+    if (e.key === 'Enter') applyBoardingFilter();
+  });
+  document.getElementById('boardingClearBtn')
+  .addEventListener('click', () => {
+    // מאפסים את השדות
+    document.getElementById('boardingSearchCategory').value = 'id';
+    document.getElementById('boardingSearchText').value = '';
+    const statusSel = document.getElementById('boardingSearchStatusSelect');
+    statusSel.value = '';
+    statusSel.style.display = 'none';
+
+    // מחזירים את הטבלה המלאה
+    loadBoardingData();
+  });
+
+});
+
+// 4) טיפול ב־click ו־change על האקורדיון (עריכה ושינוי סטטוס)
 const acc = document.getElementById('accordion-boarding');
 acc.addEventListener('click', async e => {
-  // a) עריכה
   const editBtn = e.target.closest('button.btn-edit');
   if (editBtn) {
     openEditPopup(editBtn.dataset.id);
-    return;
   }
 });
 acc.addEventListener('change', async e => {
-  // b) שינוי סטטוס
   if (!e.target.matches('select.status-select')) return;
   const id     = e.target.dataset.id;
   const status = e.target.value;
@@ -259,8 +380,9 @@ acc.addEventListener('change', async e => {
     body:        JSON.stringify({ status })
   });
   loadBoardingData();
+  loadBoardingStats();
 });
-
+// =================== BOARDING EDIT POPUP ===================
 // 6) פונקציית פתיחת הפופאפ לעריכה
 function openEditPopup(id) {
   const item = _boardingDataCache.find(i => String(i.id) === String(id));
@@ -324,9 +446,32 @@ document.getElementById('boardingpopup_form')
       alert('שגיאה בשמירת תור');
     }
   });
+  // =================== KPI & STATS LOADERS ===================
+ /* async function loadCancelledCount() {
+    console.log('▶️ loadCancelledCount called, today =', new Date().toISOString().split('T')[0]);
+
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const res = await fetch(
+        `http://localhost:3000/boarding/cancelled-today`,
+        { credentials: 'include' }
+      );
+      console.log('🔄 fetch status:', res.status);
+
+      if (!res.ok) throw new Error(res.statusText);
+      const rows = await res.json();
+      
+      // עדכון ה-KPI
+      //document.querySelector('#cancelled-count.value').textContent = rows.length;
+      document.getElementById('cancelled-count').textContent = rows.length;
 
 
+    } catch (err) {
+      console.error('Error loading cancelled count:', err);
+    }
 
+  }*/
+  // פונקציה לטעינת סטטיסטיקות פנסיון
   async function loadBoardingStats(date) {
     try {
       const today = date || new Date().toISOString().split('T')[0];
@@ -339,7 +484,7 @@ document.getElementById('boardingpopup_form')
       });
       
       if (!res.ok) throw new Error('Network response was not OK');
-      const { checkins, checkouts } = await res.json();
+      const { checkins, checkouts , cancelled} = await res.json();
   
       document.getElementById('checkins-today').textContent = ` ${checkins}`;
      document.getElementById('checkouts-today').textContent = `${checkouts}`;
@@ -350,7 +495,6 @@ document.getElementById('boardingpopup_form')
     }
   }
 
-  
   // פונקציה להמרת תאריך ושעה לפורמט עברי  
   function formatHebTime(timeString) {
     // אם זה כבר במשפט HH:mm או HH:mm:ss
@@ -373,7 +517,7 @@ document.getElementById('boardingpopup_form')
     const year  = d.getFullYear();
     return `${day}/${month}/${year}`;
   }
-
+// =================== GROOMING APPOINTMENTS ===================
   async function loadGroomingAppointments() {
     try {
       const res = await fetch('http://localhost:3000/grooming/appointments', {
@@ -429,14 +573,14 @@ document.getElementById('boardingpopup_form')
       buildAccordionFromData(
         formatted,
         'accordion-grooming',
-        ['date','time','service','statusBadge','statusSelect'],    // כותרות
-        ['id','customer_name','phone','dog_name'],                  // פרטי גוף
+        ['id','date','time','service','statusBadge'],    // כותרות
+        ['customer_name','phone','dog_name','statusSelect'],                  // פרטי גוף
         {
-          id:            "מס' תור",
+          id:            "מס' ",
           date:          "תאריך",
           time:          "שעה",
           service:       "שירות",
-          statusBadge:   "סטטוס נוכחי",
+          statusBadge:   "סטטוס ",
           statusSelect:  "עדכן סטטוס",
           customer_name: "שם לקוח",
           phone:         "טלפון",
@@ -470,7 +614,7 @@ document.getElementById('boardingpopup_form')
     }
   }
           
-
+// =================== CUSTOMER DOGS ===================
   async function loadCustomerDogsById() {
     const customerId = document.getElementById('customerIdInput').value.trim();
     if (!customerId) return;
@@ -500,8 +644,7 @@ document.getElementById('boardingpopup_form')
   }
 
 
-
-// 2. אתחול: טעינת שירותים פעם אחת
+// =================== SERVICES ===================
 async function loadServices() {
   const sel = document.getElementById('serviceSelect');
   sel.innerHTML = `<option value="">טוען שירותים…</option>`;
@@ -524,7 +667,6 @@ async function loadServices() {
     sel.innerHTML = `<option value="">שגיאה בטעינת שירותים</option>`;
   }
 }
-
 // 3. כאשר מזינים ת.ז. – טען כלבים
 document.getElementById('customerIdInput')
   .addEventListener('change', async function() {
@@ -683,7 +825,7 @@ document.getElementById('groomingpopup_form')
   }
 }
 
-
+// =================== ABANDONED DOGS REPORTS ===================
   async function loadAbandonedReports() {
     console.log('calling loadAbandonedReports…');
   
@@ -748,6 +890,7 @@ document.getElementById('groomingpopup_form')
     }
   }
   
+// =================== HANDLERS ACCORDION ===================
   async function loadHandlersAccordion() {
     try {
       const res = await fetch('http://localhost:3000/handlers', {
@@ -782,7 +925,7 @@ document.getElementById('groomingpopup_form')
     }
   }
   
-
+// =================== CARE PROVIDERS ACCORDION ===================
   async function loadCareProvidersAccordion() {
     try {
       const res = await fetch('http://localhost:3000/care-providers', {
@@ -816,7 +959,7 @@ document.getElementById('groomingpopup_form')
       alert('שגיאה בטעינת גורמי סיוע');
     }
   }
-  
+// =================== CUSTOMERS ACCORDION ===================
   async function loadCustomersAccordion() {
     try {
       const res = await fetch('http://localhost:3000/dashboard/customers', {
@@ -888,5 +1031,4 @@ document.getElementById('groomingpopup_form')
       alert('שגיאה בטעינת לקוחות');
     }
   }
-  
-  
+

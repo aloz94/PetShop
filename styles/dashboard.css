@@ -779,3 +779,7 @@ padding: 0;
   cursor: pointer;
   margin-left: 4px;
 }
+
+#accordion-boarding {
+  margin-top: 24px; /* or any value you like */
+}
