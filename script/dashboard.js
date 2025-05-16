@@ -67,16 +67,29 @@ await loadCareProvidersAccordion();
 await loadCustomersAccordion();
 
   // טען את כלבים של לקוח לפי ת"ז
+  /*
     document
     .getElementById('customerIdInput')
-    .addEventListener('change', loadCustomerDogsById);
+    .addEventListener('change', loadCustomerDogsById);*/
+document.getElementById('customerIdInput')
+  .addEventListener('change', () => loadCustomerDogsById('customerIdInput', 'dogSelect'));
   
+document.getElementById('BcustomerIdInput')
+  .addEventListener('change', () => loadCustomerDogsById('BcustomerIdInput', 'BboardingDogSelect'));
+
   // טיפול בסאבמיט
   document
     .getElementById('groomingpopup_form')
     .addEventListener('submit', submitGroomingAppointment);
 
-  
+    const openBoardingBtn = document.getElementById('openBoardingBtn');
+  if (openBoardingBtn) {
+    openBoardingBtn.addEventListener('click', () => {
+      openPopup('addboardingpopup');
+    });
+  }
+
+
 
   });//end of DOMContentLoaded
   
@@ -415,7 +428,7 @@ function openEditPopup(id) {
   openPopup('boardingpopup');
 }
 // 7) בשורת ה־submit של הפופאפ תבדוק editingBoardingId ותשלח PUT במקום POST:
-document.getElementById('boardingpopup_form')
+document.getElementById('editboardingpopup_form')
   .addEventListener('submit', async function(e) {
     e.preventDefault();
     const body = {
@@ -447,30 +460,6 @@ document.getElementById('boardingpopup_form')
     }
   });
   // =================== KPI & STATS LOADERS ===================
- /* async function loadCancelledCount() {
-    console.log('▶️ loadCancelledCount called, today =', new Date().toISOString().split('T')[0]);
-
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      const res = await fetch(
-        `http://localhost:3000/boarding/cancelled-today`,
-        { credentials: 'include' }
-      );
-      console.log('🔄 fetch status:', res.status);
-
-      if (!res.ok) throw new Error(res.statusText);
-      const rows = await res.json();
-      
-      // עדכון ה-KPI
-      //document.querySelector('#cancelled-count.value').textContent = rows.length;
-      document.getElementById('cancelled-count').textContent = rows.length;
-
-
-    } catch (err) {
-      console.error('Error loading cancelled count:', err);
-    }
-
-  }*/
   // פונקציה לטעינת סטטיסטיקות פנסיון
   async function loadBoardingStats(date) {
     try {
@@ -518,131 +507,227 @@ document.getElementById('boardingpopup_form')
     return `${day}/${month}/${year}`;
   }
 // =================== GROOMING APPOINTMENTS ===================
-  async function loadGroomingAppointments() {
+
+// ───────── Grooming Search & Render ─────────
+let _groomingDataCache = [];
+let editingGroomingId  = null;
+
+// 1) Load + cache + initial render
+async function loadGroomingAppointments() {
+  try {
+    const res = await fetch('http://localhost:3000/grooming/appointments', {
+      credentials: 'include'
+    });
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    _groomingDataCache = data;         // <- cache the raw items
+    renderGroomingAccordion(data);     // <- render full list
+  } catch (err) {
+    console.error(err);
+    alert('שגיאה בטעינת תורי טיפוח');
+  }
+}
+
+// 2) Shared render function
+function renderGroomingAccordion(items) {
+  // statuses lookup
+  const statuses = [
+    { value: 'scheduled',    label: 'נקבע'       },
+    { value: 'arrived',      label: 'הגיע'       },
+    { value: 'in_treatment', label: 'בטיפול'     },
+    { value: 'waiting_pick', label: 'ממתין לאיסוף' },
+    { value: 'completed',    label: 'הושלם'      },
+    { value: 'cancelled',    label: 'בוטל'       }
+  ];
+  const classMap = Object.fromEntries(statuses.map(s => [s.value, `status-${s.value}`]));
+  const labelMap = Object.fromEntries(statuses.map(s => [s.value, s.label]));
+
+  // transform for display
+  const formatted = items.map(item => ({
+    ...item,
+    date: formatHebDate(item.date),
+    time: formatHebTime(item.time),
+    statusBadge: `<span class="status-badge ${classMap[item.status]}">${labelMap[item.status]}</span>`,
+    statusSelect: `
+      <select class="status-select" data-id="${item.id}">
+        ${statuses.map(s => `
+          <option value="${s.value}" ${s.value===item.status?'selected':''}>${s.label}</option>
+        `).join('')}
+      </select>`,
+    editHtml: `<button class="action-btn btn-edit" data-id="${item.id}">ערוך</button>`
+  }));
+
+  // hide static table
+  const table = document.getElementById('grooming-posts');
+  if (table) table.style.display = 'none';
+
+  // build accordion
+  buildAccordionFromData(
+    formatted,
+    'accordion-grooming',
+    ['id','date','time','service','statusBadge'],
+    ['customer_name','phone','dog_name','statusSelect','editHtml'],
+    {
+      id:            "מס' ",
+      date:          "תאריך",
+      time:          "שעה",
+      service:       "שירות",
+      statusBadge:   "סטטוס ",
+      statusSelect:  "עדכן סטטוס",
+      customer_name: "שם לקוח",
+      phone:         "טלפון",
+      dog_name:      "שם כלב",
+      editHtml:      "ערוך"
+    }
+  );
+}
+
+// 3) Category-change handler
+const cat   = document.getElementById('groomingSearchCategory');
+const txt   = document.getElementById('groomingSearchText');
+const stSel = document.getElementById('groomingSearchStatusSelect');
+cat.addEventListener('change', () => {
+  if (cat.value === 'status') {
+    txt.style.display   = 'none';
+    stSel.style.display = 'inline-block';
+  } else {
+    stSel.style.display = 'none';
+    txt.style.display   = 'inline-block';
+    if (cat.value === 'date') {
+      txt.type = 'date';
+    } else if (cat.value === 'time') {
+      txt.type = 'time';
+    } else {
+      txt.type = 'text';
+    }
+  }
+  // clear inputs
+  txt.value   = '';
+  stSel.value = '';
+});
+
+// 4) Filter + re-render
+function applyGroomingFilter() {
+  const c  = cat.value;
+  const v1 = txt.value.trim();
+  const v2 = stSel.value;
+
+  const filtered = _groomingDataCache.filter(item => {
+    if (c === 'status') {
+      return v2 === '' || item.status === v2;
+    }
+    if (c === 'date') {
+      return formatHebDate(item.date) === v1;
+    }
+    if (c === 'time') {
+      return formatHebTime(item.time) === v1;
+    }
+    // fallback to generic property
+    return String(item[c] || '').includes(v1);
+  });
+
+  renderGroomingAccordion(filtered);
+}
+
+// 5) Wire up buttons & Enter key
+document.getElementById('groomingSearchBtn')
+  .addEventListener('click', applyGroomingFilter);
+document.getElementById('groomingSearchText')
+  .addEventListener('keyup', e => e.key === 'Enter' && applyGroomingFilter());
+document.getElementById('groomingClearBtn')
+  .addEventListener('click', () => {
+    cat.value   = '';
+    txt.value   = '';
+    stSel.value = '';
+    stSel.style.display = 'none';
+    txt.style.display   = 'inline-block';
+    txt.type = 'text';
+    loadGroomingAppointments();
+  });
+
+// 6) On load, call original loader
+document.addEventListener('DOMContentLoaded', () => {
+loadGroomingAppointments();
+const groomAcc = document.getElementById('accordion-grooming');
+if (groomAcc) {
+  // 1) Status changes
+  groomAcc.addEventListener('change', async e => {
+    const sel = e.target.closest('select.status-select');
+    if (!sel) return;
+    const appointmentId = sel.dataset.id;
+    const newStatus     = sel.value;
     try {
-      const res = await fetch('http://localhost:3000/grooming/appointments', {
-        credentials: 'include'
-      });
-      if (!res.ok) throw new Error(`Server error: ${res.status}`);
-      const data = await res.json();
-  
-      // 1. הגדרת כל הסטטוסים במקום אחד
-      const statuses = [
-        { value: 'scheduled',    label: 'נקבע'       },
-        { value: 'arrived',      label: 'הגיע'       },
-        { value: 'in_treatment', label: 'בטיפול'     },
-        { value: 'waiting_pick', label: 'ממתין לאיסוף' },
-        { value: 'completed',    label: 'הושלם'      },
-        { value: 'cancelled',    label: 'בוטל'       }
-      ];
-  
-      // 2. המרה + יצירת badge + select עם selected
-      const formatted = data.map(item => {
-        // מציאת התווית וה־class
-        const st = statuses.find(s => s.value === item.status) || { value: item.status, label: item.status };
-        return {
-          ...item,
-          date: formatHebDate(item.date),
-          time: formatHebTime(item.time),
-  
-          // ה–badge הנוכחי
-          statusBadge: `
-            <span class="status-badge status-${st.value}">
-              ${st.label}
-            </span>
-          `,
-  
-          // ה–dropdown המעודכן
-          statusSelect: `
-            <select class="status-select" data-id="${item.id}">
-              ${statuses.map(s => `
-                <option value="${s.value}" ${s.value === item.status ? 'selected' : ''}>
-                  ${s.label}
-                </option>
-              `).join('')}
-            </select>
-          `
-        };
-      });
-  
-      // 3. הסתרת הטבלה הקבועה
-      const table = document.getElementById('grooming-posts');
-      if (table) table.style.display = 'none';
-  
-      // 4. בניית האקורדיון עם שני העמודות החדשים
-      buildAccordionFromData(
-        formatted,
-        'accordion-grooming',
-        ['id','date','time','service','statusBadge'],    // כותרות
-        ['customer_name','phone','dog_name','statusSelect'],                  // פרטי גוף
+      await fetch(
+        `http://localhost:3000/grooming-appointments/${appointmentId}/status`,
         {
-          id:            "מס' ",
-          date:          "תאריך",
-          time:          "שעה",
-          service:       "שירות",
-          statusBadge:   "סטטוס ",
-          statusSelect:  "עדכן סטטוס",
-          customer_name: "שם לקוח",
-          phone:         "טלפון",
-          dog_name:      "שם כלב"
+          method:      'PUT',
+          credentials: 'include',
+          headers:     { 'Content-Type':'application/json' },
+          body:        JSON.stringify({ status: newStatus })
         }
       );
-  
-      // 5. מאזין לשינוי – שולח PUT ועושה רענון
-      document
-        .getElementById('accordion-grooming')
-        .addEventListener('change', async e => {
-          const sel = e.target.closest('select.status-select');
-          if (!sel) return;
-          const appointmentId = sel.dataset.id;
-          const newStatus     = sel.value;
-          await fetch(
-            `http://localhost:3000/grooming-appointments/${appointmentId}/status`,
-            {
-              method: 'PUT',
-              credentials: 'include',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ status: newStatus })
-            }
-          );
-          loadGroomingAppointments();
-        });
-  
+      // reload filtered or full list
+      loadGroomingAppointments();
     } catch (err) {
-      console.error('Error loading grooming appointments:', err);
-      alert('שגיאה בטעינת תורי טיפוח');
+      console.error('Error updating grooming status:', err);
+      alert('שגיאה בעדכון סטטוס');
     }
-  }
-          
-// =================== CUSTOMER DOGS ===================
-  async function loadCustomerDogsById() {
-    const customerId = document.getElementById('customerIdInput').value.trim();
-    if (!customerId) return;
-  
-    try {
-      // מניח שיש endpoint שמחזיר את רשימת הכלבים של לקוח לפי ת"ז
-      const res = await fetch(`http://localhost:3000/customers/${customerId}/dogs`, {
-        credentials: 'include'
-      });
-      if (!res.ok) throw new Error('Failed to load dogs');
-  
-      const dogs = await res.json();
-      const dogSelect = document.getElementById('dogSelect');
-      dogSelect.innerHTML = '<option value="">בחר כלב</option>';
-  
-      dogs.forEach(dog => {
-        const opt = document.createElement('option');
-        opt.value = dog.id;
-        opt.textContent = dog.name;
-        dogSelect.appendChild(opt);
-      });
-  
-    } catch(err) {
-      console.error(err);
-      alert('לא הצלחנו לטעון את רשימת הכלבים');
-    }
-  }
+  });
 
+  // 2) Edit-button clicks
+  groomAcc.addEventListener('click', e => {
+    const btn = e.target.closest('button.btn-edit');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    // open your grooming-edit popup here
+    openGroomingEditPopup(id);
+  });
+}
+
+// …later in the file, define openGroomingEditPopup(id)…
+function openGroomingEditPopup(id) {
+  const item = _groomingDataCache.find(i => String(i.id) === String(id));
+  if (!item) return alert('לא נמצא פרטי תור טיפוח');
+  // fill your popup fields, e.g.
+  document.getElementById('appointmentDate').value  = item.date;  // assuming you have inputs with these IDs
+  document.getElementById('hourSelect').value  = item.time;
+  document.getElementById('notes').value = item.notes || '';
+  document.getElementById('dogSelect').value  = item.dog;  // assuming you have inputs with these IDs
+  document.getElementById('serviceSelect').value  = item.service;  // assuming you have inputs with these IDs
+
+  // show the popup
+  openPopup('editgroomingpopup');
+}
+}
+);
+
+// =================== CUSTOMER DOGS ===================
+  async function loadCustomerDogsById(inputId , selectId ) {
+  const customerId = document.getElementById(inputId).value.trim();
+  if (!customerId) return;
+
+  try {
+    const res = await fetch(`http://localhost:3000/customers/${customerId}/dogs`, {
+      credentials: 'include'
+    });
+    if (!res.ok) throw new Error('Failed to load dogs');
+
+    const dogs = await res.json();
+    const dogSelect = document.getElementById(selectId);
+    dogSelect.innerHTML = '<option value="">בחר כלב</option>';
+
+    dogs.forEach(dog => {
+      const opt = document.createElement('option');
+      opt.value = dog.id;
+      opt.textContent = dog.name;
+      dogSelect.appendChild(opt);
+    });
+
+  } catch(err) {
+    console.error(err);
+    alert('לא הצלחנו לטעון את רשימת הכלבים');
+  }
+}
 
 // =================== SERVICES ===================
 async function loadServices() {
@@ -1032,3 +1117,43 @@ document.getElementById('groomingpopup_form')
     }
   }
 
+
+  // ─── “Add Boarding” form submission ───
+const addForm = document.getElementById('addboardingpopup_form');
+if (addForm) {
+  addForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    // gather values
+    const body = {
+      customer_id: +document.getElementById('BcustomerIdInput').value.trim(),
+      check_in:    document.getElementById('BcheckinDate').value,
+      check_out:   document.getElementById('BcheckoutDate').value,
+      dog_id:      +document.getElementById('BboardingDogSelect').value,
+      notes:       document.getElementById('BboardingNotes').value.trim()
+    };
+
+    try {
+      const res = await fetch('http://localhost:3000/boarding-appointments', {
+        method:      'POST',
+        credentials: 'include',
+        headers:     { 'Content-Type':'application/json' },
+        body:        JSON.stringify(body)
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || res.status);
+      
+      // on success
+      alert('תור פנסיון נוסף בהצלחה');
+      closePopup('addboardingpopup');
+      addForm.reset();
+
+      // refresh the list & stats
+      if (typeof loadBoardingData === 'function') loadBoardingData();
+      if (typeof loadBoardingStats === 'function') loadBoardingStats();
+    } catch(err) {
+      console.error('Error creating boarding appointment:', err);
+      alert('שגיאה בהוספת תור פנסיון: ' + (err.message || ''));
+    }
+  });
+}

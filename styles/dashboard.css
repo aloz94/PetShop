@@ -313,6 +313,8 @@ body, html {
   width: calc(100% - 200px);
   max-width: 1200px;
   margin: 0 auto 1.5rem;
+  margin-bottom: 8px;   /* Reduce this value for less space between rows */
+
   border-radius: 6px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -782,4 +784,28 @@ padding: 0;
 
 #accordion-boarding {
   margin-top: 24px; /* or any value you like */
+}
+
+.add-btn {
+  width: 32px;
+  height: 32px;
+  font-size: 1.2rem;
+  margin: 0;
+  border-radius: 50%;
+  background: #6a0dad;
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+.add-btn:hover {
+  background: #8c2ecb;
+}
+
+.boarding-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* space between button and search */
 }

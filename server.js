@@ -430,7 +430,7 @@ app.post('/report-dog', authenticateToken, upload.single('image'), async (req, r
     }
   });
 
-  app.post('/boarding-appointments', authenticateToken, async (req, res) => {
+ /* app.post('/boarding-appointments', authenticateToken, async (req, res) => {
     const { check_in, check_out, dog_id, notes } = req.body;
     const customer_id = req.user.userId;
   
@@ -459,7 +459,61 @@ app.post('/report-dog', authenticateToken, upload.single('image'), async (req, r
       console.error('שגיאה בשמירת תור:', err);
       res.status(500).json({ message: 'שגיאה בשמירת התור' });
     }
-  });
+  });*/
+
+  app.post('/boarding-appointments', authenticateToken, async (req, res) => {
+  // Destructure incoming fields, including optional customer_id
+  const {
+    check_in,
+    check_out,
+    dog_id,
+    notes,
+    customer_id: bodyCustomerId
+  } = req.body;
+
+  // If the client supplied a valid customer_id, use it; otherwise use the logged-in user
+  const realCustomerId = 
+    (bodyCustomerId && !isNaN(Number(bodyCustomerId)))
+      ? Number(bodyCustomerId)
+      : req.user.userId;
+
+  try {
+    // 1) Capacity check: no more than 10 overlapping bookings
+    const capRes = await con.query(
+      `SELECT COUNT(*) AS cnt
+         FROM boarding_appointments
+        WHERE ($1, $2) OVERLAPS (check_in, check_out)`,
+      [check_in, check_out]
+    );
+    if (parseInt(capRes.rows[0].cnt, 10) >= 10) {
+      return res
+        .status(400)
+        .json({ message: 'אין מקום פנוי בפנסיון בתאריכים שנבחרו' });
+    }
+
+    // 2) Insert the new booking
+    const insertRes = await con.query(
+      `INSERT INTO boarding_appointments
+         (customer_id, dog_id, check_in, check_out, notes, status)
+       VALUES ($1, $2, $3, $4, $5, 'pending')
+       RETURNING *`,
+      [realCustomerId, dog_id, check_in, check_out, notes]
+    );
+
+    // 3) Return the newly created booking
+    res.status(201).json({
+      message: 'התור נשמר בהצלחה!',
+      booking: insertRes.rows[0]
+    });
+
+  } catch (err) {
+    console.error('Error saving boarding appointment:', err);
+    res.status(500).json({ message: 'שגיאה בשמירת התור' });
+  }
+});
+
+
+
 
 // Express (server.js) – add this route:
 app.get('/profile/details', authenticateToken, async (req, res) => {
