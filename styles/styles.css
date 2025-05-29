@@ -145,6 +145,24 @@ body {
 .prev { left: 10px; }
 .next { right: 10px; }
 
+@keyframes popupEnter {
+  0%   { opacity: 0; transform: translateY(-40px)   scale(0.8); }
+  60%  { opacity: 1; transform: translateY( 10px)   scale(1.05); }
+  100% {            transform: translateY( 0)      scale(1); }
+}
+
+/*.input-field input:focus,
+.input-field select:focus {
+  outline: none;
+  border-color: #ec830b;
+  box-shadow: 0 0 6px rgba(238, 164, 27, 0.959);
+  transition: border-color .2s ease, box-shadow .2s ease;
+}*/
+
+.popup-content {
+  animation: popupEnter 0.5s cubic-bezier(.25,.8,.25,1);
+}
+
 .popup-container {
     display: none; /* Hide the popup by default */
     position: fixed;
@@ -164,16 +182,47 @@ body {
     width: 300px;
     text-align: center;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  color: #2a2a2a;
+  line-height: 1.5; 
 }
+.popup-content,
+.input-field input,
+.input-field select {
+  text-shadow: 0 1px 1px rgba(0,0,0,0.04);
+}
+
 .popup-content img {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    margin-bottom: 10px;
+  width: clamp(80px, 15vw, 120px);
+  height: auto;              /* keeps aspect ratio */
+  border-radius: 50%;
+  margin-bottom: 0rem;       /* adjust spacing if needed */
 }
+
 .popup-content h2 {
-    font-size: 18px;
-    margin-bottom: 10px;
+  font-size: 1.6rem;                  /* nice hierarchy */
+  font-weight: 600;
+  margin: 0.5rem 0 1rem;
+  letter-spacing: 0.02em;
+}
+.popup-content h3 {
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin: 1rem 0 0.75rem;
+  color: #444;
+}
+.input-field span {
+  display: block;                     /* force on its own line */
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  color: #555;
+}
+.input-field input::placeholder,
+.input-field select::placeholder {
+  color: #aaa;
+  opacity: 1;                         /* ensure consistency across browsers */
+  font-style: italic;
 }
 .input-field {
     display: flex;
@@ -192,6 +241,144 @@ body {
     font-size: 14px;
     text-align: right;
 }
+#customerId::-webkit-outer-spin-button,
+#customerId::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+#telephone::-webkit-outer-spin-button,
+#telephone::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+#regispopup_form .form-columns {
+  display: flex;
+  gap: 1rem;
+}
+
+#regispopup_form .form-columns .column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+#regispopup_form .form-columns .input-field {
+  margin-bottom: 1rem;
+}
+#regispopup .popup-content {
+  box-sizing: border-box;      /* חשוב כדי שה-padding יכלל ברוחב */
+  width: 90%;                  /* גמיש אל מול המסך */
+  max-width: 500px;            /* תגדירי כאן את המקסימום הרצוי (למשל 500px) */
+  min-width: 320px;            /* כדי שלא יהיה צר יותר מ־320px */
+  padding: 1rem;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.radio-field {
+  position: relative;           /* make it a positioning context */
+  display: flex;
+  justify-content: center;      /* center the labels */
+  align-items: center;
+  gap: 0.5rem;                  /* spacing between the radio buttons */
+}
+.radio-field span {
+  position: absolute;
+  margin-right: 10px; /* space between radio and label */
+  right: 0;
+  /* vertically center if you like: */
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+#groomingpopup .input-field textarea#notes {
+  width: 100%;
+  box-sizing: border-box;      /* include padding in the width */
+  min-height: 5rem;            /* ~80px tall by default */
+  max-height: 10rem;           /* can grow up to ~160px */
+  padding: 0.5rem;             /* same padding as your inputs */
+  font-size: 0.9rem;
+  line-height: 1.4;
+  border: 1px solid #000;
+  border-radius: 10px;
+  resize: vertical;            /* only allow vertical resize */
+  margin-bottom: 1rem;         /* match other .input-field spacing */
+}
+
+/* placeholder style */
+#groomingpopup .input-field textarea#notes::placeholder {
+  color: #aaa;
+  font-style: italic;
+}
+
+/* focus state to match your other inputs */
+#groomingpopup .input-field textarea#notes:focus {
+  outline: none;
+  border-color: #c49b6c;
+  box-shadow: 0 0 6px rgba(196,155,108,0.6);
+  transition: border-color .2s, box-shadow .2s;
+}
+
+textarea.textarea-field {
+  width: 100%;
+  box-sizing: border-box;      /* include padding in the width */
+  min-height: 6rem;            /* ~96px tall by default */
+  max-height: 12rem;           /* can grow up to ~192px */
+  padding: 0.5rem;             /* same padding as your inputs */
+  font-size: 0.9rem;
+  line-height: 1.4;
+  border: 1px solid #000;
+  border-radius: 10px;
+  resize: vertical;            /* only allow vertical resize */
+  margin-bottom: 1rem;         /* match your other .input-field spacing */
+}
+
+/* placeholder style */
+textarea.textarea-field::placeholder {
+  color: #aaa;
+  font-style: italic;
+}
+
+/* focus state to match your inputs */
+textarea.textarea-field:focus {
+  outline: none;
+  border-color: #c49b6c;
+  box-shadow: 0 0 6px rgba(196,155,108,0.6);
+  transition: border-color .2s, box-shadow .2s;
+}
+
+/* target just the boarding-notes textarea */
+#boardingNotes {
+  width: 100%;
+  box-sizing: border-box;      /* include padding in its width */
+  min-height: 6rem;            /* ~96px tall by default */
+  max-height: 12rem;           /* can grow up to ~192px */
+  padding: 0.5rem;             /* same padding as your inputs */
+  font-size: 0.9rem;
+  line-height: 1.4;
+  border: 1px solid #000;
+  border-radius: 10px;
+  resize: vertical;            /* allow vertical resize only */
+  margin-bottom: 1rem;         /* match other field spacing */
+}
+
+/* placeholder styling */
+#boardingNotes::placeholder {
+  color: #aaa;
+  font-style: italic;
+}
+
+/* focus state */
+#boardingNotes:focus {
+  outline: none;
+  border-color: #c49b6c;
+  box-shadow: 0 0 6px rgba(196,155,108,0.6);
+  transition: border-color .2s, box-shadow .2s;
+}
+
+
 .price-label {
     background: #e0c39a;
     padding: 8px;
@@ -207,8 +394,24 @@ body {
     width: 100%;
     border-radius: 10px;
     cursor: pointer;
-    font-size: 16px;
+  font-size: 1rem;
+    font-weight: 600;
+  letter-spacing: 0.03em;
+
+    transition: transform .2s ease, box-shadow .2s ease;
+
 }
+
+.popup-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.popup-button:active {
+  transform: translateY(0);
+}
+
+
+
 .close-btn {
     position: absolute;
     top: 0.75rem;    /* tweak these values to taste */
@@ -218,7 +421,19 @@ body {
     cursor: pointer;
     background: none;
     border: none;
+    transition: transform .3s ease;
+
   }
+  .close-btn:hover {
+  transform: rotate(90deg) scale(1.2);
+}
+.popup-content.closing {
+  animation: popupExit 0.3s forwards ease-in;
+}
+
+@keyframes popupExit {
+  to { opacity: 0; transform: translateY(-20px) scale(0.8); }
+}
   .textarea-field {
     width: 100%;
     height: 80px;

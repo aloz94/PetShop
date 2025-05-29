@@ -33,9 +33,41 @@
     
 
     <main class="main">
-
 <!-- דאשבורד פנסיון-->
       <section class="content content--active" id="profile">
+        <div class="search-group">
+          <button class="add-btn" type="button" id="openBoardingBtn">
+         <i class="fas fa-plus"></i>
+          </button>
+          <select id="boardingSearchCategory">
+            <option value="">קטגורית חיפוש</option>
+            <option value="id">מס' תור</option>
+            <option value="customer_id">מס' לקוח (ID)</option>
+            <option value="customer_name">שם לקוח</option>
+            <option value="dog_id">מס' כלב (ID)</option>
+            <option value="dog_name">שם כלב</option>
+            <option value="check_in">תאריך כניסה</option>
+            <option value="check_out">תאריך יציאה</option>
+            <option value="status">סטטוס</option>
+          </select>
+        
+  <input   id="boardingSearchText" type="text"  placeholder="חפש…"  class="search-input"  />
+          <select id="boardingSearchStatusSelect" style="display:none">
+            <option value="">כל הסטטוסים</option>
+            <option value="pending">ממתין</option>
+            <option value="inprogress">בתהליך</option>
+            <option value="completed">הושלם</option>
+            <option value="cancelled">בוטל</option>
+          </select>
+        
+  <button id="boardingSearchBtn" class="btn-search" title="חפש">
+    🔍
+  </button>
+  <button id="boardingClearBtn" class="btn-clear" type="button" title="נקה">
+    ✖
+  </button>
+</div>
+
         <h1>ניהול פנסיון</h1>
         <header class="kpi-bar">
           <div class="kpi-card green" >
@@ -62,38 +94,6 @@
           
         </header>
 
-        <!-- Search bar for Boarding -->
-         <div class="boarding-search-bar">
-          <button class="add-btn" type="button" id="openBoardingBtn">
-         <i class="fas fa-plus"></i>
-          </button>
-          <label for="boardingSearchCategory">חפש לפי:</label>
-          <select id="boardingSearchCategory">
-            <option value="">קטגורית חיפוש</option>
-            <option value="id">מס' תור</option>
-            <option value="customer_id">מס' לקוח (ID)</option>
-            <option value="customer_name">שם לקוח</option>
-            <option value="dog_id">מס' כלב (ID)</option>
-            <option value="dog_name">שם כלב</option>
-            <option value="check_in">תאריך כניסה</option>
-            <option value="check_out">תאריך יציאה</option>
-            <option value="status">סטטוס</option>
-          </select>
-        
-          <input  type="text"   id="boardingSearchText" placeholder="חפש"/>
-          <select id="boardingSearchStatusSelect" style="display:none">
-            <option value="">כל הסטטוסים</option>
-            <option value="pending">ממתין</option>
-            <option value="inprogress">בתהליך</option>
-            <option value="completed">הושלם</option>
-            <option value="cancelled">בוטל</option>
-          </select>
-        
-          <button id="boardingSearchBtn">🔍 חפש</button>
-          <button id="boardingClearBtn" type="button">✖ נקה</button>
-
-        </div>
-       
         <table class="dashboard-table" id="boarding-posts">
           <thead>
             <tr>
@@ -167,10 +167,11 @@
           <div class="kpi-card yellow">
             <div class="icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
             <div class="value">2</div>
-            <div class="label">מבוטלים / שכחו לבוא</div>
+            <div class="label">מבוטלים היום</div>
           </div>
         </header>
-                 <div class="grooming-search-bar">
+        
+          <div class="grooming-search-bar">
           <button class="add-btn" type="button" id="openGroomingBtn">
          <i class="fas fa-plus"></i>
           </button>
@@ -204,7 +205,6 @@
 
 
 
-        <h2>ממוצע הכנסות סוכנים</h2>
         <table class="dashboard-table" id="grooming-posts">
           <thead>
             <tr>
@@ -238,7 +238,66 @@
     </section>
   
     <section class="content" id="settings">
+              <div class="search-group">
+          <button class="add-btn" type="button" id="openBoardingBtn">
+         <i class="fas fa-plus"></i>
+          </button>
+          <select id="boardingSearchCategory">
+            <option value="">קטגורית חיפוש</option>
+            <option value="id">מס' תור</option>
+            <option value="customer_id">מס' לקוח (ID)</option>
+            <option value="customer_name">שם לקוח</option>
+            <option value="dog_id">מס' כלב (ID)</option>
+            <option value="dog_name">שם כלב</option>
+            <option value="check_in">תאריך כניסה</option>
+            <option value="check_out">תאריך יציאה</option>
+            <option value="status">סטטוס</option>
+          </select>
+        
+  <input   id="boardingSearchText" type="text"  placeholder="חפש…"  class="search-input"  />
+          <select id="boardingSearchStatusSelect" style="display:none">
+            <option value="">כל הסטטוסים</option>
+            <option value="pending">ממתין</option>
+            <option value="inprogress">בתהליך</option>
+            <option value="completed">הושלם</option>
+            <option value="cancelled">בוטל</option>
+          </select>
+        
+  <button id="boardingSearchBtn" class="btn-search" title="חפש">
+    🔍
+  </button>
+  <button id="boardingClearBtn" class="btn-clear" type="button" title="נקה">
+    ✖
+  </button>
+</div>
+
+      
       <h2>פניות לכלבים נטושים</h2>
+              <header class="kpi-bar">
+          <div class="kpi-card green" >
+            <div class="icon"><i class="fas fa-sign-in-alt"></i>
+            </div>
+            <div class="value" id="checkins-today">12</div>
+            <div class="label">כניסה היום</div>
+          </div>
+      
+          <div class="kpi-card blue">
+            <div class="icon"><i class="fas fa-sign-out-alt"></i>
+            </div>
+            <div class="value" id="checkouts-today">5</div>
+            <div class="label">יציאה היום</div>
+          </div>
+      
+          <div class="kpi-card red" >
+            <div class="icon"><i class="fas fa-times-circle"></i>
+            </div>
+            <div class="value" id="cancelled-today">-</div>
+            <div class="label">מבוטלים היום</div>
+          </div>
+      
+          
+        </header>
+
 
       <table class="dashboard-table" id="abandoned-posts">
         <thead>
@@ -262,8 +321,65 @@
       <div id="accordion-abandoned"></div>
           </section>
           <SECTION CLASS="content" ID="delivry">
-            <H2>שליחים</H2>
+                    <div class="search-group">
+          <button class="add-btn" type="button" id="openBoardingBtn">
+         <i class="fas fa-plus"></i>
+          </button>
+          <select id="boardingSearchCategory">
+            <option value="">קטגורית חיפוש</option>
+            <option value="id">מס' תור</option>
+            <option value="customer_id">מס' לקוח (ID)</option>
+            <option value="customer_name">שם לקוח</option>
+            <option value="dog_id">מס' כלב (ID)</option>
+            <option value="dog_name">שם כלב</option>
+            <option value="check_in">תאריך כניסה</option>
+            <option value="check_out">תאריך יציאה</option>
+            <option value="status">סטטוס</option>
+          </select>
+        
+  <input   id="boardingSearchText" type="text"  placeholder="חפש…"  class="search-input"  />
+          <select id="boardingSearchStatusSelect" style="display:none">
+            <option value="">כל הסטטוסים</option>
+            <option value="pending">ממתין</option>
+            <option value="inprogress">בתהליך</option>
+            <option value="completed">הושלם</option>
+            <option value="cancelled">בוטל</option>
+          </select>
+        
+  <button id="boardingSearchBtn" class="btn-search" title="חפש">
+    🔍
+  </button>
+  <button id="boardingClearBtn" class="btn-clear" type="button" title="נקה">
+    ✖
+  </button>
+</div>
             <h2>שליחים</h2>
+
+        <header class="kpi-bar">
+          <div class="kpi-card green" >
+            <div class="icon"><i class="fas fa-sign-in-alt"></i>
+            </div>
+            <div class="value" id="checkins-today">12</div>
+            <div class="label">כניסה היום</div>
+          </div>
+      
+          <div class="kpi-card blue">
+            <div class="icon"><i class="fas fa-sign-out-alt"></i>
+            </div>
+            <div class="value" id="checkouts-today">5</div>
+            <div class="label">יציאה היום</div>
+          </div>
+      
+          <div class="kpi-card red" >
+            <div class="icon"><i class="fas fa-times-circle"></i>
+            </div>
+            <div class="value" id="cancelled-today">-</div>
+            <div class="label">מבוטלים היום</div>
+          </div>
+      
+          
+        </header>
+
 
             <table class="dashboard-table" id="handlers-posts">
               <thead>
@@ -281,7 +397,65 @@
       
       </section>
       <section class="content" id="support">
+                <div class="search-group">
+          <button class="add-btn" type="button" id="openBoardingBtn">
+         <i class="fas fa-plus"></i>
+          </button>
+          <select id="boardingSearchCategory">
+            <option value="">קטגורית חיפוש</option>
+            <option value="id">מס' תור</option>
+            <option value="customer_id">מס' לקוח (ID)</option>
+            <option value="customer_name">שם לקוח</option>
+            <option value="dog_id">מס' כלב (ID)</option>
+            <option value="dog_name">שם כלב</option>
+            <option value="check_in">תאריך כניסה</option>
+            <option value="check_out">תאריך יציאה</option>
+            <option value="status">סטטוס</option>
+          </select>
+        
+  <input   id="boardingSearchText" type="text"  placeholder="חפש…"  class="search-input"  />
+          <select id="boardingSearchStatusSelect" style="display:none">
+            <option value="">כל הסטטוסים</option>
+            <option value="pending">ממתין</option>
+            <option value="inprogress">בתהליך</option>
+            <option value="completed">הושלם</option>
+            <option value="cancelled">בוטל</option>
+          </select>
+        
+  <button id="boardingSearchBtn" class="btn-search" title="חפש">
+    🔍
+  </button>
+  <button id="boardingClearBtn" class="btn-clear" type="button" title="נקה">
+    ✖
+  </button>
+</div>
         <h2>גורמי סיוע</h2>
+
+        <header class="kpi-bar">
+          <div class="kpi-card green" >
+            <div class="icon"><i class="fas fa-sign-in-alt"></i>
+            </div>
+            <div class="value" id="checkins-today">12</div>
+            <div class="label">כניסה היום</div>
+          </div>
+      
+          <div class="kpi-card blue">
+            <div class="icon"><i class="fas fa-sign-out-alt"></i>
+            </div>
+            <div class="value" id="checkouts-today">5</div>
+            <div class="label">יציאה היום</div>
+          </div>
+      
+          <div class="kpi-card red" >
+            <div class="icon"><i class="fas fa-times-circle"></i>
+            </div>
+            <div class="value" id="cancelled-today">-</div>
+            <div class="label">מבוטלים היום</div>
+          </div>
+      
+          
+        </header>
+
 
         <table class="dashboard-table" id="support-posts">
           <thead>
@@ -296,6 +470,63 @@
         <div id="accordion-support"></div>
       </section>
     <section class="content" id="help">
+              <div class="search-group">
+          <button class="add-btn" type="button" id="openBoardingBtn">
+         <i class="fas fa-plus"></i>
+          </button>
+          <select id="boardingSearchCategory">
+            <option value="">קטגורית חיפוש</option>
+            <option value="id">מס' תור</option>
+            <option value="customer_id">מס' לקוח (ID)</option>
+            <option value="customer_name">שם לקוח</option>
+            <option value="dog_id">מס' כלב (ID)</option>
+            <option value="dog_name">שם כלב</option>
+            <option value="check_in">תאריך כניסה</option>
+            <option value="check_out">תאריך יציאה</option>
+            <option value="status">סטטוס</option>
+          </select>
+        
+  <input   id="boardingSearchText" type="text"  placeholder="חפש…"  class="search-input"  />
+          <select id="boardingSearchStatusSelect" style="display:none">
+            <option value="">כל הסטטוסים</option>
+            <option value="pending">ממתין</option>
+            <option value="inprogress">בתהליך</option>
+            <option value="completed">הושלם</option>
+            <option value="cancelled">בוטל</option>
+          </select>
+        
+  <button id="boardingSearchBtn" class="btn-search" title="חפש">
+    🔍
+  </button>
+  <button id="boardingClearBtn" class="btn-clear" type="button" title="נקה">
+    ✖
+  </button>
+</div>
+        <header class="kpi-bar">
+          <div class="kpi-card green" >
+            <div class="icon"><i class="fas fa-sign-in-alt"></i>
+            </div>
+            <div class="value" id="checkins-today">12</div>
+            <div class="label">כניסה היום</div>
+          </div>
+      
+          <div class="kpi-card blue">
+            <div class="icon"><i class="fas fa-sign-out-alt"></i>
+            </div>
+            <div class="value" id="checkouts-today">5</div>
+            <div class="label">יציאה היום</div>
+          </div>
+      
+          <div class="kpi-card red" >
+            <div class="icon"><i class="fas fa-times-circle"></i>
+            </div>
+            <div class="value" id="cancelled-today">-</div>
+            <div class="label">מבוטלים היום</div>
+          </div>
+      
+          
+        </header>
+
       <table class="dashboard-table" id="customers-posts">
         <thead>
           <tr>
@@ -376,7 +607,8 @@
     <div class="popup-content">
       <span class="close-btn" onclick="closePopup('editgroomingpopup')">&times;</span>
       <img src="res/logo.png" alt="Logo">
-      <h2>הזמן פינוק לחייתך</h2>
+      <h2>ערוך תור</h2>
+<input type="hidden" id="EcustomerIdInput">
 
 
       <!-- תאריך -->
@@ -463,6 +695,48 @@
     </div>
   </form>
 
+<!-- popup edit boarding order-->
+<form id="editboardingpopup_form">
+    <div id="editboardingpopup" class="popup-container">
+      <div class="popup-content">
+
+        <span class="close-btn" onclick="closePopup('addboardingpopup')">&times;</span>
+        <img src="res/logo.png" alt="Logo" />
+        <h2>הזמן שירות פנסיון</h2>
+        
+              <div class="input-field">
+        <input type="number" id="BcustomerIdInput" placeholder="ת.ז. הלקוח" required>
+      </div>
+
+
+        <label>תאריך כניסה</label>
+        <div class="input-field">
+          <input type="date" id="BcheckinDate" required />
+        </div>
+  
+        <label>תאריך יציאה</label>
+        <div class="input-field">
+          <input type="date" id="BcheckoutDate" required />
+        </div>
+  
+        <label>בחירת כלב</label>
+        <div class="input-field">
+          <select id="BboardingDogSelect" required>
+            <option value="">בחר כלב</option>
+          </select>
+        </div>
+  
+        <label>הערות</label>
+        <div class="input-field">
+          <textarea id="BboardingNotes" placeholder="הכנס הערות נוספות"></textarea>
+        </div>
+  
+        <button type="submit" class="popup-button" >שלח בקשה</button>
+      </div>
+    </div>
+  </form>
+ 
+  
   <script src="script/dashboard.js"></script>
 </body>
 </html>

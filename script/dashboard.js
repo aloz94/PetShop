@@ -61,6 +61,7 @@ await loadBoardingData();
 await loadBoardingStats();
 await loadGroomingAppointments();
 await loadServices();
+await loadServicesEdit();
 await loadAbandonedReports();
 await loadHandlersAccordion();
 await loadCareProvidersAccordion();
@@ -401,12 +402,13 @@ function openEditPopup(id) {
   const item = _boardingDataCache.find(i => String(i.id) === String(id));
   if (!item) return alert('לא נמצא פרטי תור');
   editingBoardingId = id;
-
+  
   // מלא את השדות בפופאפ
   document.getElementById('checkinDate').value   = item.check_in;
   document.getElementById('checkoutDate').value  = item.check_out;
   document.getElementById('boardingNotes').value = item.notes || '';
 
+ 
   // בנה רשימת כלבים (אם טרם נבנתה)
   const dogSel = document.getElementById('boardingDogSelect');
   if (dogSel.options.length <= 1) {
@@ -442,6 +444,21 @@ document.getElementById('editboardingpopup_form')
                   : 'http://localhost:3000/boarding-appointments';
     const method = editingBoardingId ? 'PUT' : 'POST';
 
+    const todayStr        = new Date().toISOString().split('T')[0];  
+              // e.g. "2025-05-31"
+    if (!body.check_in || !body.check_out || !body.dog_id) {  
+      alert('נא למלא את כל השדות');
+      return;
+    }
+    if (body.check_in < todayStr) {
+      alert('נא לבחור תאריך כניסה שהוא היום או תאריך עתידי');
+      return;
+    }
+    if (body.check_in >= body.check_out) {
+      alert('נא לבחור תאריך יציאה מאוחר יותר מתאריך הכניסה');
+      return;
+    }
+    // שלח את הבקשה
     try {
       const res = await fetch(url, {
         method,
@@ -581,7 +598,6 @@ function renderGroomingAccordion(items) {
     }
   );
 }
-
 // 3) Category-change handler
 const cat   = document.getElementById('groomingSearchCategory');
 const txt   = document.getElementById('groomingSearchText');
@@ -647,60 +663,281 @@ document.getElementById('groomingClearBtn')
 
 // 6) On load, call original loader
 document.addEventListener('DOMContentLoaded', () => {
-loadGroomingAppointments();
-const groomAcc = document.getElementById('accordion-grooming');
-if (groomAcc) {
-  // 1) Status changes
-  groomAcc.addEventListener('change', async e => {
-    const sel = e.target.closest('select.status-select');
-    if (!sel) return;
-    const appointmentId = sel.dataset.id;
-    const newStatus     = sel.value;
+  loadGroomingAppointments();
+  const groomAcc = document.getElementById('accordion-grooming');
+  if (groomAcc) {
+    // 1) Status changes
+    groomAcc.addEventListener('change', async e => {
+      const sel = e.target.closest('select.status-select');
+      if (!sel) return;
+      const appointmentId = sel.dataset.id;
+      const newStatus     = sel.value;
+      try {
+        await fetch(
+          `http://localhost:3000/grooming-appointments/${appointmentId}/status`,
+          {
+            method:      'PUT',
+            credentials: 'include',
+            headers:     { 'Content-Type':'application/json' },
+            body:        JSON.stringify({ status: newStatus })
+          }
+        );
+        loadGroomingAppointments();
+      } catch (err) {
+        console.error('Error updating grooming status:', err);
+        alert('שגיאה בעדכון סטטוס');
+      }
+    }); // <-- closes the change-listener
+
+    // 2) Edit-button clicks
+    groomAcc.addEventListener('click', async e => {
+      const btn = e.target.closest('button.btn-edit');
+      if (!btn) return;
+      const appointmentId = btn.dataset.id;
+      await openGroomingEditPopup(appointmentId);
+    }); // <-- closes the click-listener
+
+  } // <-- closes if (groomAcc)
+}); // <-- closes DOMContentLoaded
+
+  async function openGroomingEditPopup(appointmentId) {
+  editingGroomingId = appointmentId;
+  const item = _groomingDataCache.find(i => i.id == appointmentId);
+  if (!item) return alert('תור לא נמצא בזיכרון');
+
+  // fill hidden customer ID
+  document.getElementById('EcustomerIdInput').value = item.customer_id;
+
+let raw = item.date;
+
+// if it’s already “DD/MM/YYYY”, flip it
+if (/^\d{2}\/\d{2}\/\d{4}$/.test(raw)) {
+  const [d, m, y] = raw.split('/');
+  raw = `${y}-${m}-${d}`;
+}
+else {
+  // parse into a Date (handles ISO+offset too)
+  const dt = raw instanceof Date ? raw : new Date(raw);
+
+  // use local date parts, not UTC
+  const yyyy = dt.getFullYear();
+  const mm   = String(dt.getMonth() + 1).padStart(2, '0');
+  const dd   = String(dt.getDate()).padStart(2, '0');
+
+  raw = `${yyyy}-${mm}-${dd}`;
+}
+
+  document.getElementById('EappointmentDate').value = raw;
+
+  // time: for now just that one option
+  const hourSelect = document.getElementById('EhourSelect');
+const rawTime       = item.time;                   
+const formattedTime = formatHebTime(rawTime);      // uses your existing formatHebTime()
+
+hourSelect.innerHTML = `
+  <option value="${formattedTime}" selected>
+    ${formattedTime}
+  </option>
+`;
+
+  // service: single option pre-selected
+await loadServicesEdit();  
+  const svcSel = document.getElementById('EserviceSelect');
+  // set the existing service
+  svcSel.value = item.service_id;
+  // load this customer’s dogs
+  const dogs = await fetch(
+    `http://localhost:3000/customers/${item.customer_id}/dogs`,
+    { credentials: 'include' }
+  ).then(r => r.json());
+  const dogSelect = document.getElementById('EdogSelect');
+  dogSelect.innerHTML = dogs
+    .map(d => `<option value="${d.id}" ${d.id == item.dog_id ? 'selected' : ''}>${d.name}</option>`)
+    .join('');
+
+  // notes & price
+  document.getElementById('Enotes').value = item.notes || '';
+
+  const initPrice = svcSel.selectedOptions[0]?.dataset.price || 0;
+  document.getElementById('priceDisplay').textContent = `עלות – ₪${initPrice}`;
+
+// 3) attach change-listener once (flags to avoid duplicates)
+  if (!svcSel.dataset._editListener) {
+    svcSel.addEventListener('change', () => {
+      const price = svcSel.selectedOptions[0]?.dataset.price || 0;
+      document.getElementById('priceDisplay').textContent = `עלות – ₪${price}`;
+      loadAvailableHours();          // <-- use the EDIT version here
+    });
+    svcSel.dataset._editListener = '1';
+  }
+
+  // show the popup
+  document.getElementById('editgroomingpopup').style.display = 'block';
+}
+
+// b) Close helper (you already have this in your inline onclick)
+function closePopup(id) {
+  document.getElementById(id).style.display = 'none';
+}
+
+// c) Submit handler
+document
+  .getElementById('editgroomingpopup_form')
+  .addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const body = {
+      appointment_date: document.getElementById('EappointmentDate').value,
+      slot_time:        document.getElementById('EhourSelect').value,
+      service_id:       document.getElementById('EserviceSelect').value,
+      dog_id:           document.getElementById('EdogSelect').value,
+      notes:            document.getElementById('Enotes').value
+    };
+
     try {
-      await fetch(
-        `http://localhost:3000/grooming-appointments/${appointmentId}/status`,
+      const res = await fetch(
+        `http://localhost:3000/grooming/appointments/${editingGroomingId}`,
         {
           method:      'PUT',
           credentials: 'include',
-          headers:     { 'Content-Type':'application/json' },
-          body:        JSON.stringify({ status: newStatus })
+          headers:     { 'Content-Type': 'application/json' },
+          body:        JSON.stringify(body)
         }
       );
-      // reload filtered or full list
-      loadGroomingAppointments();
+      if (!res.ok) throw new Error(res.status);
+      closePopup('editgroomingpopup');
+      loadGroomingAppointments();  // refresh the list
     } catch (err) {
-      console.error('Error updating grooming status:', err);
-      alert('שגיאה בעדכון סטטוס');
+      console.error('Error updating appointment:', err);
+      alert('שגיאה בעדכון התור');
     }
   });
 
-  // 2) Edit-button clicks
-  groomAcc.addEventListener('click', e => {
-    const btn = e.target.closest('button.btn-edit');
-    if (!btn) return;
-    const id = btn.dataset.id;
-    // open your grooming-edit popup here
-    openGroomingEditPopup(id);
-  });
-}
-
-// …later in the file, define openGroomingEditPopup(id)…
-function openGroomingEditPopup(id) {
+// —————————————— Open Edit Popup ——————————————
+/*async function openGroomingEditPopup(id) {
+  // 1) find the appointment in your cache
   const item = _groomingDataCache.find(i => String(i.id) === String(id));
-  if (!item) return alert('לא נמצא פרטי תור טיפוח');
-  // fill your popup fields, e.g.
-  document.getElementById('appointmentDate').value  = item.date;  // assuming you have inputs with these IDs
-  document.getElementById('hourSelect').value  = item.time;
-  document.getElementById('notes').value = item.notes || '';
-  document.getElementById('dogSelect').value  = item.dog;  // assuming you have inputs with these IDs
-  document.getElementById('serviceSelect').value  = item.service;  // assuming you have inputs with these IDs
+  if (!item) {
+    alert('Appointment not found');
+    return;
+  }
+  editingGroomingId = id;
 
-  // show the popup
+  // 2) copy all <option>s from the main serviceSelect into the edit form
+  const mainSvc = document.getElementById('serviceSelect');
+  const editSvc = document.getElementById('EserviceSelect');
+  editSvc.innerHTML = mainSvc.innerHTML;
+  editSvc.value     = item.service_id;
+
+  // 3) fetch this appointment’s customer’s dogs
+  const dogSel = document.getElementById('EdogSelect');
+  dogSel.innerHTML = '<option value="">טוען כלבים…</option>';
+  try {
+    const res = await fetch(
+      `http://localhost:3000/customers/${item.customer_id}/dogs`,
+      { credentials: 'include' }
+    );
+    if (!res.ok) throw new Error(`Server returned ${res.status}`);
+    const dogs = await res.json();
+
+    // build the <option>s
+    dogSel.innerHTML = '<option value="">בחר כלב</option>';
+    dogs.forEach(d => {
+      const o = document.createElement('option');
+      o.value       = d.id;
+      o.textContent = d.name;
+      dogSel.appendChild(o);
+    });
+    dogSel.value = item.dog_id;
+  } catch (err) {
+    console.error('Error loading dogs:', err);
+    alert('לא הצלחנו לטעון את רשימת הכלבים');
+  }
+
+  // 4) fill date & notes
+  document.getElementById('EappointmentDate').value = item.date || '';
+  //document.getElementById('Enotes').value           = item.notes             || '';
+
+  // 5) populate & select the correct time slot
+  await loadAvailableHoursEdit(
+    item.date,
+    item.service_id,
+    'EhourSelect'
+  );
+  document.getElementById('EhourSelect').value = item.time;
+
+  // 6) finally show the popup
   openPopup('editgroomingpopup');
 }
-}
-);
 
+    // —————————————— Load Available Hours for Edit ——————————————
+    async function loadAvailableHoursEdit(date, serviceId, selectId) {
+      if (!date || !serviceId) return;
+      const opt = document.querySelector(
+        `#EserviceSelect option[value="${serviceId}"]`
+      );
+      const duration = parseInt(opt?.dataset.duration) || 0;
+
+      const res = await fetch(`http://localhost:3000/appointments?date=${date}`, {
+        credentials: 'include'
+      });
+      const booked = res.ok ? await res.json() : [];
+
+      const sel = document.getElementById(selectId);
+      sel.innerHTML = '<option value="">בחר שעה</option>';
+      for (let h = 9; h < 17; h++) {
+        ['00','30'].forEach(mm => {
+          const slot = `${String(h).padStart(2,'0')}:${mm}`;
+          const start = new Date(`1970-01-01T${slot}:00`);
+          const end   = new Date(start.getTime() + duration * 60000);
+          const endStr = end.toTimeString().slice(0,5);
+          const overlap = booked.some(ap =>
+            !(endStr <= ap.start_time || slot >= ap.end_time)
+          );
+          if (!overlap) {
+            const o = document.createElement('option');
+            o.value = o.textContent = slot;
+            sel.appendChild(o);
+          }
+        });
+      }
+    }
+
+  } // ← closes if (groomAcc) 
+
+}); // ← closes DOMContentLoaded*/
+
+// — end of loadAvailableHoursEdit —
+/*function openEditPopup(id) {
+  const item = _boardingDataCache.find(i => String(i.id) === String(id));
+  if (!item) return alert('לא נמצא פרטי תור');
+  editingBoardingId = id;
+
+  // מלא את השדות בפופאפ
+  document.getElementById('checkinDate').value   = item.check_in;
+  document.getElementById('checkoutDate').value  = item.check_out;
+  document.getElementById('boardingNotes').value = item.notes || '';
+
+  // בנה רשימת כלבים (אם טרם נבנתה)
+  const dogSel = document.getElementById('boardingDogSelect');
+  if (dogSel.options.length <= 1) {
+    const seen = new Set();                // <-- כאן
+    _boardingDataCache
+      .filter(i => i.dog_id != null)       // רק תורים שבהם dog_id יש
+      .forEach(i => {
+        if (!seen.has(i.dog_id)) {
+          seen.add(i.dog_id);
+          const opt = document.createElement('option');
+          opt.value = i.dog_id;
+          opt.textContent = i.dog_name;
+          dogSel.appendChild(opt);
+        }
+      });
+  }
+  dogSel.value = item.dog_id;
+
+  openPopup('boardingpopup');
+}*/
 // =================== CUSTOMER DOGS ===================
   async function loadCustomerDogsById(inputId , selectId ) {
   const customerId = document.getElementById(inputId).value.trim();
@@ -788,6 +1025,37 @@ document.getElementById('serviceSelect')
     loadAvailableHours(); // נריץ חיפוש שעות בכל בחירה
   });
 
+//-------------loadservicesEdit----------------
+async function loadServicesEdit() {
+  const sel = document.getElementById('EserviceSelect');
+  sel.innerHTML = `<option value="">טוען שירותים…</option>`;
+  try {
+    const res = await fetch('http://localhost:3000/services', {
+      credentials: 'include'
+    });
+    const services = await res.json();
+    sel.innerHTML = `<option value="">בחר שירות</option>`;
+    services.forEach(s => {
+      const o = document.createElement('option');
+      o.value = s.id;
+      o.textContent = `${s.name} – ₪${s.price}`;
+      o.dataset.duration = s.duration;
+      o.dataset.price    = s.price;
+      sel.appendChild(o);
+    });
+  } catch(err) {
+    console.error('Error loading services:', err);
+    sel.innerHTML = `<option value="">שגיאה בטעינת שירותים</option>`;
+  }
+}
+
+/*document.getElementById('EserviceSelect')
+  .addEventListener('change', function() {
+    const price = this.selectedOptions[0]?.dataset.price || 0;
+    document.getElementById('priceDisplay').textContent = `עלות – ₪${price}`;
+    loadAvailableHoursEdit(); // נריץ חיפוש שעות בכל בחירה
+  });*/
+
 // 5. כאשר בוחרים תאריך או שירות – טען שעות
 document.getElementById('appointmentDate')
   .addEventListener('change', loadAvailableHours);
@@ -839,6 +1107,57 @@ async function loadAvailableHours() {
     console.error('Error loading hours:', err);
   }
 }
+
+async function loadAvailableHoursEdit() {
+  const date = document.getElementById('EappointmentDate').value;
+  const svcOpt = document.getElementById('EserviceSelect').selectedOptions[0];
+  if (!date || !svcOpt || !svcOpt.dataset.duration) return;
+
+  const duration = parseInt(svcOpt.dataset.duration);
+  // שולח לבק בקו query
+  try {
+    const res = await fetch(
+  `http://localhost:3000/grooming/appointments?date=${date}`,
+  { credentials:'include' }
+);
+
+    if (!res.ok) throw new Error(res.status);
+    const booked = await res.json(); // [{ start_time, duration }]
+    
+    // בנה רשימת שעות: 9:00–17:00 חצי שעה
+    const hours = [];
+    for (let h=9; h<17; h++) {
+      hours.push(`${h.toString().padStart(2,'0')}:00`);
+      hours.push(`${h.toString().padStart(2,'0')}:30`);
+    }
+
+    const select = document.getElementById('EhourSelect');
+    select.innerHTML = `<option value="">בחר שעה</option>`;
+
+    hours.forEach(slot => {
+      // חשב end = slot + duration
+      const [hh, mm] = slot.split(':').map(Number);
+      const start = new Date(`1970-01-01T${slot}:00`);
+      const end = new Date(start.getTime() + duration*60000);
+      const endStr = end.toTimeString().substring(0,5);
+
+      // בדוק חפיפה עם תורים ב־booked
+      const conflict = booked.some(ap => {
+        return !(endStr <= ap.start_time || slot >= ap.end_time);
+      });
+      if (!conflict) {
+        const o = document.createElement('option');
+        o.value = slot;
+        o.textContent = slot;
+        select.appendChild(o);
+      }
+    });
+  } catch(err) {
+    console.error('Error loading hours:', err);
+  }
+}
+
+
 
 // 6. הגשת הטופס – שליחת POST
 document.getElementById('groomingpopup_form')
@@ -1118,6 +1437,8 @@ document.getElementById('groomingpopup_form')
   }
 
 
+
+  
   // ─── “Add Boarding” form submission ───
 const addForm = document.getElementById('addboardingpopup_form');
 if (addForm) {
@@ -1133,27 +1454,78 @@ if (addForm) {
       notes:       document.getElementById('BboardingNotes').value.trim()
     };
 
+    const todayStr = new Date().toISOString().split('T')[0];
+    const inDate  = new Date(body.check_in);
+    const outDate = new Date(body.check_out);
+    const stayDays = (outDate - inDate) / (1000 * 60 * 60 * 24);
+
+    // 1. Required fields
+    if (!body.customer_id || !body.check_in || !body.check_out || !body.dog_id) {
+      alert('נא למלא את כל השדות');
+      return;
+    }
+
+    // 2. Dates must be today or future
+    if (body.check_in < todayStr || body.check_out < todayStr) {
+      alert('יש לבחור תאריכים שהם היום או תאריכים עתידיים');
+      return;
+    }
+
+    // 3. check_out > check_in
+    if (stayDays < 1) {
+      alert('יש לבחור תאריך יציאה מאוחר יותר מתאריך הכניסה');
+      return;
+    }
+
+    // 4. Optional: limit maximum stay (e.g. 30 days)
+    const maxStay = 30;
+    if (stayDays > maxStay) {
+      alert(`משך השהייה מוגבל ל־${maxStay} ימים`);
+      return;
+    }
+
+    // 5. Optional: notes length
+    if (body.notes.length > 500) {
+      alert('ההערות ארוכות מדי (עד 500 תווים)');
+      return;
+    }
+
+    // 6. Optional: check availability via your API
+    async function isAvailable(start, end) {
+      const res = await fetch(
+        `http://localhost:3000/boarding-appointments/availability?start=${start}&end=${end}`,
+        { credentials: 'include' }
+      );
+      if (!res.ok) return false;
+      const { available } = await res.json();
+      return available;
+    }
+
+    if (!await isAvailable(body.check_in, body.check_out)) {
+      alert('אין מקום פנוי בתאריכים שבחרת');
+      return;
+    }
+
+    // submit
     try {
       const res = await fetch('http://localhost:3000/boarding-appointments', {
         method:      'POST',
         credentials: 'include',
-        headers:     { 'Content-Type':'application/json' },
+        headers:     { 'Content-Type': 'application/json' },
         body:        JSON.stringify(body)
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || res.status);
-      
-      // on success
+
       alert('תור פנסיון נוסף בהצלחה');
       closePopup('addboardingpopup');
       addForm.reset();
-
-      // refresh the list & stats
-      if (typeof loadBoardingData === 'function') loadBoardingData();
-      if (typeof loadBoardingStats === 'function') loadBoardingStats();
+      if (typeof loadBoardingData === 'function')    loadBoardingData();
+      if (typeof loadBoardingStats === 'function')   loadBoardingStats();
     } catch(err) {
       console.error('Error creating boarding appointment:', err);
       alert('שגיאה בהוספת תור פנסיון: ' + (err.message || ''));
     }
   });
 }
+א

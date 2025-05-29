@@ -36,8 +36,44 @@ const con=new Client({
 });
 
 con.connect().then(()=> console.log("connected"))
+// right after your other app.use()/middleware
+const BOARDING_CAPACITY = 10;   // ← adjust to your real kennel capacity
 
-//regester route
+app.get('/boarding-appointments/availability', async (req, res) => {
+  const { start, end } = req.query;
+  if (!start || !end) {
+    return res.status(400).json({ error: 'Missing start or end date' });
+  }
+  
+  try {
+    // for each date d from start to (end - 1), count how many appointments cover d
+    const sql = `
+      SELECT d::date AS day,
+             COUNT(a.id) AS booked
+      FROM generate_series(
+             $1::date,
+             ($2::date - INTERVAL '1 day'),
+             INTERVAL '1 day'
+           ) AS d
+      LEFT JOIN boarding_appointments a
+        ON a.check_in  <= d
+       AND a.check_out >  d
+      GROUP BY d
+      HAVING COUNT(a.id) >= $3
+    `;
+    const { rows } = await con.query(sql, [start, end, BOARDING_CAPACITY]);
+    
+    // if any row comes back, that day is full ⇒ not available
+    const available = rows.length === 0;
+    res.json({ available });
+  }
+  catch (err) {
+    console.error('Availability-check failed:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+//-----------------------regester route----------------------------------------
 app.post('/postData',(req,res)=>{
     const {id,first_name,last_name ,phone , address , email ,password ,name , breed , age,size,gender  }=req.body;
     console.log("Data received from client:", req.body);
@@ -76,44 +112,8 @@ app.post('/postData',(req,res)=>{
     
 })
 
-      /*  app.post('/login', (logreq, logres) => {
-            const { id, password } = logreq.body;
-            const login_query = 'SELECT * FROM customers WHERE id = $1 AND password = $2';
-        
-            con.query(login_query, [id,password], (err, loginresult) => {
-                if (err) {
-                    console.error('Database error:', err);
-                    return logres.status(500).json({ message: 'Database error' });
-                }
-        
-                if (loginresult.rows.length === 0) {
-                    return logres.status(400).json({ message: 'User not found' });
-                }
-        
-                const user = loginresult.rows[0];
-        
-                if (password !== user.password) {
-                    return logres.status(401).json({ message: 'Invalid credentials' });
-                }
-        
-                //const token = `${user.id}-${Date.now()}`;
-
-                const token = jwt.sign(
-                   { userId: user.id, name: user.name }, // המידע ששומרים בטוקן
-                     JWT_SECRET, // הסיסמה שלך
-                     { expiresIn: '1h' } // 🔥 הוספת תוקף של שעה
-                );
-        
-                logres.cookie('token', token, {
-                    httpOnly: true,
-                    secure: false,   // Set true only if you have HTTPS
-                    maxAge: 60 * 60 * 1000 // 1 hour
-                })
-                logres.status(200) .json({ message: 'Login successful', name: user.name });
-                            });
-                        }); */
-
-                        app.post('/login', (logreq, logres) => {
+//-----------------------login route----------------------------------------
+                      app.post('/login', (logreq, logres) => {
                           const { id, password } = logreq.body;
                         
                           // 1. מנסים קודם ב־customers
@@ -181,10 +181,10 @@ app.post('/postData',(req,res)=>{
                             });
                           });
                         });
-                        
+
                         
 
-//  פונקציה לאימות טוקן
+// -------------- פונקציה לאימות טוקן---------------------
 
 function authenticateToken(req, res, next) {
     let token;
@@ -209,17 +209,18 @@ function authenticateToken(req, res, next) {
     });
 }
 
-// מסלול לפרופיל
+//-------------------- מסלול לפרופיל--------------------
 app.get('/profile', authenticateToken, (req, res) => {
     res.json({ user: req.user });
 });
 
+// ------------------ מסלול ליציאה-------------------
 app.post('/logout', (req, res) => {
     res.clearCookie('token'); // 🔥 clear the token cookie
     res.status(200).json({ message: 'Logout successful' });
   });
   
-
+// ------------------ מסלול לקבלת כל השירותים-------------------
   app.get('/services', async (req, res) => {
     try {
         const result = await con.query('SELECT * FROM services');
@@ -229,7 +230,8 @@ app.post('/logout', (req, res) => {
         res.status(500).json({ error: 'Failed to fetch services' });
     }
 });
-// server.js
+
+// ----------------קבלת כלבים של לקוח---------------
 app.get('/my-dogs', authenticateToken, async (req, res) => {
   const userId = req.user.userId;
 
@@ -252,7 +254,7 @@ app.get('/my-dogs', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'שגיאה בקבלת כלבים' });
   }
 });
-
+// ------------------ מסלול להוספת כלב-------------------
 app.post('/add-dog', authenticateToken, async (req, res) => {
   const customer_id = req.user.userId;
   const { name, breed, age, size, gender } = req.body;
@@ -281,22 +283,7 @@ app.post('/add-dog', authenticateToken, async (req, res) => {
   }
 });
 
-
-// 🔥 קבלת רשימת כלבים של הלקוח הנוכחי
-/*app.get('/my-dogs', authenticateToken, async (req, res) => {
-    const userId = req.user.userId; // מזהים את הלקוח מתוך הטוקן
-
-    try {
-        const result = await con.query('SELECT id, name FROM dogs WHERE customer_id = $1', [userId]);
-        res.status(200).json(result.rows);
-    } catch (error) {
-        console.error('Error fetching dogs:', error);
-        res.status(500).json({ message: 'שגיאה בקבלת כלבים' });
-    }
-});*/
-
-
-
+// ------------------ מסלול להוספת תור לטיפוח-------------------?????
 app.get('/appointments', authenticateToken, async (req, res) => {
     const { date } = req.query;
     if (!date) return res.status(400).json({ message: 'חסר תאריך' });
@@ -319,7 +306,7 @@ app.get('/appointments', authenticateToken, async (req, res) => {
       res.status(500).json({ message: 'שגיאה בקבלת תורים' });
     }
   });
-  
+  // ------------------ מסלול להוספת תור לטיפוח-------------------
   app.post('/grooming-appointments', authenticateToken, async (req, res) => {
     const { appointment_date, slot_time, service_id, dog_id, notes } = req.body;
 
@@ -328,8 +315,8 @@ app.get('/appointments', authenticateToken, async (req, res) => {
   
     try {
       await con.query(
-        `INSERT INTO grooming_appointments (appointment_date, slot_time, service_id, dog_id, customer_id, notes)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
+      `INSERT INTO grooming_appointments (appointment_date, slot_time, service_id, dog_id, customer_id, notes, status)
+       VALUES ($1, $2, $3, $4, $5, $6, 'scheduled')`,
         [appointment_date, slot_time, service_id, dog_id, realCustomerId, notes]
       );
   
@@ -340,26 +327,57 @@ app.get('/appointments', authenticateToken, async (req, res) => {
     }
   });
 
-  //dashboard grooming appointments
-  
-  app.post('/grooming-appointments', authenticateToken, async (req, res) => {
-    const { appointment_date, slot_time, service_id, dog_id, notes } = req.body;
-    const realCustomerId = (req.user.role === 'employee' && customer_id) ? customer_id : req.user.userId;
+//dashboard grooming appointments
+app.post('/grooming-appointments', authenticateToken, async (req, res) => {
+  const { appointment_date, slot_time, service_id, dog_id, notes, customer_id } = req.body;
+  const realCustomerId = (req.user.role === 'employee' && customer_id) ? customer_id : req.user.userId;
 
-    try {
-      await con.query(
-        `INSERT INTO grooming_appointments (appointment_date, slot_time, service_id, dog_id, customer_id, notes)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
+  try {
+    await con.query(
+      `INSERT INTO grooming_appointments (appointment_date, slot_time, service_id, dog_id, customer_id, notes, status)
+       VALUES ($1, $2, $3, $4, $5, $6, 'scheduled')`,
+      [appointment_date, slot_time, service_id, dog_id, realCustomerId, notes]
+    );
+    res.status(200).json({ message: 'התור נשמר בהצלחה!' });
+  } catch (err) {
+    console.error('שגיאה בהוספת תור:', err);
+    res.status(500).json({ message: 'שגיאה בשמירת התור' });
+  }
+});
+  // 3) UPDATE one grooming appointment
+app.put('/grooming-appointments/:id', authenticateToken, async (req, res) => {
+  const id = req.params.id;
+  const {
+    appointment_date,
+    slot_time,
+    service_id,
+    dog_id,
+    notes
+  } = req.body;
 
-        [appointment_date, slot_time, service_id, dog_id, realCustomerId, notes]
-      );
-  
-      res.status(200).json({ message: 'התור נשמר בהצלחה!' });
-    } catch (err) {
-      console.error('שגיאה בהוספת תור:', err);
-      res.status(500).json({ message: 'שגיאה בשמירת התור' });
+  try {
+    const result = await con.query(
+      `UPDATE grooming_appointments
+         SET appointment_date = $1,
+             slot_time        = $2,
+             service_id       = $3,
+             dog_id           = $4,
+             notes            = $5
+       WHERE id = $6
+       RETURNING *`,
+      [appointment_date, slot_time, service_id, dog_id, notes, id]
+    );
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'תור לא נמצא' });
     }
-  });
+    res.json({ message: 'התור עודכן בהצלחה', appointment: result.rows[0] });
+  } catch (err) {
+    console.error('Error updating grooming appointment:', err);
+    res.status(500).json({ message: 'שגיאה בעדכון התור' });
+  }
+});
+
+
 
 // הגדרת מיקום שמירת קבצים
 const storage = multer.diskStorage({
@@ -376,7 +394,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-
+// מסלול לדיווח על כלב נטוש
 app.post('/report-dog', authenticateToken, upload.single('image'), async (req, res) => {
     const { size, health, address, notes } = req.body;
     const customer_id = req.user.userId;
@@ -397,7 +415,7 @@ app.post('/report-dog', authenticateToken, upload.single('image'), async (req, r
     
   });
     
-  
+  //
   app.get('/boarding-availability', authenticateToken, async (req, res) => {
     const { start_date, end_date } = req.query;
     if (!start_date || !end_date) {
@@ -430,37 +448,7 @@ app.post('/report-dog', authenticateToken, upload.single('image'), async (req, r
     }
   });
 
- /* app.post('/boarding-appointments', authenticateToken, async (req, res) => {
-    const { check_in, check_out, dog_id, notes } = req.body;
-    const customer_id = req.user.userId;
-  
-    try {
-      const result = await con.query(
-        `SELECT COUNT(*) FROM boarding_appointments
-         WHERE ($1, $2) OVERLAPS (check_in, check_out)`,
-        [check_in, check_out]
-      );
-  
-      const activeCount = parseInt(result.rows[0].count);
-      const MAX_CAPACITY = 10;
-  
-      if (activeCount >= MAX_CAPACITY) {
-        return res.status(400).json({ message: 'אין מקום פנוי בפנסיון בתאריכים שנבחרו' });
-      }
-  
-      await con.query(
-        `INSERT INTO boarding_appointments (customer_id, dog_id, check_in, check_out, notes, status)
-         VALUES ($1, $2, $3, $4, $5, 'פתוחה')`,
-        [customer_id, dog_id, check_in, check_out, notes]
-      );
-  
-      res.status(200).json({ message: 'התור נשמר בהצלחה!' });
-    } catch (err) {
-      console.error('שגיאה בשמירת תור:', err);
-      res.status(500).json({ message: 'שגיאה בשמירת התור' });
-    }
-  });*/
-
+// -------------מסלול להוספת תור לפנסיון-----------
   app.post('/boarding-appointments', authenticateToken, async (req, res) => {
   // Destructure incoming fields, including optional customer_id
   const {
@@ -512,10 +500,7 @@ app.post('/report-dog', authenticateToken, upload.single('image'), async (req, r
   }
 });
 
-
-
-
-// Express (server.js) – add this route:
+// ------------------ מסלול לקבלת פרטי פרופיל-------------------
 app.get('/profile/details', authenticateToken, async (req, res) => {
   try {
     // req.user.userId was set by authenticateToken
@@ -570,7 +555,6 @@ app.put('/dogs/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// DELETE dog
 // DELETE dog + cascade manually
 app.delete('/dogs/:id', authenticateToken, async (req, res) => {
   const dogId = req.params.id;
@@ -622,7 +606,7 @@ app.get('/profile/grooming', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'שגיאה בשליפת תורי טיפוח' });
   }
 });
-
+// GET boarding appointments for current user
 app.get('/profile/boarding', authenticateToken, async (req, res) => {
   const customerId = req.user.userId;
   try {
@@ -644,33 +628,7 @@ app.get('/profile/boarding', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'שגיאה בשליפת תורי פנסיון' });
   }
 });
-
-// GET abandoned reports for current user
-/*app.get('/profile/reports', authenticateToken, async (req, res) => {
-  console.log("FEtching reports")
-  const customer_id = req.user.userId;
-  try {
-    const query = `
-      SELECT 
-        id,
-        report_date,
-        dog_size   AS size,
-        health_status AS health,
-        address,
-        notes,
-        image_path
-      FROM abandoned_dog_reports
-      WHERE customer_id = $1
-      ORDER BY report_date DESC
-    `;
-    const { rows } = await con.query(query, [customer_id]);
-    res.status(200).json(rows);
-  } catch (err) {
-    console.error('Error fetching abandoned reports:', err);
-    res.status(500).json({ message: 'שגיאה בשליפת דיווחים' });
-  }
-});
-*/
+// GET abandent dog reports for current user
 app.get('/profile/reports', authenticateToken, async (req, res) => {
   const userId = req.user.userId;
 
@@ -696,12 +654,6 @@ app.get('/profile/reports', authenticateToken, async (req, res) => {
     return res.status(500).json({ message: 'שגיאה בשליפת דיווחים' });
   }
 });
-
-
-
-// server.js
-
-// … your require()/middleware setup above …
 
 // 1) list all boardings
 app.get('/boardings', async (req, res) => {
@@ -732,9 +684,8 @@ app.get('/boardings', async (req, res) => {
   }
 });
 
-// 2) **NEW**: change a single booking’s status
-app.put(
-  '/boarding-appointments/:id/status',
+// 2)  change a single booking’s status
+app.put( '/boarding-appointments/:id/status',
   authenticateToken,
   async (req, res) => {
     const { id }     = req.params;
@@ -759,33 +710,7 @@ app.put(
   }
 );
 
-/*app.get('/boarding/cancelled-today', authenticateToken, async (req, res) => {
-  try {
-    const today = new Date().toISOString().split('T')[0];
-    const q = `
-      SELECT 
-        ba.id,
-        to_char(ba.check_in,'YYYY-MM-DD') AS check_in,
-        to_char(ba.check_out,'YYYY-MM-DD') AS check_out,
-        ba.status,
-        c.first_name||' '||c.last_name AS customer_name,
-        c.phone,
-        d.name AS dog_name,
-        to_char(ba.status_updated_at,'YYYY-MM-DD HH24:MI') AS cancelled_at
-      FROM boarding_appointments ba
-      JOIN customers c ON ba.customer_id = c.id
-      JOIN dogs      d ON ba.dog_id      = d.id
-      WHERE ba.status = 'cancelled'
-        AND DATE(ba.status_updated_at) = $1
-      ORDER BY ba.status_updated_at DESC;
-    `;
-    const { rows } = await con.query(q, [today]);
-    res.json(rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Error fetching cancelled today' });
-  }
-});*/
+
 
 // אחרי ה־POST ל־boarding-appointments, הוסף:
 app.put('/boarding-appointments/:id', authenticateToken, async (req, res) => {
@@ -848,30 +773,32 @@ app.get('/boarding/stats', authenticateToken, async (req, res) => {
   }
 });
 
-// … the rest of your server.js …
 
 // מטפל בבקשה להחזרת תורים לטיפוח
-app.get('/grooming/appointments', authenticateToken, async (req, res) => {
+/*app.get('/grooming/appointments', authenticateToken, async (req, res) => {
   try {
-    // דוגמה: בוחרים id, תאריך ושעה, שירות, dog_id, customer_id
     const query = `
       SELECT
-  ga.id,
-  ga.appointment_date AS date,
-  ga.slot_time       AS time,
-  ga.status,
-  s.name             AS service,
-  c.first_name || ' ' || c.last_name AS customer_name,
-  c.phone,
-  d.name             AS dog_name
-FROM grooming_appointments ga
-  JOIN services  s ON ga.service_id  = s.id
-  JOIN customers c ON ga.customer_id = c.id
-  JOIN dogs      d ON ga.dog_id      = d.id    -- <-- כאן מצטרפים לטבלת הכלבים
-ORDER BY
-  ga.appointment_date,
-  ga.slot_time;
-
+        ga.id,
+        ga.appointment_date AS date,
+        ga.slot_time       AS time,
+        ga.status,
+        ga.service_id,
+        s.name             AS service,
+        ga.customer_id,
+        c.first_name || ' ' || c.last_name AS customer_name,
+        c.phone,
+        ga.dog_id,
+        d.name             AS dog_name,
+        ga.notes,
+        s.price
+      FROM grooming_appointments ga
+        JOIN services  s ON ga.service_id  = s.id
+        JOIN customers c ON ga.customer_id = c.id
+        JOIN dogs      d ON ga.dog_id      = d.id
+      ORDER BY
+        ga.appointment_date,
+        ga.slot_time;
     `;
     const result = await con.query(query);
     return res.status(200).json(result.rows);
@@ -880,7 +807,68 @@ ORDER BY
     console.error('Error fetching grooming appointments:', err);
     return res.status(500).json({ message: 'שגיאה בטעינת תורים' });
   }
+});*/
+
+app.get('/grooming/appointments', authenticateToken, async (req, res) => {
+  try {
+    let baseQuery = `
+      SELECT
+        ga.id,
+        ga.appointment_date AS date,
+        ga.slot_time       AS time,
+        ga.status,
+        ga.service_id,
+        s.name             AS service,
+        ga.customer_id,
+        c.first_name || ' ' || c.last_name AS customer_name,
+        c.phone,
+        ga.dog_id,
+        d.name             AS dog_name,
+        ga.notes,
+        s.price
+      FROM grooming_appointments ga
+        JOIN services  s ON ga.service_id  = s.id
+        JOIN customers c ON ga.customer_id = c.id
+        JOIN dogs      d ON ga.dog_id      = d.id
+    `;
+    const params = [];
+    if (req.query.date) {
+      baseQuery += ` WHERE ga.appointment_date = $1`;
+      params.push(req.query.date);
+    }
+    baseQuery += ` ORDER BY ga.appointment_date, ga.slot_time`;
+    const { rows } = await con.query(baseQuery, params);
+    return res.json(rows);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'שגיאה בטעינת תורים' });
+  }
 });
+
+
+app.put('/grooming/appointments/:id', authenticateToken, async (req, res) => {
+  const { appointment_date, slot_time, service_id, dog_id, notes } = req.body;
+  const id = req.params.id;
+  try {
+    const query = `
+      UPDATE grooming_appointments
+      SET 
+        appointment_date = $1,
+        slot_time        = $2,
+        service_id       = $3,
+        dog_id           = $4,
+        notes            = $5
+      WHERE id = $6
+    `;
+    await con.query(query, [appointment_date, slot_time, service_id, dog_id, notes, id]);
+    return res.sendStatus(204);
+  } catch (err) {
+    console.error('Error updating grooming appointment:', err);
+    return res.status(500).json({ message: 'שגיאה בעדכון התור' });
+  }
+});
+
+
 
 // ייפתח לעדכון סטטוס
 app.put('/grooming-appointments/:id/status', authenticateToken, async (req, res) => {
@@ -1040,9 +1028,6 @@ app.get('/dashboard/customers', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'שגיאה בשליפת לקוחות' });
   }
 });
-
-
-
 
 
 app.listen(3000, () => {

@@ -27,23 +27,44 @@ setInterval(nextSlide, 3000);
  /* popup  script*/
 function openPopup(popupId) {
     document.getElementById(popupId).style.display = "flex";
+    
+      if (id === 'groomingpopup') {
+    const dateInput = document.getElementById('appointmentDate');
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.min = today;
+  }
+
 }
+ /* window.addEventListener('groomingpopup_form', function (e)  { 
+  const dateInput = document.getElementById('appointmentDate');
+  // yyyy-mm-dd for min
+  const today = new Date().toISOString().split('T')[0];
+  dateInput.setAttribute('min', today);
+});*/
+    
 
 function closePopup(popupId) {
-    document.getElementById(popupId).style.display = "none";
+    //document.getElementById(popupId).style.display = "none";
+    const pop = document.getElementById(popupId).querySelector('.popup-content');
+  pop.classList.add('closing');
+  pop.addEventListener('animationend', ()=>{
+    document.getElementById(popupId).style.display = 'none';
+    pop.classList.remove('closing');
+  }, { once: true });
 }
 
 // registration  validation
 async function submitRegistration(e) {
         e.preventDefault();
 
-        const id = parseInt(document.getElementById('customerId').value);
+        const id = document.getElementById('customerId').value  ;
         const first_name = document.getElementById('firstName').value;
         const last_name = document.getElementById('lastName').value;
-        const phone = parseInt(document.getElementById('telephone').value);
+        const phone = document.getElementById('telephone').value;
         const address = document.getElementById('address').value;
         const email = document.getElementById('email').value;  
         const password = document.getElementById('pass').value;
+        const confirmPassword = document.getElementById('passconfirm').value;
         const name = document.getElementById('dogName').value;
         const breed = document.getElementById('dogBreed').value;
         const age = parseInt(document.getElementById('dogAge').value);
@@ -52,7 +73,12 @@ async function submitRegistration(e) {
       //  console.log(id, first_name, last_name, phone, address, email, password, name, breed, age, size  )
         //console.log({ id, first_name, last_name, phone, address, email, password, name, breed, age, size, gender });
         console.log(JSON.stringify({ id, first_name , last_name , phone, address, email, password, name, breed, age, size, gender }))
-        
+        if(password !== confirmPassword) {
+            alert('סיסמאות אינן תואמות');
+            return;
+        }
+    
+
 try{
         const response = await fetch('http://localhost:3000/postData', {
             method: 'POST',
@@ -66,6 +92,8 @@ try{
         const result = await response.text();
         alert(result);
         console.log(result);
+            window.location.reload();
+
     } catch (error) {
         console.error('Error during registration:', error);
         alert('An error occurred while registering. Please try again.');
@@ -168,28 +196,24 @@ async function submitlogin(e) {
      loadUserDogs();//load dogs from the server
    // loadAvailableHours(); //load available hours from the server
    loadUserDogsForBoarding(); // 🚀 קריאה לטעינת הכלבים לטופס הפנסיון
+   
+   //register numbers only for customer id and phone number
+   const cust = document.getElementById('customerId');
+  cust.addEventListener('input', e => {
+    e.target.value = e.target.value.replace(/\D/g, '');
+  });
+  
+     const phonenum = document.getElementById('telephone');
+  phonenum.addEventListener('input', e => {
+    e.target.value = e.target.value.replace(/\D/g, '');
+  });
 
-    
-    //const token = localStorage.getItem('token');
-    //const expiry = localStorage.getItem('expiry');
+  //log in numbers only for customer id
+  const logid = document.getElementById('log_id');
+  logid.addEventListener('input', e => {
+    e.target.value = e.target.value.replace(/\D/g, '');
+  });
 
-    /*if (token && expiry) {
-        if (Date.now() > parseInt(expiry)) {
-            // Token expired
-            localStorage.removeItem('token');
-            localStorage.removeItem('expiry');
-            document.getElementById('auth-buttons').style.display = 'block';
-            document.getElementById('profile-icon').style.display = 'none';
-            alert('Session expired. Please login again.');
-        } else {
-            // Token still valid
-            document.getElementById('auth-buttons').style.display = 'none';
-            document.getElementById('profile-icon').style.display = 'block';
-        }
-    } else {
-        document.getElementById('auth-buttons').style.display = 'block';
-        document.getElementById('profile-icon').style.display = 'none';
-    }*/
 });
 let currentUserId = null; // משתנה גלובלי
 
@@ -289,12 +313,19 @@ async function loadUserDogs() {
     const dog_id = document.getElementById('dogSelect').value;
     const notes = document.getElementById('notes').value;
     const slot_time = document.getElementById('hourSelect').value;
+    const todayStr        = new Date().toISOString().split('T')[0];            // e.g. "2025-05-31"
+
+
 
     if (!appointment_date || !start_time || !service_id || !dog_id) {
       alert('נא למלא את כל השדות');
       return;
     }
-  
+
+if (appointment_date < todayStr) {
+  alert('נא לבחור תאריך שהוא היום או תאריך עתידי');
+  return;
+}
     try {
       const res = await fetch('http://localhost:3000/grooming-appointments', {
         method: 'POST',
@@ -306,6 +337,8 @@ body: JSON.stringify({ appointment_date, slot_time, service_id, dog_id, notes })
       const result = await res.json();
       
       alert(result.message || 'התור נקבע בהצלחה!');
+          window.location.reload();
+
     } catch (err) {
       console.error('שגיאה בשליחת התור:', err);
       alert('שגיאה בשליחת הטופס');
@@ -432,6 +465,7 @@ function updatePriceLabel() {
       if (response.ok) {
         const result = await response.json();
         alert(result.message || 'הפנייה נשלחה בהצלחה!');
+        window.location.reload(); // מרענן את הדף לאחר שליחת הטופס
         
       } else {
         const errorText = await response.json(); // מנסה לקרוא את הטקסט של השגיאה
@@ -504,12 +538,23 @@ function updatePriceLabel() {
     const endDate = document.getElementById('checkoutDate').value;
     const dogId = document.getElementById('boardingDogSelect').value;
     const notes = document.getElementById('boardingNotes').value;
-  
+    const todayStr        = new Date().toISOString().split('T')[0];            // e.g. "2025-05-31"
+
     if (!startDate || !endDate || !dogId) {
       alert('נא למלא את כל השדות');
       return;
     }
-  
+    
+    if (startDate < todayStr) {
+      alert('נא לבחור תאריך כניסה שהוא היום או תאריך עתידי');
+      return;
+    }
+
+    if(startDate >= endDate) {
+      alert('נא לבחור תאריך יציאה מאוחר יותר מתאריך הכניסה');
+      return;
+    }
+
     const available = await checkBoardingAvailability(startDate, endDate);
     if (!available) return;
   
@@ -529,6 +574,7 @@ body: JSON.stringify({
       const result = await response.json();
       console.log('Boarding appointment result:', result);
       alert(result.message || 'התור נקבע בהצלחה!');
+      window.location.reload(); // מרענן את הדף לאחר שליחת הטופס
     } catch (error) {
       console.error('שגיאה בשליחת התור:', error);
       alert('שגיאה בשליחת הטופס');
