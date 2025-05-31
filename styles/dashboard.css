@@ -20,6 +20,7 @@
   --brand-accent: #dba35a;
 }
 
+
 html[dir="rtl"] {
   direction: rtl;
 }
@@ -379,7 +380,7 @@ body, html {
 
 
 /* 3. כותרת אקורדיון */
-.accordion-header {
+/*.accordion-header {
   padding: 0.75rem 1rem;
 
   cursor: pointer;
@@ -391,6 +392,16 @@ body, html {
   color: var(--gray-800);
   border: 1px solid var(--brand-primary);
 
+}*/
+.accordion-header {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 
@@ -617,6 +628,7 @@ padding: 0;
 
 /* עיצוב כל כרטיס KPI */
 .kpi-card {
+    position: relative;        /* for positioning dropdown */
   background: #fff;
   border-radius: 8px;
   padding: 16px;
@@ -674,6 +686,75 @@ padding: 0;
 .kpi-card.red      { background-color: #fce8e6; }
 .kpi-card.red .icon   { background-color: #d32f2f; }
 
+.kpi-card .values { display: flex; flex-direction: column; gap: 4px; }
+.kpi-card .main-value { font-size: 1.8rem; }
+.kpi-card .sub-value { font-size: 0.85rem; color: #fffcc0; }
+
+.kpi-main-value {
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.kpi-sub-values {
+  width: 100%;
+  display: flex;
+  flex-direction: row;    /* ← side by side */
+  justify-content: center;
+  gap: 12px;              /* space between them */
+}
+
+.kpi-sub-value {
+  flex: 1;                /* each takes equal width */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  background: #f5f5f5;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #555;
+}
+/* future‐proof: when you do want them clickable, just add a “clickable” class */
+.kpi-sub-value.clickable {
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.kpi-sub-value.clickable:hover {
+  background: #e0e0e0;
+}
+
+.kpi-label {
+  margin-top: 16px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #777;
+  text-transform: uppercase;
+}
+
+.kpi-dropdown {
+  position: absolute;
+  top: 100%;                 /* right under the card */
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 8px;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  display: none;
+  z-index: 10;
+}
+
+.kpi-dropdown select {
+  width: 200px;
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+
+}
 /* רספונסיביות – מרווח פנימי במובייל */
 @media (max-width: 480px) {
   .kpi-card {
@@ -884,6 +965,20 @@ padding: 0;
   border-radius: 6px;
   overflow: hidden;
   font-size: 0.95rem;
+}
+
+
+.search-select {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  display: inline-block; /* or block if you want it on its own line */
+}
+.search-select.search-select--active {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  display: block;
 }
 
 /* The text input */

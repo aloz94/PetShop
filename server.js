@@ -872,21 +872,91 @@ app.put('/grooming/appointments/:id', authenticateToken, async (req, res) => {
 
 // ייפתח לעדכון סטטוס
 app.put('/grooming-appointments/:id/status', authenticateToken, async (req, res) => {
-  const id     = req.params.id;
+  const id = req.params.id;
   const { status } = req.body;
+
   try {
     await con.query(
       `UPDATE grooming_appointments
-         SET status = $1
+       SET status = $1,
+           status_updated_at = NOW()
        WHERE id = $2`,
       [status, id]
     );
+    
     res.json({ message: 'Status updated' });
   } catch (err) {
     console.error('Error updating grooming status:', err);
     res.status(500).json({ message: 'שגיאה בעדכון סטטוס' });
   }
 });
+
+
+app.get('/grooming/stats', authenticateToken, async (req, res) => {
+  try {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const date = req.query.date || todayStr;
+
+    // תורים להיום
+    const todayRes = await con.query(
+      `SELECT COUNT(*) AS cnt FROM grooming_appointments WHERE appointment_date = $1
+      AND status = 'scheduled'`,
+      [date]
+    );
+
+    // תורים שבוטלו היום
+    const cancelledRes = await con.query(
+      `SELECT COUNT(*) AS cnt
+       FROM grooming_appointments
+       WHERE status = 'cancelled'
+         AND DATE(status_updated_at) = $1`,
+      [date]
+    );
+
+    // תור נוכחי
+    const currentRes = await con.query(`
+      SELECT g.id, g.slot_time, g.appointment_date,
+       d.name AS dog_name,
+       s.name AS service_name
+FROM grooming_appointments g
+JOIN dogs d ON g.dog_id = d.id
+JOIN services s ON g.service_id = s.id
+WHERE g.appointment_date = $1
+  AND CURRENT_TIME BETWEEN g.slot_time AND g.slot_time + INTERVAL '30 minutes'
+ORDER BY g.slot_time ASC
+LIMIT 1
+
+
+    `, [date]);
+
+    // תור הבא
+    const nextRes = await con.query(`
+SELECT g.id, g.slot_time, g.appointment_date,
+       d.name AS dog_name,
+       s.name AS service_name
+FROM grooming_appointments g
+JOIN dogs d ON g.dog_id = d.id
+JOIN services s ON g.service_id = s.id
+WHERE (g.appointment_date > $1 OR (g.appointment_date = $1 AND g.slot_time > CURRENT_TIME))
+ORDER BY g.appointment_date ASC, g.slot_time ASC
+LIMIT 1
+    `, [date]);
+
+    res.json({
+      date: todayStr,
+      appointmentsToday: parseInt(todayRes.rows[0].cnt, 10),
+      cancelledToday: parseInt(cancelledRes.rows[0].cnt, 10),
+      currentAppointment: currentRes.rows[0] || null,
+      nextAppointment: nextRes.rows[0] || null
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error fetching grooming stats' });
+  }
+});
+
+
 
 // מחזיר את רשימת הכלבים של לקוח לפי ת"ז
 app.get('/customers/:id/dogs', authenticateToken, async (req, res) => {
@@ -944,6 +1014,20 @@ app.get('/dashboard/reports', authenticateToken, async (req, res) => {
    catch (err) {
     console.error('Error fetching dashboard reports:', err);
     res.status(500).json({ message: 'שגיאה בשליפת פניות לכלבים נטושים' });
+  }
+});
+app.put('/abandoned-reports/:id/status', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  try {
+    await con.query(
+      'UPDATE abandoned_dog_reports SET status = $1 WHERE id = $2',
+      [status, id]
+    );
+    res.json({ message: 'Status updated' });
+  } catch (err) {
+    console.error('Error updating abandoned report status:', err);
+    res.status(500).json({ message: 'Error updating status' });
   }
 });
 

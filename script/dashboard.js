@@ -66,6 +66,8 @@ await loadAbandonedReports();
 await loadHandlersAccordion();
 await loadCareProvidersAccordion();
 await loadCustomersAccordion();
+await loadKpiData();
+ 
 
   // טען את כלבים של לקוח לפי ת"ז
   /*
@@ -129,7 +131,11 @@ function buildAccordionFromData(data, container, headerKeys, bodyKeys, labels) {
       const header = document.createElement('div');
       header.classList.add('accordion-header');
       header.innerHTML = headerKeys
-        .map(key => `<span>${labels[key]}: ${item[key] || ''}</span>`)
+        .map(key =>
+          (key === 'statusBadge' || key === 'editHtml')
+            ? `<span>${labels[key]} ${item[key] || ''}</span>`
+            : `<span>${labels[key]}: ${item[key] || ''}</span>`
+        )
         .join('');
   
       // גוף
@@ -210,7 +216,9 @@ async function loadBoardingData() {
           <option value="completed"  ${item.status==='completed'  ? 'selected' : ''}>הושלם</option>
           <option value="cancelled"  ${item.status==='cancelled'  ? 'selected' : ''}>בוטל</option>
         </select>`,
-      editHtml: `<button class="action-btn btn-edit" data-id="${item.id}">ערוך</button>`
+      editHtml: `<button class="action-btn btn-edit" data-id="${item.id}">
+  <i class="fa fa-edit"></i>
+</button>`
     }));
 
     // הסתרת הטבלה המקורית
@@ -221,8 +229,8 @@ async function loadBoardingData() {
     buildAccordionFromData(
       data,
       'accordion-boarding',
-      ['id','check_in','check_out','dog_name','statusBadge'],
-      ['customer_name','phone','notes','statusSelect','editHtml'],
+      ['id','check_in','check_out','dog_name','statusBadge','editHtml'],
+      ['customer_name','phone','notes','statusSelect'],
       {
         id:            "מס' ",
         check_in:      "תאריך כניסה",
@@ -231,9 +239,9 @@ async function loadBoardingData() {
         customer_name: "שם לקוח",
         phone:         "טלפון",
         notes:         "הערות",
-        statusBadge:   "סטטוס ",
+        statusBadge:   " ",
         statusSelect:  "עדכן סטטוס",
-        editHtml:      "ערוך"
+        editHtml:      ""
       }
     );
   } catch (err) {
@@ -288,14 +296,15 @@ function applyBoardingFilter() {
         <option value="completed"  ${item.status==='completed'  ? 'selected' : ''}>הושלם</option>
         <option value="cancelled"  ${item.status==='cancelled'  ? 'selected' : ''}>בוטל</option>
       </select>`,
-    editHtml: `<button class="action-btn btn-edit" data-id="${item.id}">ערוך</button>`
-  }));
+editHtml: `<button class="action-btn btn-edit" data-id="${item.id}">
+  <i class="fa fa-edit"></i>
+</button>`  }));
 
   buildAccordionFromData(
     data,
     'accordion-boarding',
-    ['id','check_in','check_out','dog_name','statusBadge'],
-    ['customer_name','phone','notes','statusSelect','editHtml'],
+    ['id','check_in','check_out','dog_name','statusBadge','editHtml'],
+    ['customer_name','phone','notes','statusSelect'],
     {
       id:            "מס' תור",
       check_in:      "תאריך כניסה",
@@ -304,9 +313,9 @@ function applyBoardingFilter() {
       customer_name: "שם לקוח",
       phone:         "טלפון",
       notes:         "הערות",
-      statusBadge:   "סטטוס נוכחי",
+      statusBadge:   " ",
       statusSelect:  "עדכן סטטוס",
-      editHtml:      "ערוך"
+      editHtml:      ""
     }
   );
 }
@@ -500,6 +509,65 @@ document.getElementById('editboardingpopup_form')
       console.error('Failed to load boarding stats:', err);
     }
   }
+// קריאה ל־API שמחזיר את שלושת המדדים בבת אחת
+// פונקציה לטעינת KPI
+async function loadKpiData() {
+  try {
+    const res = await fetch('/api/abandoned-dogs/kpi', { credentials: 'include' });
+    const { inProgress, unassignedCourier, unassignedCare } = await res.json();
+
+    document.getElementById('in-progress-count').textContent   = inProgress;
+    document.getElementById('unassigned-courier').textContent = unassignedCourier;
+    document.getElementById('unassigned-care').textContent    = unassignedCare;
+  } catch (err) {
+    console.error('Error loading KPI data', err);
+  }
+}
+const courierList = [
+  { id: 1, name: 'שליח א׳' },
+  { id: 2, name: 'שליח ב׳' },
+];
+const careList = [
+  { id: 10, name: 'גורם סיוע א׳' },
+  { id: 11, name: 'גורם סיוע ב׳' },
+];
+
+const dropdown = document.getElementById('kpi-dropdown');
+const selectEl = document.getElementById('kpi-select');
+
+// open dropdown under the clicked sub-value
+function openDropdown(type, anchor) {
+  // populate options
+  const list = type === 'courier' ? courierList : careList;
+  selectEl.innerHTML = list
+    .map(item => `<option value="${item.id}">${item.name}</option>`)
+    .join('');
+
+  // position (if you want it centered under the card, CSS above handles it)
+  dropdown.style.display = 'block';
+  dropdown.setAttribute('aria-hidden', 'false');
+}
+
+// close on outside click
+document.addEventListener('click', e => {
+  if (!dropdown.contains(e.target) && !e.target.closest('.kpi-sub-value')) {
+    dropdown.style.display = 'none';
+    dropdown.setAttribute('aria-hidden', 'true');
+  }
+});
+
+// attach click handlers
+document.querySelectorAll('.kpi-sub-value.clickable')
+  .forEach(el => {
+    el.addEventListener('click', e => {
+      const type = el.dataset.type;  // "courier" or "care"
+      openDropdown(type, el);
+    });
+  });
+  
+
+// תקרא לפונקציה אחרי שה־DOM נטען
+document.addEventListener('DOMContentLoaded', loadKpiData);
 
   // פונקציה להמרת תאריך ושעה לפורמט עברי  
   function formatHebTime(timeString) {
@@ -523,6 +591,62 @@ document.getElementById('editboardingpopup_form')
     const year  = d.getFullYear();
     return `${day}/${month}/${year}`;
   }
+
+async function loadGroomingStats(date) {
+  try {
+    const today = date || new Date().toISOString().split('T')[0];
+    const res = await fetch(`http://localhost:3000/grooming/stats?date=${today}`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!res.ok) throw new Error('Network response was not OK');
+
+    const {
+      appointmentsToday,
+      cancelledToday,
+      currentAppointment,
+      nextAppointment
+    } = await res.json();
+
+    // תורים להיום
+    document.getElementById('grooming-today').textContent = `${appointmentsToday}`;
+    document.getElementById('grooming-cancelled-today').textContent = `${cancelledToday}`;
+
+    // תור נוכחי
+    if (currentAppointment) {
+      document.getElementById('grooming-current').innerHTML =
+        `#${currentAppointment.id}<br>` +
+        `${formatHebTime(currentAppointment.slot_time)} | ${currentAppointment.dog_name}<br>` +
+        `${currentAppointment.service_name}`;
+    } else {
+      document.getElementById('grooming-current').textContent = 'אין תור כרגע';
+    }
+
+    // תור הבא
+    if (nextAppointment) {
+  document.getElementById('grooming-next').innerHTML =
+    `#${nextAppointment.id}<br>` +
+    `${formatHebTime(nextAppointment.slot_time)} | ${nextAppointment.dog_name}<br>` +
+    `${nextAppointment.service_name}`;
+} else {
+  document.getElementById('grooming-next').textContent = 'אין תור נוסף';
+}
+
+
+  } catch (err) {
+    console.error('Failed to load grooming stats:', err);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadGroomingStats();
+});
+
+
 // =================== GROOMING APPOINTMENTS ===================
 
 // ───────── Grooming Search & Render ─────────
@@ -571,8 +695,9 @@ function renderGroomingAccordion(items) {
           <option value="${s.value}" ${s.value===item.status?'selected':''}>${s.label}</option>
         `).join('')}
       </select>`,
-    editHtml: `<button class="action-btn btn-edit" data-id="${item.id}">ערוך</button>`
-  }));
+editHtml: `<button class="action-btn btn-edit" data-id="${item.id}">
+  <i class="fa fa-edit"></i>
+</button>`  }));
 
   // hide static table
   const table = document.getElementById('grooming-posts');
@@ -582,19 +707,19 @@ function renderGroomingAccordion(items) {
   buildAccordionFromData(
     formatted,
     'accordion-grooming',
-    ['id','date','time','service','statusBadge'],
-    ['customer_name','phone','dog_name','statusSelect','editHtml'],
+    ['id','date','time','service','statusBadge','editHtml'],
+    ['customer_name','phone','dog_name','statusSelect'],
     {
       id:            "מס' ",
       date:          "תאריך",
       time:          "שעה",
       service:       "שירות",
-      statusBadge:   "סטטוס ",
+      statusBadge:   " ",
       statusSelect:  "עדכן סטטוס",
       customer_name: "שם לקוח",
       phone:         "טלפון",
       dog_name:      "שם כלב",
-      editHtml:      "ערוך"
+      editHtml:      ""
     }
   );
 }
@@ -602,24 +727,35 @@ function renderGroomingAccordion(items) {
 const cat   = document.getElementById('groomingSearchCategory');
 const txt   = document.getElementById('groomingSearchText');
 const stSel = document.getElementById('groomingSearchStatusSelect');
+const svSel = document.getElementById('groomingServiceSelect');
+
 cat.addEventListener('change', () => {
-  if (cat.value === 'status') {
-    txt.style.display   = 'none';
+  const val = cat.value;
+
+  // הסתר את כולם תחילה
+  txt.style.display = 'none';
+  stSel.style.display = 'none';
+  svSel.style.display = 'none';
+  stSel.classList.remove('search-select--active');
+  svSel.classList.remove('search-select--active');
+
+
+  // הצג רק את הרלוונטי
+  if (val === 'status') {
     stSel.style.display = 'inline-block';
+    stSel.classList.add('search-select--active'); // <--- ADD HERE
+  } else if (val === 'service_id') {
+    svSel.style.display = 'inline-block';
+    svSel.classList.add('search-select--active'); // <--- (optional, for service select)
   } else {
-    stSel.style.display = 'none';
-    txt.style.display   = 'inline-block';
-    if (cat.value === 'date') {
-      txt.type = 'date';
-    } else if (cat.value === 'time') {
-      txt.type = 'time';
-    } else {
-      txt.type = 'text';
-    }
+    txt.style.display = 'inline-block';
+    txt.type = (val === 'date') ? 'date' : (val === 'time') ? 'time' : 'text';
   }
-  // clear inputs
-  txt.value   = '';
+
+  // איפוס ערכים
+  txt.value = '';
   stSel.value = '';
+  svSel.value = '';
 });
 
 // 4) Filter + re-render
@@ -627,10 +763,14 @@ function applyGroomingFilter() {
   const c  = cat.value;
   const v1 = txt.value.trim();
   const v2 = stSel.value;
+  const v3 = svSel.value;
 
   const filtered = _groomingDataCache.filter(item => {
     if (c === 'status') {
       return v2 === '' || item.status === v2;
+    }
+    if (c === 'service_id') {
+      return v3 === '' || String(item.service_id) === v3;
     }
     if (c === 'date') {
       return formatHebDate(item.date) === v1;
@@ -652,11 +792,13 @@ document.getElementById('groomingSearchText')
   .addEventListener('keyup', e => e.key === 'Enter' && applyGroomingFilter());
 document.getElementById('groomingClearBtn')
   .addEventListener('click', () => {
-    cat.value   = '';
-    txt.value   = '';
+    cat.value = '';
+    txt.value = '';
     stSel.value = '';
+    svSel.value = '';
     stSel.style.display = 'none';
-    txt.style.display   = 'inline-block';
+    svSel.style.display = 'none';
+    txt.style.display = 'inline-block';
     txt.type = 'text';
     loadGroomingAppointments();
   });
@@ -683,6 +825,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         );
         loadGroomingAppointments();
+        loadGroomingStats();  // refresh stats too
       } catch (err) {
         console.error('Error updating grooming status:', err);
         alert('שגיאה בעדכון סטטוס');
@@ -1230,6 +1373,9 @@ document.getElementById('groomingpopup_form')
 }
 
 // =================== ABANDONED DOGS REPORTS ===================
+_AbnDataCache = [];
+let editingAbnId  = null;
+
   async function loadAbandonedReports() {
     console.log('calling loadAbandonedReports…');
   
@@ -1248,6 +1394,38 @@ document.getElementById('groomingpopup_form')
       }
       const data = await res.json();
       console.log('abandoned data:', data);
+      _AbnDataCache = data; // <- cache the raw items for later use
+
+          const classMap = {
+      open:    'status-open',
+      inprogress: 'status-inprogress',
+      completed:  'status-completed',
+      cancelled:  'status-cancelled'
+    };
+    const labelMap = {
+      open:    'חדש',
+      inprogress: 'בטיפול',
+      completed:  'הושלם',
+      cancelled:  'בוטל'
+    };
+
+        // הכנת מערך להצגה
+    const dataM = data.map(item => ({
+      ...item,
+      statusBadge: `
+        <span class="status-badge ${classMap[item.status] || ''}">
+          ${labelMap[item.status] || item.status}
+        </span>`,
+      statusSelect: `
+        <select class="status-select" data-id="${item.id}">
+          <option value="open"    ${item.status==='open'    ? 'selected' : ''}>חדש</option>
+          <option value="inprogress" ${item.status==='inprogress' ? 'selected' : ''}>בטיפול</option>
+          <option value="completed"  ${item.status==='completed'  ? 'selected' : ''}>הושלם</option>
+          <option value="cancelled"  ${item.status==='cancelled'  ? 'selected' : ''}>בוטל</option>
+        </select>`,
+      editHtml: `<button class="action-btn btn-edit" data-id="${item.id}">ערוך/שבץ</button>`
+    }));
+
 
       // 2. הסתר את הטבלה הסטטית
       const table = document.getElementById('abandoned-posts');
@@ -1258,7 +1436,7 @@ document.getElementById('groomingpopup_form')
       }
       
       // 3. בנה אקורדיון מתוך ה־JSON
-      const formatted = data.map(item => ({
+      const formatted = dataM.map(item => ({
         ...item,
         handler_id:    item.handler_id    ?? 'לא שובץ',
 
@@ -1270,8 +1448,8 @@ document.getElementById('groomingpopup_form')
       buildAccordionFromData(
         formatted,
         'accordion-abandoned',
-        ['id','customer_name','phone','dog_size','health_status','care_provider','handler_id'],
-        ['address','notes','status','image_path','report_date'],
+        ['id','customer_name','phone','dog_size','health_status','care_provider','handler_id','statusBadge'],
+        ['address','notes','status','image_path','report_date','statusSelect','editHtml'],
         {
           id:             "מס' דוח",
           customer_name:  "שם לקוח",
@@ -1284,7 +1462,11 @@ document.getElementById('groomingpopup_form')
           status:         "סטטוס",
           handler_id:       "שליח",
           care_provider: "גורם מטפל ",
-          image_path:     "תמונה"
+          image_path:     "תמונה",
+         statusBadge:   " ",
+        statusSelect:  "עדכן סטטוס",
+        editHtml:      "ערוך/שבץ"
+
         }
       );
     
@@ -1293,6 +1475,35 @@ document.getElementById('groomingpopup_form')
       alert('שגיאה בטעינת פניות לכלבים נטושים');
     }
   }
+
+  const abandonedAcc = document.getElementById('accordion-abandoned');
+if (abandonedAcc) {
+  abandonedAcc.addEventListener('change', async e => {
+    const sel = e.target.closest('select.status-select');
+    if (!sel) return;
+    const reportId = sel.dataset.id;
+    const newStatus = sel.value;
+    try {
+      await fetch(
+        `http://localhost:3000/abandoned-reports/${reportId}/status`,
+        {
+          method:      'PUT',
+          credentials: 'include',
+          headers:     { 'Content-Type':'application/json' },
+          body:        JSON.stringify({ status: newStatus })
+        }
+      );
+      // Update local cache
+      const item = _AbnDataCache.find(i => String(i.id) === String(reportId));
+      if (item) item.status = newStatus;
+      // Re-render the accordion
+      loadAbandonedReports();
+    } catch (err) {
+      console.error('Error updating status:', err);
+      alert('שגיאה בעדכון סטטוס');
+    }
+  });
+}
   
 // =================== HANDLERS ACCORDION ===================
   async function loadHandlersAccordion() {
