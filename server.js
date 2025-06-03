@@ -328,7 +328,7 @@ app.get('/appointments', authenticateToken, async (req, res) => {
   });
 
 //dashboard grooming appointments
-app.post('/grooming-appointments', authenticateToken, async (req, res) => {
+/*app.post('/ADDgrooming-appointments', authenticateToken, async (req, res) => {
   const { appointment_date, slot_time, service_id, dog_id, notes, customer_id } = req.body;
   const realCustomerId = (req.user.role === 'employee' && customer_id) ? customer_id : req.user.userId;
 
@@ -343,7 +343,100 @@ app.post('/grooming-appointments', authenticateToken, async (req, res) => {
     console.error('שגיאה בהוספת תור:', err);
     res.status(500).json({ message: 'שגיאה בשמירת התור' });
   }
-});
+});*/
+
+// new route for adding grooming from dashboard 
+app.post(
+  '/addgrooming-appointments',
+  authenticateToken,  // if you want to require a logged-in user to create an appointment
+  async (req, res) => {
+    const {
+      customerId,
+      appointment_date,
+      slot_time,
+      service_id,
+      dog_id,
+      notes
+    } = req.body;
+
+    // 1) Basic validation: all required fields must be present
+    if (
+      !customerId ||
+      !appointment_date ||
+      !slot_time ||
+      !service_id ||
+      !dog_id
+    ) {
+      return res
+        .status(400)
+        .json({ message: 'Missing one of: customerId, date, time, service_id, or dog_id' });
+    }
+
+    try {
+      // 2) (Optional) Verify that the given customer actually exists
+      const customerCheck = await con.query(
+        `SELECT 1 FROM customers WHERE id = $1`,
+        [customerId]
+      );
+      if (customerCheck.rowCount === 0) {
+        return res
+          .status(400)
+          .json({ message: `Customer ID ${customerId} does not exist` });
+      }
+
+      // 3) (Optional) Verify that the given service exists
+      const serviceCheck = await con.query(
+        `SELECT 1 FROM services WHERE id = $1`,
+        [service_id]
+      );
+      if (serviceCheck.rowCount === 0) {
+        return res
+          .status(400)
+          .json({ message: `Service ID ${service_id} does not exist` });
+      }
+
+      // 4) (Optional) Verify that the given dog exists
+      const dogCheck = await con.query(
+        `SELECT 1 FROM dogs WHERE id = $1`,
+        [dog_id]
+      );
+      if (dogCheck.rowCount === 0) {
+        return res
+          .status(400)
+          .json({ message: `Dog ID ${dog_id} does not exist` });
+      }
+
+      // 5) Now insert the new appointment
+      //    We’ll set “status” to 'scheduled' by default, and status_updated_at to NOW()
+      const insertQuery = `
+  INSERT INTO grooming_appointments
+    (customer_id, appointment_date, slot_time, service_id, dog_id, notes, status, status_updated_at)
+  VALUES
+    ($1, $2, $3, $4, $5, $6, 'scheduled', NOW())
+  RETURNING *
+`;
+
+      const { rows } = await con.query(insertQuery, [
+        customerId,
+        appointment_date,
+        slot_time,
+        service_id,
+        dog_id,
+        notes || '' // notes can be empty string if none provided
+      ]);
+
+      // 6) Return the newly‐created row’s data as JSON, with HTTP 201
+      return res.status(201).json(rows[0]);
+    } catch (err) {
+      console.error('Error inserting grooming appointment:', err);
+      return res
+        .status(500)
+        .json({ message: 'שגיאה ביצירת תור פנסיון' });
+    }
+  }
+);
+
+
   // 3) UPDATE one grooming appointment
 app.put('/grooming-appointments/:id', authenticateToken, async (req, res) => {
   const id = req.params.id;
@@ -845,6 +938,20 @@ app.get('/grooming/appointments', authenticateToken, async (req, res) => {
   }
 });
 
+app.post('/ADDgrooming-appointments', authenticateToken, async (req, res) => {
+  const { customerId, appointment_date, slot_time, service_id, dog_id, notes } = req.body;
+  try {
+    await con.query(
+      `INSERT INTO grooming_appointments (customer_id, appointment_date, slot_time, service_id, dog_id, notes)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [customerId, appointment_date, slot_time, service_id, dog_id, notes]
+    );
+    res.status(201).json({ message: 'Grooming appointment added' });
+  } catch (err) {
+    console.error('Error adding grooming appointment:', err);
+    res.status(500).json({ message: 'Error adding grooming appointment' });
+  }
+});
 
 app.put('/grooming/appointments/:id', authenticateToken, async (req, res) => {
   const { appointment_date, slot_time, service_id, dog_id, notes } = req.body;
@@ -899,9 +1006,9 @@ app.get('/grooming/stats', authenticateToken, async (req, res) => {
 
     // תורים להיום
     const todayRes = await con.query(
-      `SELECT COUNT(*) AS cnt FROM grooming_appointments WHERE appointment_date = $1
+      `SELECT COUNT(*) AS cnt FROM grooming_appointments WHERE  appointment_date = CURRENT_DATE
       AND status = 'scheduled'`,
-      [date]
+      
     );
 
     // תורים שבוטלו היום
@@ -909,8 +1016,8 @@ app.get('/grooming/stats', authenticateToken, async (req, res) => {
       `SELECT COUNT(*) AS cnt
        FROM grooming_appointments
        WHERE status = 'cancelled'
-         AND DATE(status_updated_at) = $1`,
-      [date]
+         AND DATE(status_updated_at) = CURRENT_DATE`,
+      
     );
 
     // תור נוכחי
@@ -921,26 +1028,41 @@ app.get('/grooming/stats', authenticateToken, async (req, res) => {
 FROM grooming_appointments g
 JOIN dogs d ON g.dog_id = d.id
 JOIN services s ON g.service_id = s.id
-WHERE g.appointment_date = $1
+WHERE g.appointment_date = CURRENT_DATE
   AND CURRENT_TIME BETWEEN g.slot_time AND g.slot_time + INTERVAL '30 minutes'
 ORDER BY g.slot_time ASC
 LIMIT 1
 
 
-    `, [date]);
+    `, );
 
     // תור הבא
     const nextRes = await con.query(`
-SELECT g.id, g.slot_time, g.appointment_date,
-       d.name AS dog_name,
-       s.name AS service_name
+SELECT
+  g.id,
+  g.slot_time,
+  g.appointment_date,
+  d.name AS dog_name,
+  s.name AS service_name
 FROM grooming_appointments g
-JOIN dogs d ON g.dog_id = d.id
-JOIN services s ON g.service_id = s.id
-WHERE (g.appointment_date > $1 OR (g.appointment_date = $1 AND g.slot_time > CURRENT_TIME))
-ORDER BY g.appointment_date ASC, g.slot_time ASC
-LIMIT 1
-    `, [date]);
+JOIN dogs d
+  ON g.dog_id = d.id
+JOIN services s
+  ON g.service_id = s.id
+WHERE
+  g.status = 'scheduled'
+  AND (
+    g.appointment_date > CURRENT_DATE
+    OR (
+      g.appointment_date = CURRENT_DATE
+      AND g.slot_time > CURRENT_TIME
+    )
+  )
+ORDER BY
+  g.appointment_date ASC,
+  g.slot_time ASC
+LIMIT 1;
+    `, );
 
     res.json({
       date: todayStr,
@@ -998,13 +1120,20 @@ app.get('/dashboard/reports', authenticateToken, async (req, res) => {
         r.image_path,
         r.report_date,
         r.handler_id,
-        r.care_provider,
+        COALESCE(h.name, 'לא שובץ') AS handler_name,
+                r.care_provider,
+        COALESCE(p.name, 'לא שובץ') AS care_provider_name,
+
         -- pull in full customer name & phone:
         c.first_name || ' ' || c.last_name AS customer_name,
         c.phone
       FROM abandoned_dog_reports AS r
       JOIN customers AS c
         ON r.customer_id = c.id
+        LEFT JOIN handlers AS h
+        ON r.handler_id = h.id
+        LEFT JOIN care_provider AS p
+        ON r.care_provider = p.id
       ORDER BY r.id DESC
 
       `));
@@ -1021,7 +1150,8 @@ app.put('/abandoned-reports/:id/status', authenticateToken, async (req, res) => 
   const { status } = req.body;
   try {
     await con.query(
-      'UPDATE abandoned_dog_reports SET status = $1 WHERE id = $2',
+  'UPDATE abandoned_dog_reports SET status = $1, status_updated_at = NOW() WHERE id = $2',
+      
       [status, id]
     );
     res.json({ message: 'Status updated' });
@@ -1030,6 +1160,166 @@ app.put('/abandoned-reports/:id/status', authenticateToken, async (req, res) => 
     res.status(500).json({ message: 'Error updating status' });
   }
 });
+
+app.get('/dashboard/abandoned/stats', authenticateToken, async (req, res) => {
+  try {
+    // 1. count where report_date = today
+    const todayRes = await con.query(`
+      SELECT COUNT(*) AS cnt
+      FROM abandoned_dog_reports
+      WHERE report_date = CURRENT_DATE
+        
+    `);
+    const countToday = parseInt(todayRes.rows[0].cnt, 10);
+
+    // 2. count where status = 'open'
+    const openRes = await con.query(`
+      SELECT COUNT(*) AS cnt
+      FROM abandoned_dog_reports
+      WHERE status = 'open'
+    `);
+    const countOpen = parseInt(openRes.rows[0].cnt, 10);
+
+    // 3. count where status = 'inprogress'
+    const inProgRes = await con.query(`
+      SELECT COUNT(*) AS cnt
+      FROM abandoned_dog_reports
+      WHERE status = 'inprogress'
+    `);
+    const countInProgress = parseInt(inProgRes.rows[0].cnt, 10);
+
+    // 4. count where status = 'inprogress' AND handler_id IS NULL
+    const unassignedHandlerRes = await con.query(`
+      SELECT COUNT(*) AS cnt
+      FROM abandoned_dog_reports
+      WHERE status = 'inprogress'
+        AND handler_id IS NULL
+    `);
+    const countInProgUnassignedHandler = parseInt(unassignedHandlerRes.rows[0].cnt, 10);
+
+    // 5. count where status = 'inprogress' AND care_provider IS NULL
+    const unassignedCareRes = await con.query(`
+      SELECT COUNT(*) AS cnt
+      FROM abandoned_dog_reports
+      WHERE status = 'inprogress'
+        AND care_provider IS NULL
+    `);
+    const countInProgUnassignedCare = parseInt(unassignedCareRes.rows[0].cnt, 10);
+
+    // מחזירים JSON עם כל חמשת התוצאות
+    return res.json({
+      todayCount:               countToday,
+      openCount:                countOpen,
+      inProgressCount:          countInProgress,
+      inProgressUnassignedHandler: countInProgUnassignedHandler,
+      inProgressUnassignedCare:     countInProgUnassignedCare
+    });
+  } catch (err) {
+    console.error('Error fetching abandoned-dog stats:', err);
+    return res.status(500).json({ message: 'שגיאה בטעינת הסטטיסטיקות' });
+  }
+});
+
+// ─── (A) GET /dashboard/couriers ───────────────────────────────────────────────
+// This route returns a JSON array of all couriers: [{ id, name }, …].
+app.get(
+  '/dashboard/couriers',
+  authenticateToken, 
+  async (req, res) => {
+    try {
+      // Replace “couriers” and “name” with your actual table/column if different
+      const { rows } = await con.query(`
+        SELECT id, name
+        FROM handlers
+        ORDER BY name
+      `);
+      return res.json(rows);
+    } catch (err) {
+      console.error('Error fetching couriers:', err);
+      return res.status(500).json({ message: 'שגיאה בטעינת רשימת השליחים' });
+    }
+  }
+);
+
+
+// ─── (B) PUT /dashboard/reports/:reportId/assign-handler ─────────────────────────
+// This route expects `{ handler_id: <courierId> }` in req.body and updates that field.
+app.put(
+  '/dashboard/reports/:reportId/assign-handler',
+  authenticateToken,
+  async (req, res) => {
+    const { reportId } = req.params;
+    const { handler_id } = req.body;
+
+    if (!handler_id) {
+      return res.status(400).json({ message: 'handler_id חסר בבקשה' });
+    }
+
+    try {
+      await con.query(
+        `UPDATE abandoned_dog_reports
+           SET handler_id = $1
+         WHERE id = $2`,
+        [handler_id, reportId]
+      );
+      return res.sendStatus(200);
+    } catch (err) {
+      console.error('Error assigning handler in abandoned_dog_reports:', err);
+      return res.status(500).json({ message: 'שגיאה בשיבוץ השליח' });
+    }
+  }
+);
+
+// Returns a list of all care providers: [{ id, name }, …]
+app.get(
+  '/dashboard/care-providers',
+  authenticateToken,
+  async (req, res) => {
+    try {
+      // If your table is named differently (e.g. “care_providers”), adjust accordingly:
+      const { rows } = await con.query(`
+        SELECT id, name
+        FROM care_provider
+        ORDER BY name
+      `);
+      return res.json(rows);
+    } catch (err) {
+      console.error('Error fetching care providers:', err);
+      return res.status(500).json({ message: 'שגיאה בטעינת רשימת גורמי הסיוע' });
+    }
+  }
+);
+
+
+// ─── (B) PUT /dashboard/reports/:reportId/assign-care ────────────────────────────────
+// Assigns a care provider to the given report (by setting care_provider = <providerId>)
+app.put(
+  '/dashboard/reports/:reportId/assign-care',
+  authenticateToken,
+  async (req, res) => {
+    const { reportId } = req.params;
+    const { care_provider } = req.body;
+
+    if (!care_provider) {
+      return res.status(400).json({ message: 'care_provider חסר בבקשה' });
+    }
+
+    try {
+      await con.query(
+        `UPDATE abandoned_dog_reports
+           SET care_provider = $1
+         WHERE id = $2`,
+        [care_provider, reportId]
+      );
+      return res.sendStatus(200);
+    } catch (err) {
+      console.error('Error assigning care provider in abandoned_dog_reports:', err);
+      return res.status(500).json({ message: 'שגיאה בשיבוץ גורם הסיוע' });
+    }
+  }
+);
+
+
 
 // רק משתמשים מורשים
 app.get('/handlers', authenticateToken, async (req, res) => {

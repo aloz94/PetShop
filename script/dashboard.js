@@ -33,6 +33,8 @@ document.addEventListener('DOMContentLoaded', async() => {
 if (openGroomBtn) {
   openGroomBtn.addEventListener('click', () => {
     openPopup('groomingpopup');
+  loadAvailableHours();
+
   });
   //sidebar content activation
   links.forEach(link => {
@@ -79,9 +81,20 @@ document.getElementById('customerIdInput')
   
 document.getElementById('BcustomerIdInput')
   .addEventListener('change', () => loadCustomerDogsById('BcustomerIdInput', 'BboardingDogSelect'));
+document
+  .getElementById('appointmentDate')
+  .addEventListener('change', loadAvailableHours);
 
+  document.getElementById('customerIdInput').addEventListener('input', function() {
+  this.value = this.value.replace(/\D/g, '');
+
+  const eHour = document.getElementById('EhourSelect');
+  eHour.addEventListener('focus', loadAvailableHoursEdit);
+
+
+});
   // טיפול בסאבמיט
-  document
+  /*  document
     .getElementById('groomingpopup_form')
     .addEventListener('submit', submitGroomingAppointment);
 
@@ -90,7 +103,7 @@ document.getElementById('BcustomerIdInput')
     openBoardingBtn.addEventListener('click', () => {
       openPopup('addboardingpopup');
     });
-  }
+  }*/
 
 
 
@@ -843,52 +856,68 @@ document.addEventListener('DOMContentLoaded', () => {
   } // <-- closes if (groomAcc)
 }); // <-- closes DOMContentLoaded
 
-  async function openGroomingEditPopup(appointmentId) {
+async function openGroomingEditPopup(appointmentId) {
   editingGroomingId = appointmentId;
   const item = _groomingDataCache.find(i => i.id == appointmentId);
   if (!item) return alert('תור לא נמצא בזיכרון');
 
-  // fill hidden customer ID
+  // 1) Fill hidden customer ID
   document.getElementById('EcustomerIdInput').value = item.customer_id;
 
-let raw = item.date;
+  // 2) Normalize date to YYYY-MM-DD
+  let raw = item.date;
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(raw)) {
+    const [d, m, y] = raw.split('/');
+    raw = `${y}-${m}-${d}`;
+  } else {
+    const dt = raw instanceof Date ? raw : new Date(raw);
+    const yyyy = dt.getFullYear();
+    const mm   = String(dt.getMonth()+1).padStart(2,'0');
+    const dd   = String(dt.getDate()).padStart(2,'0');
+    raw = `${yyyy}-${mm}-${dd}`;
+  }
 
-// if it’s already “DD/MM/YYYY”, flip it
-if (/^\d{2}\/\d{2}\/\d{4}$/.test(raw)) {
-  const [d, m, y] = raw.split('/');
-  raw = `${y}-${m}-${d}`;
-}
-else {
-  // parse into a Date (handles ISO+offset too)
-  const dt = raw instanceof Date ? raw : new Date(raw);
+  // 3) Set EappointmentDate and attach listener
+  const dateInput = document.getElementById('EappointmentDate');
+  dateInput.value = raw;
+  if (!dateInput.dataset._editListener) {
+    dateInput.addEventListener('change', loadAvailableHoursEdit);
+    dateInput.dataset._editListener = '1';
+  }
 
-  // use local date parts, not UTC
-  const yyyy = dt.getFullYear();
-  const mm   = String(dt.getMonth() + 1).padStart(2, '0');
-  const dd   = String(dt.getDate()).padStart(2, '0');
-
-  raw = `${yyyy}-${mm}-${dd}`;
-}
-
-  document.getElementById('EappointmentDate').value = raw;
-
-  // time: for now just that one option
+  // 4) Insert existing appointment's time
   const hourSelect = document.getElementById('EhourSelect');
-const rawTime       = item.time;                   
-const formattedTime = formatHebTime(rawTime);      // uses your existing formatHebTime()
+  const rawTime       = item.time;               
+  const formattedTime = formatHebTime(rawTime);  
+  currentEditOriginalSlot = formattedTime;
+  hourSelect.innerHTML = `
+    <option value="${formattedTime}" selected>
+      ${formattedTime}
+    </option>
+  `;
 
-hourSelect.innerHTML = `
-  <option value="${formattedTime}" selected>
-    ${formattedTime}
-  </option>
-`;
 
-  // service: single option pre-selected
-await loadServicesEdit();  
+  // 6) Attach focus listener to reload if dropdown is reopened
+  if (!hourSelect.dataset._editListener) {
+    hourSelect.addEventListener('focus', loadAvailableHoursEdit);
+    hourSelect.dataset._editListener = '1';
+  }
+
+  // 7) Load and pre-select service
+  await loadServicesEdit();
   const svcSel = document.getElementById('EserviceSelect');
-  // set the existing service
   svcSel.value = item.service_id;
-  // load this customer’s dogs
+        loadAvailableHoursEdit();
+
+  if (!svcSel.dataset._editListener) {
+    svcSel.addEventListener('change', () => {
+      const price = svcSel.selectedOptions[0]?.dataset.price || 0;
+      document.getElementById('priceDisplay').textContent = `עלות – ₪${price}`;
+    });
+    svcSel.dataset._editListener = '1';
+  }
+
+  // 8) Load this customer's dogs and pre-select
   const dogs = await fetch(
     `http://localhost:3000/customers/${item.customer_id}/dogs`,
     { credentials: 'include' }
@@ -898,25 +927,21 @@ await loadServicesEdit();
     .map(d => `<option value="${d.id}" ${d.id == item.dog_id ? 'selected' : ''}>${d.name}</option>`)
     .join('');
 
-  // notes & price
+  // 9) Notes & price
   document.getElementById('Enotes').value = item.notes || '';
-
   const initPrice = svcSel.selectedOptions[0]?.dataset.price || 0;
   document.getElementById('priceDisplay').textContent = `עלות – ₪${initPrice}`;
 
-// 3) attach change-listener once (flags to avoid duplicates)
-  if (!svcSel.dataset._editListener) {
-    svcSel.addEventListener('change', () => {
-      const price = svcSel.selectedOptions[0]?.dataset.price || 0;
-      document.getElementById('priceDisplay').textContent = `עלות – ₪${price}`;
-      loadAvailableHours();          // <-- use the EDIT version here
-    });
-    svcSel.dataset._editListener = '1';
-  }
-
-  // show the popup
-  document.getElementById('editgroomingpopup').style.display = 'block';
+  // 10) Show the edit popup
+  document.getElementById('editgroomingpopup').style.display = 'flex';
 }
+
+
+
+
+
+
+
 
 // b) Close helper (you already have this in your inline onclick)
 function closePopup(id) {
@@ -1204,41 +1229,50 @@ document.getElementById('appointmentDate')
   .addEventListener('change', loadAvailableHours);
 
 async function loadAvailableHours() {
-  const date = document.getElementById('appointmentDate').value;
+  const date   = document.getElementById('appointmentDate').value;
   const svcOpt = document.getElementById('serviceSelect').selectedOptions[0];
-  if (!date || !svcOpt || !svcOpt.dataset.duration) return;
+  if (!date || !svcOpt?.dataset.duration) {
+    document.getElementById('hourSelect').innerHTML =
+      '<option value="">בחר תחילה תאריך ושירות</option>';
+    return;
+  }
 
-  const duration = parseInt(svcOpt.dataset.duration);
-  // שולח לבק בקו query
+  const duration = parseInt(svcOpt.dataset.duration, 10);
   try {
+    console.log('▶ loading availability for', date, 'duration', duration);
+
     const res = await fetch(
       `http://localhost:3000/appointments?date=${date}`,
       { credentials: 'include' }
     );
     if (!res.ok) throw new Error(res.status);
-    const booked = await res.json(); // [{ start_time, duration }]
-    
-    // בנה רשימת שעות: 9:00–17:00 חצי שעה
-    const hours = [];
-    for (let h=9; h<17; h++) {
-      hours.push(`${h.toString().padStart(2,'0')}:00`);
-      hours.push(`${h.toString().padStart(2,'0')}:30`);
+    const booked = await res.json();
+    console.log('▶ booked slots:', booked);
+
+    // Build all half-hour slots 09:00–16:30
+    const slots = [];
+    for (let h = 9; h < 17; h++) {
+      slots.push(`${String(h).padStart(2,'0')}:00`);
+      slots.push(`${String(h).padStart(2,'0')}:30`);
     }
 
     const select = document.getElementById('hourSelect');
-    select.innerHTML = `<option value="">בחר שעה</option>`;
+    select.innerHTML = '<option value="">בחר שעה</option>';
 
-    hours.forEach(slot => {
-      // חשב end = slot + duration
-      const [hh, mm] = slot.split(':').map(Number);
-      const start = new Date(`1970-01-01T${slot}:00`);
-      const end = new Date(start.getTime() + duration*60000);
-      const endStr = end.toTimeString().substring(0,5);
+    slots.forEach(slot => {
+      const startMs = new Date(`1970-01-01T${slot}:00`).getTime();
+      const endMs   = startMs + duration * 60000;
+      const endStr  = new Date(endMs).toTimeString().substring(0, 5);
 
-      // בדוק חפיפה עם תורים ב־booked
       const conflict = booked.some(ap => {
-        return !(endStr <= ap.start_time || slot >= ap.end_time);
+        // **** HERE: use ap.slot_time, not ap.start_time ****
+        const apStart = ap.slot_time.substring(0, 5); // "HH:MM"
+        const apEndMs = new Date(`1970-01-01T${apStart}:00`).getTime()
+                      + ap.duration * 60000;
+        const apEnd = new Date(apEndMs).toTimeString().substring(0, 5);
+        return !(endStr <= apStart || slot >= apEnd);
       });
+
       if (!conflict) {
         const o = document.createElement('option');
         o.value = slot;
@@ -1246,57 +1280,92 @@ async function loadAvailableHours() {
         select.appendChild(o);
       }
     });
-  } catch(err) {
+  } catch (err) {
     console.error('Error loading hours:', err);
+    document.getElementById('hourSelect').innerHTML =
+      '<option value="">שגיאה בטעינת שעות</option>';
   }
 }
 
+// Global to hold the original slot when editing
+let currentEditOriginalSlot = null;
+
+// ────────────────────────────────────────────────────────────────────────────────
+// Helper: load available slots for the edit popup, pre-selecting the original hour
 async function loadAvailableHoursEdit() {
-  const date = document.getElementById('EappointmentDate').value;
-  const svcOpt = document.getElementById('EserviceSelect').selectedOptions[0];
-  if (!date || !svcOpt || !svcOpt.dataset.duration) return;
+  const dateInput = document.getElementById('EappointmentDate');
+  const svcSel    = document.getElementById('EserviceSelect');
+  const slotSelect = document.getElementById('EhourSelect');
 
-  const duration = parseInt(svcOpt.dataset.duration);
-  // שולח לבק בקו query
+  const date   = dateInput.value;
+  const svcOpt = svcSel.selectedOptions[0];
+  console.log('▶ loadAvailableHoursEdit: date=', date, 'serviceDuration=', svcOpt?.dataset.duration);
+
+  // If date or service-duration missing, clear and bail
+  if (!date || !svcOpt?.dataset.duration) {
+    slotSelect.innerHTML = '<option value="">בחר תחילה תאריך ושירות</option>';
+    return;
+  }
+
+  const duration = parseInt(svcOpt.dataset.duration, 10);
+
   try {
-    const res = await fetch(
-  `http://localhost:3000/grooming/appointments?date=${date}`,
-  { credentials:'include' }
-);
+    // Fetch booked slots from the correct endpoint
+    const url = `http://localhost:3000/appointments?date=${encodeURIComponent(date)}`;
+    console.log('▶ fetching booked slots from', url);
+    const res = await fetch(url, { credentials: 'include' });
+    if (!res.ok) {
+      console.warn('⚠️ Received non-OK from /appointments:', res.status);
+      slotSelect.innerHTML = '<option value="">שגיאה בטעינת תורים</option>';
+      return;
+    }
+    const booked = await res.json();
+    console.log('▶ booked array:', booked);
+    // booked items look like: { slot_time: "09:30:00", service_id: 1, duration: 60 }
 
-    if (!res.ok) throw new Error(res.status);
-    const booked = await res.json(); // [{ start_time, duration }]
-    
-    // בנה רשימת שעות: 9:00–17:00 חצי שעה
-    const hours = [];
-    for (let h=9; h<17; h++) {
-      hours.push(`${h.toString().padStart(2,'0')}:00`);
-      hours.push(`${h.toString().padStart(2,'0')}:30`);
+    // Build all half-hour slots 09:00–16:30
+    const allSlots = [];
+    for (let h = 9; h < 17; h++) {
+      allSlots.push(`${String(h).padStart(2,'0')}:00`);
+      allSlots.push(`${String(h).padStart(2,'0')}:30`);
     }
 
-    const select = document.getElementById('EhourSelect');
-    select.innerHTML = `<option value="">בחר שעה</option>`;
+    // Clear and populate the select
+    slotSelect.innerHTML = '<option value="">בחר שעה</option>';
 
-    hours.forEach(slot => {
-      // חשב end = slot + duration
-      const [hh, mm] = slot.split(':').map(Number);
-      const start = new Date(`1970-01-01T${slot}:00`);
-      const end = new Date(start.getTime() + duration*60000);
-      const endStr = end.toTimeString().substring(0,5);
+    allSlots.forEach(slot => {
+      // Compute endStr = slot + duration
+      const startMs = new Date(`1970-01-01T${slot}:00`).getTime();
+      const endMs   = startMs + duration * 60000;
+      const endStr  = new Date(endMs).toTimeString().substring(0,5);
 
-      // בדוק חפיפה עם תורים ב־booked
+      // Check conflict, but ignore the original appointment's slot
       const conflict = booked.some(ap => {
-        return !(endStr <= ap.start_time || slot >= ap.end_time);
+        const apStartFull = ap.slot_time;       // e.g. "09:30:00"
+        const apStart = apStartFull.substring(0,5); // "09:30"
+        // If this matches the original slot, skip conflict for this ap
+        if (apStart === currentEditOriginalSlot) return false;
+
+        const apEndMs = new Date(`1970-01-01T${apStart}:00`).getTime()
+                      + ap.duration * 60000;
+        const apEnd = new Date(apEndMs).toTimeString().substring(0,5);
+        return !(endStr <= apStart || slot >= apEnd);
       });
+
       if (!conflict) {
         const o = document.createElement('option');
         o.value = slot;
         o.textContent = slot;
-        select.appendChild(o);
+        // Pre-select the original slot
+        if (slot === currentEditOriginalSlot) {
+          o.selected = true;
+        }
+        slotSelect.appendChild(o);
       }
     });
   } catch(err) {
-    console.error('Error loading hours:', err);
+    console.error('Error loading hours for edit:', err);
+    slotSelect.innerHTML = '<option value="">שגיאה בטעינת שעות</option>';
   }
 }
 
@@ -1307,16 +1376,17 @@ document.getElementById('groomingpopup_form')
   .addEventListener('submit', async function(e) {
     e.preventDefault();
     const body = {
-      customer_id    : +document.getElementById('customerIdInput').value,
-      dog_id         : +document.getElementById('dogSelect').value,
-      service_id     : +document.getElementById('serviceSelect').value,
-      appointment_date: document.getElementById('appointmentDate').value,
-      slot_time      : document.getElementById('hourSelect').value,
-      notes          : document.getElementById('notes').value,
-    };
+  customerId:      +document.getElementById('customerIdInput').value,
+  dog_id:          +document.getElementById('dogSelect').value,
+  service_id:      +document.getElementById('serviceSelect').value,
+  appointment_date: document.getElementById('appointmentDate').value,
+  slot_time:       document.getElementById('hourSelect').value,
+  notes:           document.getElementById('notes').value,
+};
+
     try {
-      const res = await fetch('http://localhost:3000/grooming-appointments', {
-        method: 'POST',
+      const res = await fetch('http://localhost:3000/addgrooming-appointments', {
+        method: 'post',
         credentials: 'include',
         headers: { 'Content-Type':'application/json' },
         body: JSON.stringify(body)
@@ -1324,18 +1394,21 @@ document.getElementById('groomingpopup_form')
       const msg = await res.json();
       if (res.ok) {
         alert('התור נקבע בהצלחה');
+         loadGroomingAppointments(); // רענן את רשימת התורים
+loadGroomingStats();    // רענן את הסטטיסטיקות
         closePopup('groomingpopup');
         this.reset();
       } else {
         throw new Error(msg.message || res.status);
       }
+
     } catch(err) {
       console.error('Error submitting form:', err);
       alert('שגיאה בשמירת תור');
     }
   });
 
-    async function submitGroomingAppointment(e) {
+  /* async function submitGroomingAppointment(e) {
   e.preventDefault();
   const customerId = document.getElementById('customerIdInput').value.trim();
   const appointment_date = document.getElementById('appointmentDate').value;
@@ -1351,15 +1424,19 @@ document.getElementById('groomingpopup_form')
   // בדיקות נוספות לפי הצורך...
 
   try {
-    const res = await fetch('http://localhost:3000/grooming-appointments', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        customer_id: customerId,
-        appointment_date, slot_time, service_id, dog_id, notes
-      })
-    });
+await fetch(`addgrooming-appointments`, {
+  method: 'PUT',
+  credentials: 'include',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    customerId,         // <-- must match an existing customers.id
+    appointment_date,
+    slot_time,
+    service_id,
+    dog_id,
+    notes
+  })
+});
     const result = await res.json();
     if (!res.ok) throw new Error(result.message || 'Error');
     alert('התור נקבע בהצלחה');
@@ -1370,7 +1447,7 @@ document.getElementById('groomingpopup_form')
     console.error(err);
     alert('שגיאה בשמירת התור');
   }
-}
+}*/
 
 // =================== ABANDONED DOGS REPORTS ===================
 _AbnDataCache = [];
@@ -1448,7 +1525,7 @@ let editingAbnId  = null;
       buildAccordionFromData(
         formatted,
         'accordion-abandoned',
-        ['id','customer_name','phone','dog_size','health_status','care_provider','handler_id','statusBadge'],
+        ['id','customer_name','phone','dog_size','health_status','care_provider_name','handler_name','statusBadge'],
         ['address','notes','status','image_path','report_date','statusSelect','editHtml'],
         {
           id:             "מס' דוח",
@@ -1460,8 +1537,8 @@ let editingAbnId  = null;
           address:        "כתובת",
           notes:          "הערות",
           status:         "סטטוס",
-          handler_id:       "שליח",
-          care_provider: "גורם מטפל ",
+          handler_name:       "שליח",
+          care_provider_name: "גורם מטפל ",
           image_path:     "תמונה",
          statusBadge:   " ",
         statusSelect:  "עדכן סטטוס",
@@ -1505,6 +1582,455 @@ if (abandonedAcc) {
   });
 }
   
+  async function loadAbandonedStats() {
+    try {
+      // 1) Adjust the URL if needed (same‐origin vs. explicit host)
+      const res = await fetch('/dashboard/abandoned/stats', {
+        credentials: 'include',
+        cache: 'no-cache'
+      });
+      if (!res.ok) throw new Error(`Server returned ${res.status}`);
+
+      const stats = await res.json();
+      // Expected JSON shape:
+      // {
+      //   todayCount:  <int>,  // פניות (דיווחים) שהוגשו היום
+      //   openCount:   <int>,  // פניות במצב 'open'
+      //   inProgressCount:             <int>, 
+      //   inProgressUnassignedHandler: <int>,  // inprogress & handler_id IS NULL
+      //   inProgressUnassignedCare:    <int>   // inprogress & care_provider IS NULL
+      // }
+
+      // 2) Inject into the “new reports today” card
+      document.getElementById('new_today').textContent = stats.todayCount;
+
+      // 3) Inject into the “open reports” card
+      document.getElementById('open_reports').textContent = stats.openCount;
+
+      // 4) If you added a main in-progress count inside the #kpi-in-progress card:
+      const inProgEl = document.getElementById('in-progress-count');
+      if (inProgEl) {
+        inProgEl.textContent = stats.inProgressCount;
+      }
+
+      // 5) Fill the two sub-values (“still no handler” and “still no care provider”)
+      document.getElementById('in_progress_reports').textContent = stats.inProgressCount;
+      document.getElementById('unassigned-courier').textContent = stats.inProgressUnassignedHandler;
+      document.getElementById('unassigned-care').textContent    = stats.inProgressUnassignedCare;
+    }
+    catch (err) {
+      console.error('Error loading abandoned-reports stats:', err);
+    }
+  }
+
+  // Run as soon as DOM is ready:
+
+document.addEventListener('DOMContentLoaded', () => {
+  // מצא את התיבה “לא משויך שליח” וצרף לה מאזין ל-click
+  const courierBox = document.getElementById('sub-courier');
+  if (courierBox) {
+    courierBox.addEventListener('click', showCourierPopup);
+  }
+
+   const careBox = document.getElementById('sub-care');
+  if (careBox) careBox.addEventListener('click', showCarePopup);
+
+  // אם תרצו להוסיף בעתיד גם טיפול ב-“sub-care”:
+  // const careBox = document.getElementById('sub-care');
+  // if (careBox) {
+  //   careBox.addEventListener('click', showCarePopup);
+  // }
+  loadAbandonedStats();
+
+});
+
+
+// ────────────────────────────────────────────────────────────────────────────
+// 2) הפונקציה שמוציאה לפועל את הפופ-אפ עבור “לא משויך שליח”
+async function showCourierPopup() {
+  try {
+    // 2.1 – שליפת כל הדוחות
+    const reportsRes = await fetch('/dashboard/reports', {
+      credentials: 'include',
+      cache: 'no-cache'
+    });
+    if (!reportsRes.ok) throw new Error(`Server returned ${reportsRes.status}`);
+    const allReports = await reportsRes.json();
+
+    // 2.2 – סינון: רק אותם עם status='inprogress' ו־handler_id ריק / null
+    const filtered = allReports.filter(item =>
+      item.status === 'inprogress' &&
+      (item.handler_id === null || item.handler_id === '' || item.handler_id === 'לא שובץ')
+    );
+
+    // 2.3 – שליפת רשימת השליחים (couriers)
+    const couriersRes = await fetch('/dashboard/couriers', {
+      credentials: 'include',
+      cache: 'no-cache'
+    });
+    if (!couriersRes.ok) throw new Error(`Server returned ${couriersRes.status} for couriers`);
+    const courierList = await couriersRes.json();
+    // courierList צריך להיות מערך כמו [{ id: 1, name: "שליח א׳" }, …]
+
+    // 2.4 – בניית ותצוגת הפופ-אפ
+    buildAndShowCourierPopup(filtered, courierList);
+
+  } catch (err) {
+    console.error('Error loading reports or couriers:', err);
+    alert('שגיאה בטעינת פניות/שליחים להצגה');
+  }
+}
+
+
+// ────────────────────────────────────────────────────────────────────────────
+// 3) בניית ה-popup (HTML) והצגתו על המסך
+function buildAndShowCourierPopup(reportsArray, courierList) {
+  // אם overlay ישן עדיין קיים – נסיר
+  const existing = document.getElementById('popup-courier-overlay');
+  if (existing) existing.remove();
+
+  // 3.1 – צור את overlay (חצי-שקוף על כל המסך)
+  const overlay = document.createElement('div');
+  overlay.id = 'popup-courier-overlay';
+  overlay.className = 'popup-overlay';
+
+  // 3.2 – צור את modal container הלבן
+  const modal = document.createElement('div');
+  modal.className = 'popup-modal';
+
+  // 3.3 – צור header: כותרת + כפתור סגירה
+  const header = document.createElement('header');
+  const title = document.createElement('h2');
+  title.textContent = 'פניות בטיפול ללא שליח';
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'close-btn';
+  closeBtn.innerHTML = '&times;';
+  closeBtn.addEventListener('click', () => overlay.remove());
+  header.appendChild(title);
+  header.appendChild(closeBtn);
+  modal.appendChild(header);
+
+  // 3.4 – צור את הטבלה שבתוך הפופ-אפ
+  const table = document.createElement('table');
+  const thead = document.createElement('thead');
+  const tbody = document.createElement('tbody');
+
+  // הגדרת עמודות (במיוחד עמודת השיבוץ)
+  const columns = [
+    { key: 'id',            label: "מס׳ דו\"ח" },
+    { key: 'customer_name', label: 'שם לקוח' },
+    { key: 'phone',         label: 'טלפון' },
+    { key: 'dog_size',      label: 'גודל כלב' },
+    { key: 'health_status', label: 'מצב בריאות' },
+    { key: 'address',       label: 'כתובת' },
+    { key: 'report_date',   label: 'תאריך דיווח' },
+    { key: 'assign',        label: 'שיבוץ שליח', isAssignCol: true }
+  ];
+
+  // בנה שורת כותרת (thead)
+  const headerRow = document.createElement('tr');
+  columns.forEach(col => {
+    const th = document.createElement('th');
+    th.textContent = col.label;
+    if (col.isAssignCol) th.classList.add('assign-col');
+    headerRow.appendChild(th);
+  });
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+
+  // בנה את גוף הטבלה (tbody)
+  reportsArray.forEach(item => {
+    const row = document.createElement('tr');
+
+    columns.forEach(col => {
+      const td = document.createElement('td');
+
+      if (col.isAssignCol) {
+        // 3.4.1 – אימפלמנטציית עמודת “שיבוץ שליח”
+        const select = document.createElement('select');
+        select.className = 'courier-select';
+        select.innerHTML =
+          `<option value="">בחר שליח…</option>` +
+          courierList.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+        const btn = document.createElement('button');
+        btn.className = 'assign-btn';
+        btn.textContent = 'שמור';
+        btn.disabled = true; // יופעל רק לאחר שבוחרים שליח ב-select
+
+        // מאזין על שינוי ב־select: אם יש ערך – הפוך את הכפתור לאפשרי
+        select.addEventListener('change', () => {
+          btn.disabled = (select.value === '');
+        });
+
+        // לחיצה על “שמור” מבצעת קריאת PUT ל־route שהגדרנו ב-server.js
+        btn.addEventListener('click', async () => {
+          const courierId = select.value;
+          if (!courierId) return;
+
+          btn.disabled = true;
+          btn.textContent = 'שומר…';
+
+          try {
+            const assignRes = await fetch(
+              `/dashboard/reports/${item.id}/assign-handler`,
+              {
+                method: 'PUT',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ handler_id: courierId })
+              }
+            );
+            if (!assignRes.ok) {
+              const text = await assignRes.text();
+              throw new Error(`Server returned ${assignRes.status}: ${text}`);
+            }
+
+            // אם הצליח – הורד את השורה מהטבלה
+            row.remove();
+
+            // וגם עדכן את הכרטיס: הורד ב-1 את הכמות ב־“לא משויך שליח”
+            const elUnassignedCourier = document.getElementById('unassigned-courier');
+            const prevCount = parseInt(elUnassignedCourier.textContent, 10) || 0;
+            elUnassignedCourier.textContent = Math.max(prevCount - 1, 0);
+
+          } catch (err) {
+            console.error('Error assigning courier:', err);
+            alert('שגיאה בשיבוץ השליח. נסה שוב.');
+            btn.disabled = false;
+            btn.textContent = 'שמור';
+          }
+        });
+
+        // עטוף את ה־select והכפתור יחדיו
+        const wrapper = document.createElement('div');
+        wrapper.style.display = 'flex';
+        wrapper.style.flexDirection = 'column';
+        wrapper.style.alignItems = 'center';
+        wrapper.style.gap = '4px';
+        wrapper.appendChild(select);
+        wrapper.appendChild(btn);
+
+        td.appendChild(wrapper);
+        td.classList.add('assign-col');
+      }
+      else {
+        // 3.4.2 – עמודות רגילות (ללא שיבוץ)
+        let text = item[col.key] ?? '';
+        if (col.key === 'report_date' && typeof text === 'string') {
+          text = text.slice(0, 19).replace('T', ' ');
+        }
+        td.textContent = text;
+      }
+
+      row.appendChild(td);
+    });
+
+    tbody.appendChild(row);
+  });
+
+  table.appendChild(tbody);
+  modal.appendChild(table);
+
+  // 3.5 – הוספת המודאל ל-overlay, והכל ל-document.body
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+}
+
+async function showCarePopup() {
+  try {
+    // 2.1 – Fetch all “abandoned reports”
+    const reportsRes = await fetch('/dashboard/reports', {
+      credentials: 'include',
+      cache: 'no-cache'
+    });
+    if (!reportsRes.ok) {
+      throw new Error(`Server returned ${reportsRes.status}`);
+    }
+    const allReports = await reportsRes.json();
+
+    // 2.2 – Filter only “inprogress” with care_provider == NULL (or empty string)
+    const filtered = allReports.filter(item =>
+      item.status === 'inprogress' &&
+      (item.care_provider === null || item.care_provider === '' || item.care_provider === 'לא שובץ')
+    );
+
+    // 2.3 – Fetch list of care providers
+    const careRes = await fetch('/dashboard/care-providers', {
+      credentials: 'include',
+      cache: 'no-cache'
+    });
+    if (!careRes.ok) {
+      throw new Error(`Server returned ${careRes.status} for care providers`);
+    }
+    const careList = await careRes.json();
+    // careList must be an array like: [{ id: 10, name: "גורם א׳" }, …]
+
+    // 2.4 – Build & show the popup
+    buildAndShowCarePopup(filtered, careList);
+
+  } catch (err) {
+    console.error('Error loading care‐provider popup data:', err);
+    alert('שגיאה בטעינת פניות/גורמי סיוע להצגה');
+  }
+}
+
+
+function buildAndShowCarePopup(reportsArray, careList) {
+  // If a previous overlay exists, remove it
+  const existing = document.getElementById('popup-care-overlay');
+  if (existing) existing.remove();
+
+  // 2.4.1 – Create overlay
+  const overlay = document.createElement('div');
+  overlay.id = 'popup-care-overlay';
+  overlay.className = 'popup-overlay';
+
+  // 2.4.2 – Create modal container
+  const modal = document.createElement('div');
+  modal.className = 'popup-modal';
+
+  // 2.4.3 – Header: title + close button
+  const header = document.createElement('header');
+  const title = document.createElement('h2');
+  title.textContent = 'פניות בטיפול ללא גורם סיוע';
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'close-btn';
+  closeBtn.innerHTML = '&times;';
+  closeBtn.addEventListener('click', () => overlay.remove());
+  header.appendChild(title);
+  header.appendChild(closeBtn);
+  modal.appendChild(header);
+
+  // 2.4.4 – Build the table
+  const table = document.createElement('table');
+  const thead = document.createElement('thead');
+  const tbody = document.createElement('tbody');
+
+  // Define columns, including an “Assign Care” column
+  const columns = [
+    { key: 'id',            label: "מס׳ דו\"ח" },
+    { key: 'customer_name', label: 'שם לקוח' },
+    { key: 'phone',         label: 'טלפון' },
+    { key: 'dog_size',      label: 'גודל כלב' },
+    { key: 'health_status', label: 'מצב בריאות' },
+    { key: 'address',       label: 'כתובת' },
+    { key: 'report_date',   label: 'תאריך דיווח' },
+    { key: 'assignCare',    label: 'שיבוץ גורם סיוע', isAssignCol: true }
+  ];
+
+  // Build <thead>
+  const headerRow = document.createElement('tr');
+  columns.forEach(col => {
+    const th = document.createElement('th');
+    th.textContent = col.label;
+    if (col.isAssignCol) th.classList.add('assign-col');
+    headerRow.appendChild(th);
+  });
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+
+  // Build <tbody> rows
+  reportsArray.forEach(item => {
+    const row = document.createElement('tr');
+
+    columns.forEach(col => {
+      const td = document.createElement('td');
+
+      if (col.isAssignCol) {
+        // (A) Create a <select> of care providers + a “שמור” button
+        const select = document.createElement('select');
+        select.className = 'care-select';
+        select.innerHTML =
+          `<option value="">בחר גורם סיוע…</option>` +
+          careList.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+        const btn = document.createElement('button');
+        btn.className = 'assign-care-btn';
+        btn.textContent = 'שמור';
+        btn.disabled = true; // only enable once a provider is chosen
+
+        // Enable “שמור” once a care provider is selected
+        select.addEventListener('change', () => {
+          btn.disabled = (select.value === '');
+        });
+
+        // On click, send PUT /dashboard/reports/:id/assign-care
+        btn.addEventListener('click', async () => {
+          const careId = select.value;
+          if (!careId) return;
+
+          btn.disabled = true;
+          btn.textContent = 'שומר…';
+
+          try {
+            const assignRes = await fetch(
+              `/dashboard/reports/${item.id}/assign-care`,
+              {
+                method: 'PUT',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ care_provider: careId })
+              }
+            );
+            if (!assignRes.ok) {
+              const text = await assignRes.text();
+              throw new Error(`Server returned ${assignRes.status}: ${text}`);
+            }
+
+            // Success! Remove the row from the table
+            row.remove();
+
+            // Also decrement the “unassigned-care” KPI by 1
+            const elUnassignedCare = document.getElementById('unassigned-care');
+            const prevCount = parseInt(elUnassignedCare.textContent, 10) || 0;
+            elUnassignedCare.textContent = Math.max(prevCount - 1, 0);
+
+          } catch (err) {
+            console.error('Error assigning care provider:', err);
+            alert('שגיאה בשיבוץ גורם הסיוע. נסה שוב.');
+            btn.disabled = false;
+            btn.textContent = 'שמור';
+          }
+        });
+
+        // Wrap select + button together
+        const wrapper = document.createElement('div');
+        wrapper.style.display = 'flex';
+        wrapper.style.flexDirection = 'column';
+        wrapper.style.alignItems = 'center';
+        wrapper.style.gap = '4px';
+        wrapper.appendChild(select);
+        wrapper.appendChild(btn);
+
+        td.appendChild(wrapper);
+        td.classList.add('assign-col');
+      }
+      else {
+        // Regular columns (id, customer_name, phone, etc.)
+        let text = item[col.key] ?? '';
+        if (col.key === 'report_date' && typeof text === 'string') {
+          text = text.slice(0, 19).replace('T', ' ');
+        }
+        td.textContent = text;
+      }
+
+      row.appendChild(td);
+    });
+
+    tbody.appendChild(row);
+  });
+
+  table.appendChild(tbody);
+  modal.appendChild(table);
+
+  // 2.4.5 – Show the overlay + modal
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+}
+
+
+
 // =================== HANDLERS ACCORDION ===================
   async function loadHandlersAccordion() {
     try {
@@ -1522,8 +2048,8 @@ if (abandonedAcc) {
       buildAccordionFromData(
         data,
         'accordion-handlers',
-        ['name','phone','vehicle_type'],                        // שדות בכותרת
-        ['id','address','email'], // שדות בגוף
+        ['id','name','phone','vehicle_type'],                        // שדות בכותרת
+        ['address','email'], // שדות בגוף
         {
           id:            "מס' שליח",
           name:          "שם",
@@ -1557,8 +2083,8 @@ if (abandonedAcc) {
       buildAccordionFromData(
         data,
         'accordion-support',
-        ['id','name'],                         // כותרת
-        ['address','phone','additional_phone','type'], // גוף
+        ['id','name','type'],                         // כותרת
+        ['address','phone','additional_phone'], // גוף
         {
           id:               "מס' גורם",
           name:             "שם",
