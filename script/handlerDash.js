@@ -62,8 +62,27 @@ links.forEach(l => l.classList.remove('active-link'));
   loadCareProvidersAccordion() // <-- Load care providers accordion on page load
   loadHandlerProfile();
     
+  const categorySelect = document.getElementById('abndSearchCategory');
+  if (!categorySelect) {
+    console.error('Element with ID abndSearchCategory not found!');
+    return;
+  }
 
+  categorySelect.addEventListener('change', () => {
+    const txt   = document.getElementById('abndSearchText');
+    const stSel = document.getElementById('abndSearchStatusSelect');
+
+    if (categorySelect.value === 'status') {
+      txt.style.display   = 'none';
+      stSel.style.display = 'inline-block';
+    } else {
+      stSel.style.display = 'none';
+      txt.style.display   = 'inline-block';
+    }
+  });
 });
+
+
 
 
 document.querySelectorAll('.sidebar-nav a').forEach(link => {
@@ -216,6 +235,82 @@ document.querySelectorAll('.kpi-sub-value.clickable')
       openDropdown(type, el);
     });
   });
+
+  // ================== search abandoned reports ===================
+
+document.getElementById('abndSearchBtn').addEventListener('click', () => {
+  const category = document.getElementById('abndSearchCategory').value;
+  const text = document.getElementById('abndSearchText').value.toLowerCase();
+  const status = document.getElementById('abndSearchStatusSelect').value;
+
+  let filtered = [..._AbnDataCache];
+
+  if (category === 'status') {
+    if (status) {
+      filtered = filtered.filter(item => item.status === status);
+    }
+  } else if (category && text) {
+    filtered = filtered.filter(item => {
+      const fieldValue = (item[category] ?? '').toString().toLowerCase();
+      return fieldValue.includes(text);
+    });
+  }
+
+  // עדכון תצוגה מחדש
+  const dataM = filtered.map(item => ({
+    ...item,
+    statusBadge: `<span class="status-badge ${classMap[item.status] || ''}">
+                    ${labelMap[item.status] || item.status}
+                  </span>`,
+    statusSelect: `
+      <select class="status-select" data-id="${item.id}">
+        <option value="">בחר סטטוס</option>
+        <option value="accepted" ${item.status === 'accepted' ? 'selected' : ''}>התקבלה</option>
+        <option value="rejected" ${item.status === 'rejected' ? 'selected' : ''}>נדחתה</option>
+        <option value="ontheway" ${item.status === 'ontheway' ? 'selected' : ''}>בדרך</option>
+        <option value="completed" ${item.status === 'completed' ? 'selected' : ''}>הושלם</option>
+        <option value="cancelled" ${item.status === 'cancelled' ? 'selected' : ''}>בוטל</option>
+      </select>`,
+    editHtml: `<button class="action-btn btn-edit" data-id="${item.id}">ערוך/שבץ</button>`
+  }));
+
+  const formatted = dataM.map(item => ({
+    ...item,
+    handler_id: item.handler_id ?? 'לא שובץ',
+    care_provider: item.care_provider ?? 'לא שובץ',
+    image_path: `<img src="/uploads/${item.image_path}" alt="תמונה" style="max-width:100px;">`
+  }));
+
+  buildAccordionFromData(
+    formatted,
+    'accordion-abandoned',
+    ['id','customer_name','phone','dog_size','health_status','care_provider_name','statusBadge'],
+    ['address','notes','image_path','report_date','statusSelect'],
+    {
+      id: "מס' דוח",
+      customer_name: "שם לקוח",
+      phone: "טלפון",
+      dog_size: "גודל כלב",
+      health_status: "מצב בריאות",
+      report_date: "תאריך דיווח",
+      address: "כתובת",
+      notes: "הערות",
+      care_provider_name: "גורם מטפל",
+      image_path: "תמונה",
+      statusBadge: " ",
+      statusSelect: "עדכן סטטוס"
+    }
+  );
+});
+
+// ניקוי
+document.getElementById('abndClearBtn').addEventListener('click', () => {
+  document.getElementById('abndSearchText').value = '';
+  document.getElementById('abndSearchStatusSelect').value = '';
+  document.getElementById('abndSearchCategory').value = '';
+  loadAbandonedReports(); // טען הכל מחדש
+});
+
   
 // =================== ABANDONED REPORTS STATS LOADER ===================
 async function loadAbandonedStats() {
@@ -242,13 +337,32 @@ async function loadAbandonedStats() {
 // =================== ABANDONED REPORTS HANDLER ===================
 _AbnDataCache = [];
 let editingAbnId  = null;
+    const classMap = {
+  pending:     'status-pending',
+  inprogress:  'status-inprogress',
+  accepted:    'status-accepted',
+  rejected:    'status-rejected',
+  ontheway:    'status-ontheway',
+  completed:   'status-completed',
+  cancelled:   'status-cancelled'
+};
+
+const labelMap = {
+  pending:     'ממתין',
+  inprogress:  'בטיפול',
+  accepted:    'התקבלה',
+  rejected:    'נדחתה',
+  ontheway:    '<i class="fa fa-car"></i>',
+  completed:   'הושלם',
+  cancelled:   'בוטל'
+};
 
   async function loadAbandonedReports() {
     console.log('calling loadAbandonedReports…');
   
     try {
       // 1. קבל נתונים מהשרת
-      const res = await fetch('http://localhost:3000/dashboard/reports', {
+      const res = await fetch('http://localhost:3000/handler/reports', {
         credentials: 'include',
         cache: 'no-cache'     // <-- always force a fresh cop
         
@@ -263,22 +377,6 @@ let editingAbnId  = null;
       console.log('abandoned data:', data);
       _AbnDataCache = data; // <- cache the raw items for later use
 
-    const classMap = {
-     inprogress: 'status-inprogress',//בטיפול
-      accepted:   'status-accepted',
-      rejected:   'status-rejected',
-      ontheway:  'status-ontheway',
-      completed:  'status-completed',
-      cancelled:  'status-cancelled'
-    };
-    const labelMap = {
-    inprogress: 'ממתין',// בטיפול
-      accepted:   'התקבלה',
-      rejected:   'נדחתה',
-      ontheway:  '<i class="fa fa-car"></i>',
-      completed:  'הושלם',
-      cancelled:  'בוטל'
-    };
         // הכנת מערך להצגה
     const dataM = data.map(item => ({
       ...item,
@@ -431,11 +529,12 @@ async function loadHandlerProfile() {
     data.completedJobs.forEach(job => {
       const row = document.createElement('tr');
       row.innerHTML = `
+        <td>${job.id}</td>
         <td>${job.dog_size}</td>
         <td>${job.health_status}</td>
         <td>${job.address}</td>
         <td>${new Date(job.report_date).toLocaleDateString()}</td>
-        <td>${job.care_provider}</td>
+        <td>${job.care_provider_name}</td>
       `;
       tableBody.appendChild(row);
     });

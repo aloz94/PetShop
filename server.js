@@ -1177,8 +1177,66 @@ app.get('/dashboard/reports', authenticateToken, async (req, res) => {
         ON r.handler_id = h.id
         LEFT JOIN care_provider AS p
         ON r.care_provider = p.id
-        WHERE r.handler_id = $1
 
+      ORDER BY r.id DESC
+      `
+
+
+      ));
+    
+    res.json(rows);
+      }
+   catch (err) {
+    console.error('Error fetching dashboard reports:', err);
+    res.status(500).json({ message: 'שגיאה בשליפת פניות לכלבים נטושים' });
+  }
+});
+app.put('/abandoned-reports/:id/status', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  try {
+    await con.query(
+  'UPDATE abandoned_dog_reports SET status = $1, status_updated_at = NOW() WHERE id = $2',
+      
+      [status, id]
+    );
+    res.json({ message: 'Status updated' });
+  } catch (err) {
+    console.error('Error updating abandoned report status:', err);
+    res.status(500).json({ message: 'Error updating status' });
+  }
+});
+
+app.get('/handler/reports', authenticateToken, async (req, res) => {
+  try {
+        const handlerId = req.user.userId;
+
+      ({ rows } = await con.query(`
+              SELECT
+        r.id,
+        r.dog_size,
+        r.health_status,
+        r.address,
+        r.notes,
+        r.status,
+        r.image_path,
+        r.report_date,
+        r.handler_id,
+        COALESCE(h.name, 'לא שובץ') AS handler_name,
+                r.care_provider,
+        COALESCE(p.name, 'לא שובץ') AS care_provider_name,
+
+        -- pull in full customer name & phone:
+        c.first_name || ' ' || c.last_name AS customer_name,
+        c.phone
+      FROM abandoned_dog_reports AS r
+      JOIN customers AS c
+        ON r.customer_id = c.id
+        LEFT JOIN handlers AS h
+        ON r.handler_id = h.id
+        LEFT JOIN care_provider AS p
+        ON r.care_provider = p.id
+      WHERE r.handler_id = $1
       ORDER BY r.id DESC
       `, [handlerId]
 
@@ -1207,6 +1265,7 @@ app.put('/abandoned-reports/:id/status', authenticateToken, async (req, res) => 
     res.status(500).json({ message: 'Error updating status' });
   }
 });
+
 
 app.get('/handler/abandoned/stats', authenticateToken, async (req, res) => {
   try {
@@ -1591,10 +1650,18 @@ app.get('/handler-profile', authenticateToken, async (req, res) => {
     const handlerRes = await con.query('SELECT * FROM handlers WHERE id = $1', [handlerId]);
     // Get completed jobs for this handler
     const jobsRes = await con.query(
-      `SELECT dog_size, health_status, address, report_date, care_provider
-       FROM abandoned_dog_reports
-       WHERE handler_id = $1 AND status = 'completed'
-       ORDER BY report_date DESC`,
+      `SELECT 
+      adr.id,       
+  adr.dog_size,
+  adr.health_status,
+  adr.address,
+  adr.report_date,
+  COALESCE(cp.name, 'לא משויך') AS care_provider_name
+FROM abandoned_dog_reports adr
+LEFT JOIN care_provider cp ON adr.care_provider = cp.id
+WHERE adr.handler_id = $1 AND adr.status = 'completed'
+ORDER BY adr.report_date DESC
+`,
       [handlerId]
     );
 
