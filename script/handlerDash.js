@@ -77,7 +77,22 @@ document.querySelectorAll('.sidebar-nav a').forEach(link => {
     });
   });
 
-
+// Enlarge image on click in accordion-abandoned
+document.addEventListener('click', function(e) {
+  // Only handle clicks on images inside accordion-abandoned
+  if (e.target.closest('#accordion-abandoned img')) {
+    const img = e.target;
+    const modal = document.getElementById('img-modal');
+    const modalImg = document.getElementById('img-modal-img');
+    modalImg.src = img.src;
+    modal.style.display = 'flex';
+  }
+  // Close modal when clicking outside the image
+  if (e.target.id === 'img-modal') {
+    e.target.style.display = 'none';
+    document.getElementById('img-modal-img').src = '';
+  }
+});
   
 // =================== ACCORDION BUILDERS ===================
 function buildAccordionFromData(data, container, headerKeys, bodyKeys, labels) {
