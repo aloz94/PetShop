@@ -113,75 +113,117 @@ app.post('/postData',(req,res)=>{
 })
 
 //-----------------------login route----------------------------------------
-                      app.post('/login', (logreq, logres) => {
-                          const { id, password } = logreq.body;
-                        
-                          // 1. מנסים קודם ב־customers
-                          const customerQuery = 'SELECT id, first_name || \' \' || last_name AS name, password FROM customers WHERE id = $1';
-                          con.query(customerQuery, [id], (err, custResult) => {
-                            if (err) {
-                              console.error('Database error (customers):', err);
-                              return logres.status(500).json({ message: 'Database error' });
-                            }
-                        
-                            if (custResult.rows.length > 0) {
-                              // לקוח נמצא
-                              const user = custResult.rows[0];
-                              if (password !== user.password) {
-                                return logres.status(401).json({ message: 'Invalid credentials' });
-                              }
-                              // מייצרים טוקן עם role=customer
-                              const token = jwt.sign(
-                                { userId: user.id, name: user.name, role: 'customer' },
-                                JWT_SECRET,
-                                { expiresIn: '1h' }
-                              );
-                              logres.cookie('token', token, {
-                                httpOnly: true,
-                                secure: false,
-                                maxAge: 60 * 60 * 1000
-                              });
-                              return logres
-                                .status(200)
-                                .json({ message: 'Login successful', role: 'customer' });
-                            }
-                        
-                            // 2. אם לא ב־customers – מנסים בטבלת employees
-                            const employeeQuery = 'SELECT id, password, role FROM employees WHERE id = $1';
-                            con.query(employeeQuery, [id], (err2, empResult) => {
-                              if (err2) {
-                                console.error('Database error (employees):', err2);
-                                return logres.status(500).json({ message: 'Database error' });
-                              }
-                        
-                              if (empResult.rows.length > 0) {
-                                // עובד נמצא
-                                const user = empResult.rows[0];
-                                if (password !== user.password) {
-                                  return logres.status(401).json({ message: 'Invalid credentials' });
-                                }
-                                // מייצרים טוקן עם role לפי שדה ה־employees.role
-                                const token = jwt.sign(
-                                  { userId: user.id, role: user.role },
-                                  JWT_SECRET,
-                                  { expiresIn: '1h' }
-                                );
-                                logres.cookie('token', token, {
-                                  httpOnly: true,
-                                  secure: false,
-                                  maxAge: 60 * 60 * 1000
-                                });
-                                return logres
-                                  .status(200)
-                                  .json({ message: 'Login successful', role: user.role });
-                              }
-                        
-                              // 3. לא נמצא בשתי הטבלאות
-                              return logres.status(400).json({ message: 'User not found' });
-                            });
-                          });
-                        });
+app.post('/login', (logreq, logres) => {
+  const { id, password } = logreq.body;
 
+  // 1. מנסים קודם ב־customers
+  const customerQuery = `
+    SELECT id, first_name || ' ' || last_name AS name, password
+    FROM customers
+    WHERE id = $1
+  `;
+  con.query(customerQuery, [id], (err, custResult) => {
+    if (err) {
+      console.error('Database error (customers):', err);
+      return logres.status(500).json({ message: 'Database error' });
+    }
+
+    if (custResult.rows.length > 0) {
+      // לקוח נמצא
+      const user = custResult.rows[0];
+      if (password !== user.password) {
+        return logres.status(401).json({ message: 'Invalid credentials' });
+      }
+      // מייצרים טוקן עם role=customer
+      const token = jwt.sign(
+        { userId: user.id, name: user.name, role: 'customer' },
+        JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+      logres.cookie('token', token, {
+        httpOnly: true,
+        secure: false,
+        maxAge: 60 * 60 * 1000
+      });
+      return logres
+        .status(200)
+        .json({ message: 'Login successful', role: 'customer' });
+    }
+
+    // 2. אם לא ב־customers – מנסים בטבלת employees
+    const employeeQuery = `
+      SELECT id, password, role
+      FROM employees
+      WHERE id = $1
+    `;
+    con.query(employeeQuery, [id], (err2, empResult) => {
+      if (err2) {
+        console.error('Database error (employees):', err2);
+        return logres.status(500).json({ message: 'Database error' });
+      }
+
+      if (empResult.rows.length > 0) {
+        // עובד נמצא
+        const user = empResult.rows[0];
+        if (password !== user.password) {
+          return logres.status(401).json({ message: 'Invalid credentials' });
+        }
+        // מייצרים טוקן עם role לפי שדה ה־employees.role
+        const token = jwt.sign(
+          { userId: user.id, role: user.role },
+          JWT_SECRET,
+          { expiresIn: '1h' }
+        );
+        logres.cookie('token', token, {
+          httpOnly: true,
+          secure: false,
+          maxAge: 60 * 60 * 1000
+        });
+        return logres
+          .status(200)
+          .json({ message: 'Login successful', role: user.role });
+      }
+
+      // 3. אם לא ב־employees – מנסים בטבלת handlers
+      const handlerQuery = `
+        SELECT id, name, password
+        FROM handlers
+        WHERE id = $1
+      `;
+      con.query(handlerQuery, [id], (err3, handlerResult) => {
+        if (err3) {
+          console.error('Database error (handlers):', err3);
+          return logres.status(500).json({ message: 'Database error' });
+        }
+
+        if (handlerResult.rows.length > 0) {
+          // handler נמצא
+          const user = handlerResult.rows[0];
+          if (password !== user.password) {
+            return logres.status(401).json({ message: 'Invalid credentials' });
+          }
+          // מייצרים טוקן עם role=handler
+          const token = jwt.sign(
+            { userId: user.id, name: user.name, role: 'handler' },
+            JWT_SECRET,
+            { expiresIn: '1h' }
+          );
+          logres.cookie('token', token, {
+            httpOnly: true,
+            secure: false,
+            maxAge: 60 * 60 * 1000
+          });
+          return logres
+            .status(200)
+            .json({ message: 'Login successful', role: 'handler' });
+        }
+
+        // 4. לא נמצא בשום טבלה
+        return logres.status(400).json({ message: 'User not found' });
+      });
+    });
+  });
+});
                         
 
 // -------------- פונקציה לאימות טוקן---------------------
@@ -1108,7 +1150,8 @@ app.use('/styles', express.static(path.join(__dirname, 'styles'), {
 // רק עובדים מורשים לקרוא את הדיווחים
 app.get('/dashboard/reports', authenticateToken, async (req, res) => {
   try {
-    
+        const handlerId = req.user.userId;
+
       ({ rows } = await con.query(`
               SELECT
         r.id,
@@ -1134,9 +1177,13 @@ app.get('/dashboard/reports', authenticateToken, async (req, res) => {
         ON r.handler_id = h.id
         LEFT JOIN care_provider AS p
         ON r.care_provider = p.id
-      ORDER BY r.id DESC
+        WHERE r.handler_id = $1
 
-      `));
+      ORDER BY r.id DESC
+      `, [handlerId]
+
+
+      ));
     
     res.json(rows);
       }
@@ -1158,6 +1205,42 @@ app.put('/abandoned-reports/:id/status', authenticateToken, async (req, res) => 
   } catch (err) {
     console.error('Error updating abandoned report status:', err);
     res.status(500).json({ message: 'Error updating status' });
+  }
+});
+
+app.get('/handler/abandoned/stats', authenticateToken, async (req, res) => {
+  try {
+    const today = new Date().toLocaleDateString('en-CA', {
+      timeZone: 'Asia/Jerusalem'
+    });
+            const handlerId = req.user.userId;
+
+
+    const queries = {
+      inProgress:    `SELECT COUNT(*) FROM abandoned_dog_reports WHERE (status = 'accepted' OR status = 'ontheway') AND handler_id = $1`,
+      accepted:      `SELECT COUNT(*) FROM abandoned_dog_reports WHERE status = 'accepted' and handler_id = $1`, 
+      ontheway:      `SELECT COUNT(*) FROM abandoned_dog_reports WHERE status = 'ontheway' aND handler_id = $1`,
+      cancelledToday:`SELECT COUNT(*) FROM abandoned_dog_reports WHERE status = 'cancelled' AND DATE(status_updated_at) = $1 AND handler_id = $2`,
+      pending:       `SELECT COUNT(*) FROM abandoned_dog_reports WHERE status = 'inprogress' AND handler_id = $1`,
+    };
+
+const [inProgress, accepted, ontheway, cancelledToday,pending] = await Promise.all([
+  con.query(queries.inProgress, [handlerId]),
+  con.query(queries.accepted, [handlerId]),
+  con.query(queries.ontheway, [handlerId]),
+  con.query(queries.cancelledToday, [today, handlerId]),
+  con.query(queries.pending, [handlerId])
+]);
+
+    res.json({
+      inProgress:    parseInt(inProgress.rows[0].count, 10),
+      accepted:      parseInt(accepted.rows[0].count, 10),
+      ontheway:      parseInt(ontheway.rows[0].count, 10),
+      cancelledToday:parseInt(cancelledToday.rows[0].count, 10),
+      pending:       parseInt(pending.rows[0].count, 10) 
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Error loading KPI data' });
   }
 });
 
@@ -1217,6 +1300,35 @@ app.get('/dashboard/abandoned/stats', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error('Error fetching abandoned-dog stats:', err);
     return res.status(500).json({ message: 'שגיאה בטעינת הסטטיסטיקות' });
+  }
+});
+
+app.get('/api/handler/abandoned-dogs/kpi', authenticateToken, async (req, res) => {
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+
+    const queries = {
+      inProgress:    `SELECT COUNT(*) FROM abandoned_dog_reports WHERE status = 'inprogress'`,
+      accepted:      `SELECT COUNT(*) FROM abandoned_dog_reports WHERE status = 'accepted'`,
+      ontheway:      `SELECT COUNT(*) FROM abandoned_dog_reports WHERE status = 'ontheway'`,
+      cancelledToday:`SELECT COUNT(*) FROM abandoned_dog_reports WHERE status = 'cancelled' AND DATE(status_updated_at) = $1`
+    };
+
+    const [inProgress, accepted, ontheway, cancelledToday] = await Promise.all([
+      con.query(queries.inProgress),
+      con.query(queries.accepted),
+      con.query(queries.ontheway),
+      con.query(queries.cancelledToday, [today])
+    ]);
+
+    res.json({
+      inProgress:    parseInt(inProgress.rows[0].count, 10),
+      accepted:      parseInt(accepted.rows[0].count, 10),
+      ontheway:      parseInt(ontheway.rows[0].count, 10),
+      cancelledToday:parseInt(cancelledToday.rows[0].count, 10)
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Error loading KPI data' });
   }
 });
 
@@ -1468,3 +1580,30 @@ app.get('/manager/appointments', authenticateToken, async (req, res) => {
 
 //calenar and appointments stuff - Template for manager
 
+//===================================================HANDLERDASH.JS========================================================
+
+
+app.get('/handler-profile', authenticateToken, async (req, res) => {
+  const handlerId = req.user.userId; // Get handler ID from the authenticated user
+
+  try {
+    // Get handler profile
+    const handlerRes = await con.query('SELECT * FROM handlers WHERE id = $1', [handlerId]);
+    // Get completed jobs for this handler
+    const jobsRes = await con.query(
+      `SELECT dog_size, health_status, address, report_date, care_provider
+       FROM abandoned_dog_reports
+       WHERE handler_id = $1 AND status = 'completed'
+       ORDER BY report_date DESC`,
+      [handlerId]
+    );
+
+    res.json({
+      handler: handlerRes.rows[0],
+      completedJobs: jobsRes.rows
+    });
+  } catch (err) {
+    console.error('Error in /handler-profile:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});

@@ -1476,12 +1476,18 @@ let editingAbnId  = null;
           const classMap = {
       open:    'status-open',
       inprogress: 'status-inprogress',
+      accepted:   'status-accepted',
+      rejected:   'status-rejected',
+      ontheway:  'status-ontheway',
       completed:  'status-completed',
       cancelled:  'status-cancelled'
     };
     const labelMap = {
       open:    'חדש',
       inprogress: 'בטיפול',
+      accepted:   'התקבלה',
+      rejected:   'נדחתה',
+      ontheway:  '<i class="fa fa-car"></i>',
       completed:  'הושלם',
       cancelled:  'בוטל'
     };
