@@ -942,10 +942,12 @@ padding: 0;
 
   font-size:0.85em;
 }
+.status-pending    { background:#5bc0de; }
 .status-inprogress { background:#f0ca21; }
 .status-completed  { background:#5cb85c; }
 .status-cancelled  { background:#d9534f; }
 .status-open     { background:#5bc0de; }
+.status-badge.status-inprogress { background-color: #f0ca21; }
 .status-badge.status-accepted   { background-color: #b9f1b9; }  /* مقبولة - أخضر */ 
 .status-badge.status-rejected   { background-color: #f5bdb9; }  /* مرفوضة - أحمر داكن */
 .status-badge.status-ontheway   { background-color: #9b59b6; }  /* بالاتّجاه - بنفسجي */
