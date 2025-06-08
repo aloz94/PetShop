@@ -11,55 +11,27 @@
     <header>
         <nav class="navbar">
             <div class="nav-container">
-                <img src="logo.png" alt="Logo" class="logo">
+                <img src="res/logo.png" alt="Logo" class="logo">
                 <ul class="nav-links">
-                    <li><img src="res/home-icon.png" alt="בית"><br><a href="#">בית</a></li>
-                    <li><img src="res/shop-icon.png" alt="חנות"><br><a href="#">חנות</a></li>
-                    <li><img src="hotel-icon.png" alt="פנסיון"><br><a href="#">פנסיון</a></li>
-                    <li><img src="grooming-icon.png" alt="טיפוח"><br><a href="#">טיפוח</a></li>
-                    <li><img src="topics-icon.png" alt="נושאים"><br><a href="#">נושאים</a></li>
-                    <li><img src="contact-icon.png" alt="צור קשר"><br><a href="#">צור קשר</a></li>
+                    <li><img src="res/home.png" alt="בית" ><br><a href="#">בית</a></li>
+                    <li><img src="res/pet-shop.png" alt="חנות"><br><a href="#">חנות</a></li>
+                    <li><img src="res/dog-sleep.png" alt="פנסיון"><br><a href="#">פנסיון</a></li>
+                    <li><img src="res/dog_shower.png" alt="טיפוח"><br><a href="#">טיפוח</a></li>
+                    <li><img src="res/care.png" alt="נטושים"><br><a href="#">נטושים</a></li>
+                    <li><img src="res/virtual-assistant.png" alt="צור קשר"><br><a href="#">צור קשר</a></li>
                 </ul>
             </div>
-            <div class="auth-buttons">
-                <button><img src="register-icon.png" alt="*">רישום</button>
-                <button><img src="sign-icon.png" alt="*">כניסה</button>
+            <div class="auth-buttons" id="auth-buttons">
+                <button onclick="openPopup('loginpopup')"><img src="res/Login-icon.png" alt="*">כניסה</button>
+                <button onclick="openPopup('regispopup')"><img src="res/sign up.png" alt="*">רישום</button>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <h2>מוצרי מזון</h2>
+    <div id="collarsProductGrid" class="product-grid"></div>
+
         
-        <h3>גזע קטן</h3>
-        <div class="product-grid">
-            <div class="product-card">
-                <img src="food1.jpg" alt="מזון 1"><h3>רויאל קנין גזע קטן</h3><p>מזון לכלבים קטנים</p><div class="price">₪265</div>
-                <div class="buttons"><button>קנה עכשיו</button><button>פרטים נוספים</button></div></div>
-            <div class="product-card">
-                <img src="food2.jpg" alt="מזון 2"><h3>רויאל קנין גור</h3><p>מזון איכותי לגורי כלבים</p><div class="price">₪289</div>
-                <div class="buttons"><button>קנה עכשיו</button><button>פרטים נוספים</button></div></div>
-            <div class="product-card">
-                <img src="food3.jpg" alt="מזון 3"><h3>רויאל קנין גזע גדול</h3><p>מזון לכלבים מגזע גדול</p><div class="price">₪265</div>
-                <div class="buttons"><button>קנה עכשיו</button><button>פרטים נוספים</button></div></div>
-            <div class="product-card">
-                <img src="food4.jpg" alt="מזון 4"><h3>רויאל קנין גור גדול</h3><p>מזון לגורים גדולים</p><div class="price">₪289</div>
-                <div class="buttons"><button>קנה עכשיו</button><button>פרטים נוספים</button></div></div>
-        </div>
-        <h3>גזע גדול</h3>
-        <div class="product-grid">
-            <div class="product-card"><img src="food1.jpg" alt="מזון 1"><h3>רויאל קנין גזע קטן</h3><p>מזון לכלבים קטנים</p><div class="price">₪265</div><div class="buttons"><button>קנה עכשיו</button><button>פרטים נוספים</button></div></div>
-            <div class="product-card"><img src="food2.jpg" alt="מזון 2"><h3>רויאל קנין גור</h3><p>מזון איכותי לגורי כלבים</p><div class="price">₪289</div><div class="buttons"><button>קנה עכשיו</button><button>פרטים נוספים</button></div></div>
-            <div class="product-card"><img src="food3.jpg" alt="מזון 3"><h3>רויאל קנין גזע גדול</h3><p>מזון לכלבים מגזע גדול</p><div class="price">₪265</div><div class="buttons"><button>קנה עכשיו</button><button>פרטים נוספים</button></div></div>
-            <div class="product-card"><img src="food4.jpg" alt="מזון 4"><h3>רויאל קנין גור גדול</h3><p>מזון לגורים גדולים</p><div class="price">₪289</div><div class="buttons"><button>קנה עכשיו</button><button>פרטים נוספים</button></div></div>
-        </div>
         
-        <h3>מזון רטוב</h3>
-        <div class="product-grid">
-            <div class="product-card"><img src="food5.jpg" alt="מזון 5"><h3>פרופיין כבש</h3><p>מזון רטוב לכלבים</p><div class="price">₪18</div><div class="buttons"><button>קנה עכשיו</button><button>פרטים נוספים</button></div></div>
-            <div class="product-card"><img src="food6.jpg" alt="מזון 6"><h3>שימורי פטה</h3><p>מזון רטוב לכלבים</p><div class="price">₪24</div><div class="buttons"><button>קנה עכשיו</button><button>פרטים נוספים</button></div></div>
-            <div class="product-card"><img src="food5.jpg" alt="מזון 5"><h3>פרופיין כבש</h3><p>מזון רטוב לכלבים</p><div class="price">₪18</div><div class="buttons"><button>קנה עכשיו</button><button>פרטים נוספים</button></div></div>
-            <div class="product-card"><img src="food6.jpg" alt="מזון 6"><h3>שימורי פטה</h3><p>מזון רטוב לכלבים</p><div class="price">₪24</div><div class="buttons"><button>קנה עכשיו</button><button>פרטים נוספים</button></div></div>
-        </div>
-    </div>
+
+<script src="/script/store-script.js" ></script>
 </body>
 </html>

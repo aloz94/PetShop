@@ -92,7 +92,24 @@ document
   eHour.addEventListener('focus', loadAvailableHoursEdit);
 
 
+
+
 });
+    document.getElementById('openProductBtn').addEventListener('click', () => {
+    loadCategories(); // ← נטען את רשימת הקטגוריות (רק אם עוד לא נטענה)
+    openPopup('addProductPopup'); // ← מציג את הפופאפ
+  });
+
+  // טיפול בלחיצה על כפתור הוספת תור לפנסיון
+  document.getElementById('openBoardingBtn').addEventListener('click', () => {
+    openPopup('addboardingpopup');
+    // טען את רשימת הלקוחות
+    loadCustomersForBoarding();
+    // טען את רשימת הכלבים של הלקוח הראשון
+    loadCustomerDogsById('BcustomerIdInput', 'BboardingDogSelect');
+  }
+  );
+
   // טיפול בסאבמיט
   /*  document
     .getElementById('groomingpopup_form')
@@ -2271,4 +2288,83 @@ if (addForm) {
     }
   });
 }
-א
+
+//================products.js========================
+async function loadProductsAccordion() {
+  try {
+    const res = await fetch('http://localhost:3000/products', { credentials: 'include' });
+    if (!res.ok) throw new Error('שגיאה בטעינת מוצרים');
+    const products = await res.json();
+
+    // Format for accordion
+    const formatted = products.map(prod => ({
+      ...prod,
+      low_stock_badge: prod.low_stock
+        ? '<span class="status-badge status-cancelled">מלאי נמוך</span>'
+        : '',
+      price: `₪${prod.price}`,
+    }));
+
+    // Build accordion
+    buildAccordionFromData(
+      formatted,
+      'products-accordion',
+      ['name', 'category', 'price', 'stock_quantity', 'low_stock_badge'],
+      ['description', 'min_quantity'],
+      {
+        name: 'שם מוצר',
+        category: 'קטגוריה',
+        price: 'מחיר',
+        stock_quantity: 'כמות במלאי',
+        min_quantity: 'מינימום מלאי',
+        description: 'תיאור',
+        low_stock_badge: ''
+      }
+    );
+  } catch (err) {
+    console.error('Error loading products:', err);
+    alert('שגיאה בטעינת מוצרים');
+  }
+}
+
+// קרא לפונקציה אחרי טעינת הדף
+document.addEventListener('DOMContentLoaded', loadProductsAccordion);
+
+// =================== ADD PRODUCT FORM SUBMISSION ===================
+async function loadCategories() {
+  const res = await fetch('/categories');
+  const data = await res.json();
+  const select = document.getElementById('categorySelect');
+
+  data.forEach(cat => {
+    const opt = document.createElement('option');
+    opt.value = cat.id;
+    opt.textContent = cat.name;
+    select.appendChild(opt);
+  });
+}
+
+// שליחת מוצר לשרת
+document.getElementById('addProductForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData(form);
+
+  try {
+    const res = await fetch('/products/add', {
+      method: 'POST',
+      body: formData
+    });
+
+    if (res.ok) {
+      alert('✅ מוצר נוסף בהצלחה');
+      closePopup('addProductPopup');
+      form.reset();
+    } else {
+      const text = await res.text();
+      throw new Error(text);
+    }
+  } catch (err) {
+    alert('❌ שגיאה בהוספת מוצר: ' + err.message);
+  }
+});

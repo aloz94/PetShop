@@ -1575,9 +1575,6 @@ app.get('/dashboard/customers', authenticateToken, async (req, res) => {
 });
 
 
-app.listen(3000, () => {
-    console.log("Server running on http://localhost:3000");
-});
 
 
 
@@ -1674,3 +1671,164 @@ ORDER BY adr.report_date DESC
     res.status(500).json({ error: 'Server error' });
   }
 });
+//============== production build =========================
+app.get('/products',  async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+  p.id,
+  p.name,
+  c.name AS category,
+  p.price,
+  p.stock_quantity,
+  p.min_quantity,
+  p.description,
+  (p.stock_quantity < p.min_quantity) AS low_stock
+FROM products p
+JOIN categories c ON p.category_id = c.id
+ORDER BY p.name;
+
+    `;
+    const { rows } = await con.query(query);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error loading products:', err);
+    res.status(500).json({ message: 'שגיאה בטעינת מוצרים' });
+  }
+});
+
+app.get('/products/toys',  async (req, res) => {
+  try {
+    const query = `
+SELECT 
+  p.id,
+  p.name,
+  c.name AS category_name,
+  p.price,
+  p.stock_quantity,
+  p.min_quantity,
+  p.description,
+  (p.stock_quantity < p.min_quantity) AS low_stock
+FROM products p
+JOIN categories c ON p.category_id = c.id
+WHERE c.name = 'צעצועים'
+ORDER BY p.name;
+    `;
+    const { rows } = await con.query(query);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error loading products:', err);
+    res.status(500).json({ message: 'שגיאה בטעינת מוצרים' });
+  }
+});
+
+app.get('/products/food',  async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        p.id,
+        p.name,
+        c.name AS category_name,
+        p.price,
+        p.stock_quantity,
+        p.min_quantity,
+        p.description,
+        (p.stock_quantity < p.min_quantity) AS low_stock
+      FROM products p
+      JOIN categories c ON p.category_id = c.id
+      WHERE c.name = 'מזון'
+      ORDER BY name;
+    `;
+    const { rows } = await con.query(query);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error loading products:', err);
+    res.status(500).json({ message: 'שגיאה בטעינת מוצרים' });
+  }
+});
+
+app.get('/products/collars',  async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+  p.id,
+  p.name,
+  c.name AS category_name,
+  p.price,
+  p.stock_quantity,
+  p.min_quantity,
+  p.description,
+  (p.stock_quantity < p.min_quantity) AS low_stock
+FROM products p
+JOIN categories c ON p.category_id = c.id
+WHERE c.name = 'קולרים'
+ORDER BY p.name;
+
+    `;
+    const { rows } = await con.query(query);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error loading products:', err);
+    res.status(500).json({ message: 'שגיאה בטעינת מוצרים' });
+  }
+});
+
+app.get('/products/grooming',  async (req, res) => {
+  try {
+    const query = `
+SELECT 
+  p.id,
+  p.name,
+  c.name AS category_name,
+  p.price,
+  p.stock_quantity,
+  p.min_quantity,
+  p.description,
+  (p.stock_quantity < p.min_quantity) AS low_stock
+FROM products p
+JOIN categories c ON p.category_id = c.id
+WHERE c.name = 'טיפוח'
+ORDER BY p.name;
+    `;
+    const { rows } = await con.query(query);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error loading products:', err);
+    res.status(500).json({ message: 'שגיאה בטעינת מוצרים' });
+  }
+});
+
+// add a new product
+app.post('/products/add', upload.single('img'), async (req, res) => {
+  try {
+    const { name, category_id, price, stock_quantity, description, min_quantity } = req.body;
+    const img_path = req.file.filename;
+
+    await con.query(`
+      INSERT INTO products (name, category_id, price, stock_quantity, description, min_quantity, img_path)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `, [name, category_id, price, stock_quantity, description, min_quantity, img_path]);
+
+    res.sendStatus(200);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
+
+app.get('/categories', async (req, res) => {
+  try {
+    const result = await con.query('SELECT id, name FROM categories ORDER BY name');
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error loading categories:', err);
+    res.status(500).json({ message: 'שגיאה בטעינת קטגוריות' });
+  }
+});
+
+
+
+app.listen(3000, () => {
+    console.log("Server running on http://localhost:3000");
+});
+
