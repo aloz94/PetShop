@@ -5,6 +5,10 @@ document.addEventListener('DOMContentLoaded', () => {
     loadGroomingProductCards();
     });
     
+
+    /*     document.getElementById('auth-buttons').style.display = 'none';
+     document.getElementById('profile-icon').style.display = 'block';
+*/
 async function loadToysProductCards() {
   try {
     const res = await fetch('/products/toys');
@@ -30,6 +34,10 @@ const formattedPrice = !isNaN(price) ? price.toFixed(2) : 'לא זמין';
             ? '<span class="badge-alert">מלאי נמוך</span>' 
             : ''
           }
+              <button class="add-to-cart-btn" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}">
+      ➕ הוסף לעגלה
+    </button>
+
         </div>
       `;
 
@@ -66,6 +74,10 @@ const formattedPrice = !isNaN(price) ? price.toFixed(2) : 'לא זמין';
             ? '<span class="badge-alert">מלאי נמוך</span>' 
             : ''
           }
+              <button class="add-to-cart-btn" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}">
+      ➕ הוסף לעגלה
+    </button>
+
         </div>
       `;
 
@@ -101,6 +113,10 @@ const formattedPrice = !isNaN(price) ? price.toFixed(2) : 'לא זמין';
             ? '<span class="badge-alert">מלאי נמוך</span>' 
             : ''
           }
+    <button class="add-to-cart-btn" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}">
+      ➕ הוסף לעגלה
+    </button>
+
         </div>
       `;
 
@@ -137,6 +153,10 @@ const formattedPrice = !isNaN(price) ? price.toFixed(2) : 'לא זמין';
             ? '<span class="badge-alert">מלאי נמוך</span>' 
             : ''
           }
+              <button class="add-to-cart-btn" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}">
+      ➕ הוסף לעגלה
+    </button>
+
         </div>
       `;
 

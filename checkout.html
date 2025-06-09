@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>תשלום</title>
+  <style>
+    body {
+      font-family: Varela Round, sans-serif;
+      background-color: #f8f8f8;
+      padding: 40px;
+      margin: 0;
+    }
+
+    .checkout-container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      text-align: center;
+      color: #333;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    input[type="text"],
+    input[type="tel"],
+    textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    .payment-methods {
+      margin-top: 20px;
+    }
+
+    .payment-methods label {
+      font-weight: normal;
+      margin-right: 15px;
+    }
+
+    .submit-btn {
+      margin-top: 30px;
+      width: 100%;
+      padding: 12px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .submit-btn:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="checkout-container">
+    <h2>🧾 פרטי תשלום</h2>
+
+    <form id="checkoutForm">
+      <div class="form-group">
+        <label for="fullName">שם מלא:</label>
+        <input type="text" id="fullName" name="fullName" required>
+      </div>
+
+      <div class="form-group">
+        <label for="phone">טלפון:</label>
+        <input type="tel" id="phone" name="phone" required>
+      </div>
+
+      <div class="form-group">
+        <label for="address">כתובת למשלוח:</label>
+        <textarea id="address" name="address" rows="3" required></textarea>
+      </div>
+
+      <div class="payment-methods">
+        <label><input type="radio" name="payment" value="cash" checked> מזומן</label>
+        <label><input type="radio" name="payment" value="credit" disabled> אשראי (בהקמה)</label>
+      </div>
+
+      <button type="submit" class="submit-btn">שלח הזמנה</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      alert('✅ ההזמנה התקבלה! תודה שקניתם אצלנו');
+      localStorage.removeItem('cart'); // נקה את העגלה
+      window.location.href = '/'; // חזרה לדף הבית
+    });
+  </script>
+
+</body>
+</html>

@@ -25,6 +25,24 @@
                 <button onclick="openPopup('loginpopup')"><img src="res/Login-icon.png" alt="*">כניסה</button>
                 <button onclick="openPopup('regispopup')"><img src="res/sign up.png" alt="*">רישום</button>
             </div>
+        <div class="cart-container">
+    <button id="cartToggle">🛒 עגלה (<span id="cartCount">0</span>)</button>
+<div id="cartSidebar" class="cart-sidebar" style="display: none;">
+    <button class="close-sidebar" onclick="closeCartSidebar()">×</button>
+    <h3>🛒 עגלת הקניות</h3>
+    <div id="cartItems">
+        <!-- Cart items will be dynamically added here -->
+    </div>
+</div>            
+            
+
+            <div id="profile-icon" style="display: none;">
+                <a href="profile.html">
+                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile" width="40" height="40">
+                </a>
+            </div>
+            
+
         </nav>
     </header>
     <div id="collarsProductGrid" class="product-grid"></div>
@@ -33,5 +51,7 @@
         
 
 <script src="/script/store-script.js" ></script>
+<script src="/script/cart.js"></script>
+
 </body>
 </html>

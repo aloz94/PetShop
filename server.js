@@ -1683,6 +1683,7 @@ app.get('/products',  async (req, res) => {
   p.stock_quantity,
   p.min_quantity,
   p.description,
+  p.img_path,
   (p.stock_quantity < p.min_quantity) AS low_stock
 FROM products p
 JOIN categories c ON p.category_id = c.id
@@ -1708,6 +1709,7 @@ SELECT
   p.stock_quantity,
   p.min_quantity,
   p.description,
+  p.img_path,
   (p.stock_quantity < p.min_quantity) AS low_stock
 FROM products p
 JOIN categories c ON p.category_id = c.id
@@ -1733,6 +1735,7 @@ app.get('/products/food',  async (req, res) => {
         p.stock_quantity,
         p.min_quantity,
         p.description,
+        p.img_path,
         (p.stock_quantity < p.min_quantity) AS low_stock
       FROM products p
       JOIN categories c ON p.category_id = c.id
@@ -1758,6 +1761,7 @@ app.get('/products/collars',  async (req, res) => {
   p.stock_quantity,
   p.min_quantity,
   p.description,
+  p.img_path,
   (p.stock_quantity < p.min_quantity) AS low_stock
 FROM products p
 JOIN categories c ON p.category_id = c.id
@@ -1784,6 +1788,7 @@ SELECT
   p.stock_quantity,
   p.min_quantity,
   p.description,
+  p.img_path,
   (p.stock_quantity < p.min_quantity) AS low_stock
 FROM products p
 JOIN categories c ON p.category_id = c.id

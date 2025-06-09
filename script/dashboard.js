@@ -2301,6 +2301,10 @@ async function loadProductsAccordion() {
     // Format for accordion
     const formatted = products.map(prod => ({
       ...prod,
+            image: prod.img_path
+        ? `<img src="/uploads/${prod.img_path}" alt="${prod.name}" style="max-width:70px;max-height:70px;border-radius:6px;">`
+        : '', // If no image, leave empty or use a placeholder
+
       low_stock_badge: prod.low_stock
         ? '<span class="status-badge status-cancelled">מלאי נמוך</span>'
         : '',
@@ -2311,9 +2315,10 @@ async function loadProductsAccordion() {
     buildAccordionFromData(
       formatted,
       'products-accordion',
-      ['name', 'category', 'price', 'stock_quantity', 'low_stock_badge'],
+      ['image', 'name', 'category', 'price', 'stock_quantity', 'low_stock_badge'],
       ['description', 'min_quantity'],
       {
+        image: 'תמונה',
         name: 'שם מוצר',
         category: 'קטגוריה',
         price: 'מחיר',
