@@ -1598,6 +1598,8 @@ if (abandonedAcc) {
       if (item) item.status = newStatus;
       // Re-render the accordion
       loadAbandonedReports();
+      loadAbandonedStats();
+
     } catch (err) {
       console.error('Error updating status:', err);
       alert('שגיאה בעדכון סטטוס');
@@ -2183,7 +2185,7 @@ function buildAndShowCarePopup(reportsArray, careList) {
   
         header.addEventListener('click', () => {
           const open = header.classList.toggle('open');
-          body.style.display = open ? 'block' : 'none';
+          body.style.display = open ? 'flex' : 'none';
         });
   
         accordion.append(header, body);

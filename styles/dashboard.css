@@ -430,24 +430,22 @@ body, html {
 
 
 .accordion-body {
-  display: none;
-  flex-wrap: wrap;         /* תעביר לשורה שנייה אם צריפות */
-
-  flex-direction: row;   /* כל ה-span בשורה אחת */
-  gap: 1rem;               /* רווח בין שורות/עמודות */
-  align-items: center;   /* יישור אנכי */
-  padding: 0.75rem 1rem;     /* ריווח פנימי */
-  margin-bottom: 1rem;       /* ריווח מתחת לגוף */
-  border-radius: 4px;        /* קצוות מעוגלות */
+  display: flex; /* Show as flex by default */
+  flex-wrap: wrap;
+  flex-direction: row;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between; /* <-- This spreads the children */
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  text-align: right;   
-  font-family: 'Courier New', Courier, monospace;  /* יישור טקסט לימין */
-    background-color: white;
+  text-align: right;
+  font-family: 'Courier New', Courier, monospace;
+  background-color: white;
   border-left: 1px solid var(--brand-primary);
   border-right: 1px solid var(--brand-primary);
   border-bottom: 2px solid var(--brand-primary);
-
-
 }
 
 /* גוף פתוח */
@@ -457,16 +455,15 @@ body, html {
 
 /* עיצוב כל שורה (span) */
 .accordion-body span {
+  flex: 1 1 0;
   min-width: 110px;
   font-size: 0.95rem;
   color: #333;
-  padding: 0.25rem 0; 
-  margin-right: 10%;       /* פדיּנג עליון תחתון קל */
-  border-bottom: 1px dashed #ddd; /* קו הפרדה עדין בין השורות */
-  text-align: right;     /* יישור טקסט לימין */
-  direction: rtl;        /* תמיכה בעברית */
+  padding: 0.25rem 0;
+  border-bottom: 1px dashed #ddd;
+  text-align: right;
+  direction: rtl;
 }
-
 /* הסרת קו תחתון מהשורה האחרונה */
 .accordion-body span:last-child {
   border-bottom: none;
@@ -478,7 +475,6 @@ body, html {
   font-weight: bold;
   color: #0a7e07;
 }
-
 .accordion-item {
   font-size: 0.9rem;
   color: var(--text-primary);
