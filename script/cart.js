@@ -39,6 +39,8 @@ document.addEventListener('click', (e) => {
     const id = e.target.dataset.id;
     const name = e.target.dataset.name;
     const price = parseFloat(e.target.dataset.price);
+const image = e.target.dataset.img; // new attribute for the image filename
+
 
     const cart = loadCart();
     const existingItem = cart.find(item => item.id === id);
@@ -46,7 +48,7 @@ document.addEventListener('click', (e) => {
     if (existingItem) {
       existingItem.quantity += 1;
     } else {
-      cart.push({ id, name, price, quantity: 1 });
+      cart.push({ id, name, price, quantity: 1, image });
     }
 
     saveCart(cart);
@@ -89,13 +91,20 @@ function updateCartDropdown() {
     cartItemsContainer.innerHTML = `
         <table>
             <thead>
-                <tr><th>מוצר</th><th>כמות</th><th>סה"כ</th></tr>
+                <tr>
+                 <th>תמונה</th>
+                <th>מוצר</th>
+                <th>כמות</th>
+                <th>סה"כ</th></tr>
             </thead>
             <tbody>
                 ${cart.map(item => {
                     const subtotal = item.quantity * item.price;
                     total += subtotal;
                     return `<tr>
+                        <td>
+                          ${item.image ? `<img src="/uploads/${item.image}" alt="${item.name}" style="width:50px;height:auto;border-radius:4px;">` : ''}
+                        </td>
                         <td>${item.name}</td>
                         <td>${item.quantity}</td>
                         <td>₪${subtotal.toFixed(2)}</td>
