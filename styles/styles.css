@@ -183,11 +183,13 @@ body {
     font-weight: bold;
     cursor: pointer;
     margin-top: 20px;
+    transition: background-color 0.3s;
 }
 
 .checkout-btn:hover {
     background-color: #45a049;
 }
+
 #cartSidebar table {
   width: 100%;
   border-collapse: collapse;
@@ -229,7 +231,64 @@ body {
   background-color: #45a049;
 }
 
+/* תמונת מוצר */
+.cart-thumb {
+  width: 45px;
+  height: 45px;
+  object-fit: cover;
+  border-radius: 6px;
+}
 
+/* כפתורי כמות */
+.qty-btn, .remove-btn {
+  background: #ffcc80;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin: 0 2px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qty-btn:hover, .remove-btn:hover {
+  background: #ffb347;
+}
+
+.qty-btn i, .remove-btn i {
+  pointer-events: none;
+}
+/* הכמות עצמה */
+.qty {
+  display: inline-block;
+  min-width: 20px;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* כפתור מחיקה */
+/* טבלה רספונסיבית למסכים קטנים */
+@media (max-width: 400px) {
+  .cart-sidebar {
+    width: 100%;
+  }
+
+  #cartSidebar table {
+    font-size: 0.85rem;
+  }
+
+  .qty-btn {
+    padding: 2px 6px;
+    font-size: 13px;
+  }
+
+  .checkout-btn {
+    font-size: 0.95rem;
+  }
+}
 .shop, .services, .subscribe, .carousel, .location {
     text-align: center;
     padding: 20px;
@@ -276,6 +335,7 @@ body {
 .shop-item a{
 
     margin-top: auto; /* Push the text to the bottom */
+    
 }
 .shop-item-title {
   margin-top: 12px;
@@ -330,7 +390,29 @@ body {
     background: linear-gradient(90deg, #ff9800 0%, #ffc107 100%);
     color: #fff;
 }
-
+a.shop-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #fcfcfc 0%, #f1f1f1 100%);
+    border-radius: 18px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08), 0 1.5px 4px rgba(0,0,0,0.04);
+    padding: 28px 18px 20px 18px;
+    margin: 12px;
+    min-width: 180px;
+    max-width: 260px;
+    text-align: center;
+    text-decoration: none;
+    color: #222;
+    font-size: 1.15rem;
+    font-weight: 600;
+    transition: box-shadow 0.22s, transform 0.22s, background 0.22s, color 0.22s;
+    border: 1px solid #f7e7ca;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
 .subscribe {
   background-color: #fff7ea;
   border: 1px solid #ddd;
@@ -832,4 +914,52 @@ textarea.textarea-field:focus {
         width: 100%;
         text-align: center;
     }
+}
+
+
+.custom-alert-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.custom-alert-box {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.18);
+  padding: 32px 24px 20px 24px;
+  min-width: 260px;
+  max-width: 90vw;
+  text-align: center;
+  font-size: 1.1rem;
+  color: #222;
+  position: relative;
+  animation: fadeInScale 0.3s;
+  direction: rtl;
+}
+
+.custom-alert-box button {
+  margin-top: 18px;
+  padding: 8px 28px;
+  background: linear-gradient(90deg, #ffb347 0%, #ffcc80 100%);
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.custom-alert-box button:hover {
+  background: linear-gradient(90deg, #ff9800 0%, #ffc107 100%);
+  color: #fff;
+}
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.85);}
+  to   { opacity: 1; transform: scale(1);}
 }

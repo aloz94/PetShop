@@ -24,6 +24,7 @@
         <li><a href="#" data-target="abandoned">פניות נטושים</a></li>
         <li><a href="#" data-target="delivry">שליחים</a></li>
         <li><a href="#" data-target="support">גורמי סיוע</a></li>
+        <li><a href="#" data-target="manager-dashboard">לוח בקרה למנהל</a></li>
 
         <li><a href="#" data-target="help">לקוחות</a></li>
       </ul>
@@ -263,15 +264,16 @@
     <button class="add-btn" type="button" id="openProductBtn">
       <i class="fas fa-plus"></i>
     </button>
-    <select id="productSearchCategory">
-      <option value="">קטגורית חיפוש</option>
-      <option value="id">מס' מוצר</option>
-      <option value="name">שם מוצר</option>
-      <option value="category">קטגוריה</option>
-      <option value="price">מחיר</option>
-      <option value="stock">מלאי</option>
-    </select>
-
+<select id="productSearchCategory">
+  <option value="">קטגורית חיפוש</option>
+  <option value="id">מס' מוצר</option>
+  <option value="name">שם מוצר</option>
+  <option value="category">קטגוריה</option>
+  <option value="price">מחיר</option>
+  <option value="stock_quantity">מלאי</option>
+  <option value="min_quantity">כמות מינימלית</option>
+  <option value="description">תיאור</option>
+</select>
     <input id="productSearchText" type="text" placeholder="חפש…" class="search-input" />
     <button id="productSearchBtn" class="btn-search" title="חפש">
       🔍
@@ -604,6 +606,59 @@
       <div id="accordion-customers"></div>
     
     </section>
+    <!-- ============ Manager Dashboard =========================== -->
+ <section class="content" id="manager-dashboard">
+  <h1>לוח בקרה למנהל</h1>
+  <header class="kpi-bar">
+    <div class="kpi-card green">
+      <div class="icon"><i class="fas fa-users"></i></div>
+      <div class="value" id="total-employees">--</div>
+      <div class="label">סה"כ עובדים</div>
+    </div>
+    <div class="kpi-card blue">
+      <div class="icon"><i class="fas fa-dog"></i></div>
+      <div class="value" id="total-dogs">--</div>
+      <div class="label">סה"כ כלבים</div>
+    </div>
+    <div class="kpi-card orange">
+      <div class="icon"><i class="fas fa-box"></i></div>
+      <div class="value" id="low-stock-count">--</div>
+      <div class="label">מוצרים במלאי נמוך</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
+      <div class="value" id="open-abandoned">--</div>
+      <div class="label">פניות נטושים פתוחות</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="icon"><i class="fas fa-shekel-sign"></i></div>
+      <div class="value" id="revenue-today">--</div>
+      <div class="label">הכנסות היום</div>
+    </div>
+  </header>
+<canvas id="myChart" width="400" height="200"></canvas>
+
+
+  <div class="dashboard-row">
+    <div class="dashboard-col">
+      <h3>5 תורים אחרונים לפנסיון</h3>
+      <ul id="recent-boarding-list"></ul>
+    </div>
+    <div class="dashboard-col">
+      <h3>5 תורים אחרונים לטיפוח</h3>
+      <ul id="recent-grooming-list"></ul>
+    </div>
+    <div class="dashboard-col">
+      <h3>5 פניות נטושים אחרונות</h3>
+      <ul id="recent-abandoned-list"></ul>
+    </div>
+    <div class="dashboard-col">
+      <h3>5 מוצרים במלאי נמוך</h3>
+      <ul id="low-stock-list"></ul>
+    </div>
+  </div>
+</section>
+
 </main>
 
 <!--****************************************Dashboard PopUps******************************************-->
@@ -849,8 +904,8 @@
 </div>
     </form>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  
   <script src="script/dashboard.js"></script>
 </body>
 </html>

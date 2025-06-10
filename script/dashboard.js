@@ -1586,6 +1586,8 @@ let editingAbnId  = null;
         handler_id:    item.handler_id    ?? 'לא שובץ',
 
         care_provider: item.care_provider ?? 'לא שובץ',
+          report_date: item.report_date ? formatHebDate(item.report_date) : '',
+
       
         image_path: `<img src="/uploads/${item.image_path}" alt="תמונה" style="max-width:100px;">`
       }));
@@ -2420,3 +2422,33 @@ document.getElementById('addProductForm').addEventListener('submit', async (e) =
     alert('❌ שגיאה בהוספת מוצר: ' + err.message);
   }
 });
+
+//============= manager features =================
+  const ctx = document.getElementById('myChart').getContext('2d');
+  const myChart = new Chart(ctx, {
+    type: 'bar', // 'line', 'pie', 'doughnut', etc.
+    data: {
+      labels: ['ינואר', 'פברואר', 'מרץ', 'אפריל'],
+      datasets: [{
+        label: 'הכנסות ₪',
+        data: [1200, 1900, 3000, 2500],
+        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top'
+        }
+      }
+    }
+  });

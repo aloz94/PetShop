@@ -534,12 +534,13 @@ app.post('/report-dog', authenticateToken, upload.single('image'), async (req, r
     const { size, health, address, notes } = req.body;
     const customer_id = req.user.userId;
     const image_path = req.file ? req.file.filename : null;
-  
+     const status = 'open'; // Set status to 'open'
+
     try {
       await con.query(
-        `INSERT INTO abandoned_dog_reports (customer_id, dog_size, health_status, address, notes, image_path)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [customer_id, size, health, address, notes, image_path]
+        `INSERT INTO abandoned_dog_reports (customer_id, dog_size, health_status, address, notes, image_path, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [customer_id, size, health, address, notes, image_path, status]
       );
   
       res.status(200).json({ message: 'הפנייה התקבלה בהצלחה!' });
@@ -1309,7 +1310,8 @@ app.get('/dashboard/abandoned/stats', authenticateToken, async (req, res) => {
     const todayRes = await con.query(`
       SELECT COUNT(*) AS cnt
       FROM abandoned_dog_reports
-      WHERE report_date = CURRENT_DATE
+WHERE report_date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jerusalem')::date
+      AND status = 'open'
         
     `);
     const countToday = parseInt(todayRes.rows[0].cnt, 10);
@@ -1833,7 +1835,84 @@ app.get('/categories', async (req, res) => {
 
 
 
+
+// === order ==========
+
+app.post('/orders/create', authenticateToken, async (req, res) => {
+  try {
+    const { address_id, payment_method, cart } = req.body;
+    const customer_id = user.id; // from JWT
+    if (!customer_id) {
+      return res.status(400).json({ message: 'Customer ID is missing' });
+    }
+
+    const total = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+    await con.query('BEGIN'); // Start transaction
+
+    const { rows: [{ id: orderId }] } = await con.query(`
+      INSERT INTO orders (customer_id, address_id, payment_method, total)
+      VALUES ($1, $2, $3, $4) RETURNING id`,
+      [customer_id, address_id, payment_method, total]
+    );
+
+    for (const it of cart) {
+      await con.query(`
+        INSERT INTO order_items (order_id, product_id, quantity, unit_price)
+        VALUES ($1, $2, $3, $4)`,
+        [orderId, it.id, it.quantity, it.price]
+      );
+
+      await con.query(
+        'UPDATE products SET stock_quantity = stock_quantity - $1 WHERE id = $2',
+        [it.quantity, it.id]
+      );
+    }
+
+    await con.query('COMMIT'); // Commit transaction
+    res.sendStatus(200);
+  } catch (err) {
+    await con.query('ROLLBACK'); // Rollback transaction on error
+    console.error(err);
+    res.status(500).send('Order failed');
+  }
+});
+app.get('/home/addresses', authenticateToken, async (req, res) => {
+  try {
+    const customerId = req.user.id;    // set by authenticateToken
+    const { rows } = await con.query(
+      `SELECT id, label, city, street, house_number, zip
+       FROM   addresses
+       WHERE  customer_id = $1
+       ORDER  BY id DESC`,
+      [customerId]
+    );
+    res.json(rows);                    // 200 OK
+  } catch (err) {
+    console.error('Error loading addresses:', err);
+    res.status(500).json({ message: 'שגיאה בטעינת כתובות' });
+  }
+});
+app.post('/set/addresses', authenticateToken, async (req, res) => {
+  const { city, street, house_number } = req.body;
+  if (!city || !street || !house_number)
+    return res.status(400).json({ message: 'חסרים שדות' });
+
+  try {
+    const customerId = req.user.id;  // ‏האיידי מגיע מה-JWT
+    const { rows } = await con.query(
+      `INSERT INTO addresses (customer_id, city, street, house_number)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, city, street, house_number`,
+      [customerId, city, street, house_number]
+    );
+    res.json(rows[0]);               // מחזיר את הכתובת החדשה
+  } catch (err) {
+    console.error('Error saving address:', err);
+    res.status(500).json({ message: 'שגיאה בשמירת כתובת' });
+  }
+});
+
+//module.exports = router;
 app.listen(3000, () => {
     console.log("Server running on http://localhost:3000");
 });
-

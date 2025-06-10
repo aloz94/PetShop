@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>מוצרי מזון</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="styles/store-styles.css">
    
 </head>
@@ -13,7 +14,7 @@
             <div class="nav-container">
                 <img src="res/logo.png" alt="Logo" class="logo">
                 <ul class="nav-links">
-                    <li><img src="res/home.png" alt="בית" ><br><a href="#">בית</a></li>
+                    <li><img src="res/home.png" alt="בית" ><br><a href="index.html">בית</a></li>
                     <li><img src="res/pet-shop.png" alt="חנות"><br><a href="#">חנות</a></li>
                     <li><img src="res/dog-sleep.png" alt="פנסיון"><br><a href="#">פנסיון</a></li>
                     <li><img src="res/dog_shower.png" alt="טיפוח"><br><a href="#">טיפוח</a></li>
@@ -53,6 +54,117 @@
 
 <script src="/script/store-script.js" ></script>
 <script src="/script/cart.js"></script>
+<!--    log in popup-->
+    <form id="loginpopup_form">
+<div id="loginpopup" class="popup-container">
+    <div class="popup-content">
+        <span class="close-btn" onclick="closePopup('loginpopup')">&times;</span>
+        <img src="res/logo.png" alt="Logo">
+        <h2>כניסה</h2>
+        
+        <label>שם משתמש</label>
+        <div class="input-field">
+            <input type="integer" id="log_id" placeholder="הכנס שם משתמש" required>
+        </div>
+        
+        <label>סיסמא</label>
+        <div class="input-field">
+            <input type="password" id="log_pass" placeholder="הכנס סיסמא" required>
+        </div>
+        
+        <a href="#" class="forgot-password">שכחת סיסמא?</a>
+     
+      <button class="popup-button" type="submit">כניסה</button>
+    </div>
+</div>
+    </form>
+<!--    register popup-->
+    <form id="regispopup_form">
+<div id="regispopup" class="popup-container">
+    <div class="popup-content">
+        <span class="close-btn" onclick="closePopup('regispopup')">&times;</span>
+        <img src="./res/logo.png" alt="Logo">
+        <hr></hr>
+        <h2>רישום</h2>
+        <hr></hr>
+        <h3>פרטים אישיים</h3>
+
+        <div class="form-columns">
+
+        <div class="column">
+                <div class="input-field"><input type="text" id="customerId" placeholder="ת.ז. *"   inputmode="numeric" required></div>
+            <div class="input-field"><input type="text" id="firstName" placeholder="שם פרטי *" required></div>
+            <div class="input-field"><input type="text" id="lastName" placeholder="שם משפחה *" required></div>
+            <div class="input-field"><input type="text" id="telephone"   inputmode="tel"      inputmode="numeric"   placeholder="נייד *" required></div>
+        </div>
+        
+            
+            
+        
+        <div class="column">
+
+            <div class="input-field"><input type="text" id="address" placeholder="כתובת "></div>
+            <div class="input-field"><input type="text" id="email" placeholder="מייל"></div>
+            <div class="input-field"><input type="password" id="pass" placeholder="סיסמא *" required></div>
+            <div class="input-field"><input type="password" id="passconfirm" placeholder="אישור סיסמא *" required></div>
+        </div>
+        </div>
+        <hr></hr>
+        <h3>פרטי הכלב</h3>
+        <div class="input-group">
+            <div class="input-field"><input type="text" id="dogName" placeholder="שם הכלב *" required></div>
+            <div class="input-field">
+              <!--<input type="text" id="dogBreed" placeholder="גזע">-->
+              <select id="dogBreed">
+    <option value="" disabled selected>בחר גזע</option>
+    <option value="לברדור רטריבר">לברדור רטריבר</option>
+    <option value="גולדן רטריבר">גולדן רטריבר</option>
+    <option value="פודל">פודל</option>
+    <option value="ביגל">ביגל</option>
+    <option value="פאג">פאג</option>
+    <option value="בולדוג צרפתי">בולדוג צרפתי</option>
+    <option value="רוטוויילר">רוטוויילר</option>
+    <option value="שיצו">שיצו</option>
+    <option value="האסקי סיבירי">האסקי סיבירי</option>
+    <option value="דוברמן">דוברמן</option>
+    <option value="אחר">אחר</option>
+
+  </select>
+            </div>
+        </div>
+        <div class="input-group">
+            <div class="input-field"><input type="number" id="dogAge" placeholder="גיל"></div>
+
+            <div class="input-field" >
+                <select id="dogSize">
+                    <option value="" disabled selected>בחר גודל *</option>
+                    
+                    <option>קטן</option>
+                    <option>בינוני</option>
+                    <option>גדול</option>
+                </select>
+            </div>
+        </div>
+        <div class="input-group">
+          
+            <div class="input-field radio-field">
+              <span>  מין *</span>
+                <label><input type="radio" name="dogGender" value="זכר"> זכר</label>
+                <label><input type="radio" name="dogGender" value="נקבה"> נקבה</label>
+            </div>
+        </div>
+        <button class="popup-button" type="submit" onclick="submitRegistration()">רישום</button>
+        </div>
+    </div>
+</form>  
+
+    <!-- Custom Alert Popup -->
+<div id="custom-alert" class="custom-alert-overlay" style="display:none;">
+  <div class="custom-alert-box">
+    <span id="custom-alert-message"></span>
+    <button onclick="closeCustomAlert()">אישור</button>
+  </div>
+</div>
 
 </body>
 </html>

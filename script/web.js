@@ -74,7 +74,7 @@ async function submitRegistration(e) {
         //console.log({ id, first_name, last_name, phone, address, email, password, name, breed, age, size, gender });
         console.log(JSON.stringify({ id, first_name , last_name , phone, address, email, password, name, breed, age, size, gender }))
         if(password !== confirmPassword) {
-            alert('סיסמאות אינן תואמות');
+            showCustomAlert('סיסמאות אינן תואמות');
             return;
         }
     
@@ -90,13 +90,14 @@ try{
         console.log('fetched');
 
         const result = await response.text();
-        alert(result);
+        showCustomAlert('נרשמת בהצלחה! ✅');
         console.log(result);
-            window.location.reload();
-
+setTimeout(() => {
+  window.location.reload();
+}, 3000);
     } catch (error) {
         console.error('Error during registration:', error);
-        alert('An error occurred while registering. Please try again.');
+        showCustomAlert('אירעה שגיאה בעת ההרשמה. נא לנסות שוב');
     }
 
 }
@@ -129,12 +130,12 @@ async function submitlogin(e) {
     console.log('Response received:', loginresponse);
 
     const loginresult = await loginresponse.json(); // 🔥 נכון לקרוא JSON עכשיו
-    alert(loginresult);
+   // alert(loginresult);
     console.log('Login result:', loginresult);
     console.log(typeof loginresult)
 
     if (loginresponse.ok) {
-        alert('התחברת בהצלחה!');
+       // showCustomAlert('התחברת בהצלחה!');
         //localStorage.setItem('token', loginresult.token);
 
       const now = Date.now();
@@ -142,30 +143,40 @@ async function submitlogin(e) {
      localStorage.setItem('expiry', expiry);
      
       if (loginresult.role === 'handler') {
-                window.location.href = 'handlerDash.html';
-                return;
+        showCustomAlert('התחברת בהצלחה - מועבר לדשבורד שליח'); // 🔥 הודעה למשתמש
+                setTimeout(() => {
+                  window.location.href = 'handlerDash.html';
+                  return;
+                }, 3000);
             }
      
      if (loginresponse.ok) {
       if (loginresult.role === 'customer') {
      document.getElementById('auth-buttons').style.display = 'none';
      document.getElementById('profile-icon').style.display = 'block';
-     window.location.href = 'index.html';
+      showCustomAlert('התחברת בהצלחה!'); // 🔥 הודעה למשתמש
+     setTimeout(() => {
+       window.location.href = 'index.html';
+     }, 3000);
       } else {
+showCustomAlert('התחברת בהצלחה - מועבר לדשבורד '); // 🔥 הודעה למשתמש
+        setTimeout(() => {
+
         window.location.href = 'dashboard.html';
+        }, 3000);
       }
     } 
   
 
     } else {
-        alert(loginresult.message || 'שגיאה בהתחברות');
+      showCustomAlert(loginresult.message || 'שגיאה בהתחברות');
     }
 
     } catch (error) {
         console.error('Error during login:', error);
-        alert('An error occurred while logging in. Please try again.');
+        showCustomAlert('אירעה שגיאה בעת ההתחברות. נא לנסות שוב.');
     }
-     
+
    }
 
    function triggerHourLoad() {
@@ -324,12 +335,12 @@ async function loadUserDogs() {
 
 
     if (!appointment_date || !start_time || !service_id || !dog_id) {
-      alert('נא למלא את כל השדות');
+      showCustomAlert('נא למלא את כל השדות');
       return;
     }
 
 if (appointment_date < todayStr) {
-  alert('נא לבחור תאריך שהוא היום או תאריך עתידי');
+  showCustomAlert('נא לבחור תאריך שהוא היום או תאריך עתידי');
   return;
 }
     try {
@@ -342,12 +353,14 @@ body: JSON.stringify({ appointment_date, slot_time, service_id, dog_id, notes })
   
       const result = await res.json();
       
-      alert(result.message || 'התור נקבע בהצלחה!');
-          window.location.reload();
+      showCustomAlert(result.message || 'התור נקבע בהצלחה!');
+      setTimeout(() => {
 
+          window.location.reload();
+        }, 3000);
     } catch (err) {
       console.error('שגיאה בשליחת התור:', err);
-      alert('שגיאה בשליחת הטופס');
+      showCustomAlert('שגיאה בשליחת הטופס');
     }
   }
   // 💰 עדכן תצוגת מחיר
@@ -470,17 +483,19 @@ function updatePriceLabel() {
       //alert(result.message || 'הדיווח נשלח בהצלחה!');
       if (response.ok) {
         const result = await response.json();
-        alert(result.message || 'הפנייה נשלחה בהצלחה!');
-        window.location.reload(); // מרענן את הדף לאחר שליחת הטופס
-        
+        showCustomAlert(result.message || 'הפנייה נשלחה בהצלחה!');
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
+
       } else {
         const errorText = await response.json(); // מנסה לקרוא את הטקסט של השגיאה
         console.error('Server error:', errorText);
       }
       
     } catch (error) {
-     console.error('שגיאה בשליחת הדיווח:', error);
-      alert('שגיאה בשליחת הדיווח'); // למ רות שהנתונים נשמרים , ההודעה מוצגת
+      console.error('שגיאה בשליחת הדיווח:', error);
+      showCustomAlert('שגיאה בשליחת הדיווח'); // למ רות שהנתונים נשמרים , ההודעה מוצגת
     }
   }
   
@@ -527,12 +542,12 @@ function updatePriceLabel() {
       if (result.available) {
         return true;
       } else {
-        alert('אין תאים פנויים בכל התאריכים שנבחרו. ימים לא זמינים:\n' + result.unavailableDates.join('\n'));
+        showCustomAlert('אין תאים פנויים בכל התאריכים שנבחרו. ימים לא זמינים:\n' + result.unavailableDates.join('\n'));
         return false;
       }
     } catch (error) {
       console.error('שגיאה בבדיקת זמינות:', error);
-      alert('שגיאה בבדיקת זמינות הפנסיון');
+      showCustomAlert('שגיאה בבדיקת זמינות הפנסיון');
       return false;
     }
   }
@@ -547,17 +562,17 @@ function updatePriceLabel() {
     const todayStr        = new Date().toISOString().split('T')[0];            // e.g. "2025-05-31"
 
     if (!startDate || !endDate || !dogId) {
-      alert('נא למלא את כל השדות');
+      showCustomAlert('נא למלא את כל השדות');
       return;
     }
     
     if (startDate < todayStr) {
-      alert('נא לבחור תאריך כניסה שהוא היום או תאריך עתידי');
+      showCustomAlert('נא לבחור תאריך כניסה שהוא היום או תאריך עתידי');
       return;
     }
 
     if(startDate >= endDate) {
-      alert('נא לבחור תאריך יציאה מאוחר יותר מתאריך הכניסה');
+      showCustomAlert('נא לבחור תאריך יציאה מאוחר יותר מתאריך הכניסה');
       return;
     }
 
@@ -579,12 +594,22 @@ body: JSON.stringify({
   
       const result = await response.json();
       console.log('Boarding appointment result:', result);
-      alert(result.message || 'התור נקבע בהצלחה!');
-      window.location.reload(); // מרענן את הדף לאחר שליחת הטופס
+      showCustomAlert(result.message || 'התור נקבע בהצלחה!');
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
     } catch (error) {
       console.error('שגיאה בשליחת התור:', error);
-      alert('שגיאה בשליחת הטופס');
+      showCustomAlert('שגיאה בשליחת הטופס');
     }
   }
   
-      
+      //alert 
+      function showCustomAlert(message) {
+  document.getElementById('custom-alert-message').textContent = message;
+  document.getElementById('custom-alert').style.display = 'flex';
+}
+
+function closeCustomAlert() {
+  document.getElementById('custom-alert').style.display = 'none';
+}

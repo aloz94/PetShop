@@ -2,119 +2,56 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>תשלום</title>
-  <style>
-    body {
-      font-family: Varela Round, sans-serif;
-      background-color: #f8f8f8;
-      padding: 40px;
-      margin: 0;
-    }
-
-    .checkout-container {
-      max-width: 600px;
-      margin: auto;
-      background: #fff;
-      border-radius: 12px;
-      padding: 30px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
-    }
-
-    h2 {
-      margin-bottom: 20px;
-      text-align: center;
-      color: #333;
-    }
-
-    .form-group {
-      margin-bottom: 15px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-
-    input[type="text"],
-    input[type="tel"],
-    textarea {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1rem;
-    }
-
-    textarea {
-      resize: vertical;
-    }
-
-    .payment-methods {
-      margin-top: 20px;
-    }
-
-    .payment-methods label {
-      font-weight: normal;
-      margin-right: 15px;
-    }
-
-    .submit-btn {
-      margin-top: 30px;
-      width: 100%;
-      padding: 12px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      font-size: 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    .submit-btn:hover {
-      background-color: #45a049;
-    }
-  </style>
+  <title>צ׳קאאוט</title>
+  <link rel="stylesheet" href="styles/checkout-styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap">
 </head>
 <body>
 
-  <div class="checkout-container">
-    <h2>🧾 פרטי תשלום</h2>
+  <!-- כותרת עמוד -->
+  <header class="header">
+    <h1>🧾 השלמת הזמנה</h1>
+  </header>
 
-    <form id="checkoutForm">
-      <div class="form-group">
-        <label for="fullName">שם מלא:</label>
-        <input type="text" id="fullName" name="fullName" required>
+  <!-- אזור פרטי ההזמנה -->
+  <main class="checkout-grid">
+
+    <!-- טופס תשלום -->
+    <section class="checkout-card">
+      <h2 class="section-title">פרטי משלוח ותשלום</h2>
+
+      <div id="addressSummary" class="address-box">טוען כתובת…</div>
+      <button id="chooseAddressBtn" class="btn-default">בחר / ערוך כתובת</button>
+
+      <h3 class="sub-title">שיטת תשלום</h3>
+      <div class="payment-options">
+        <label class="radio-chip">
+          <input type="radio" name="pay" value="cash" checked>
+          <span>מזומן</span>
+        </label>
+        <label class="radio-chip disabled">
+          <input type="radio" name="pay" value="credit" disabled>
+          <span>אשראי (בקרוב)</span>
+        </label>
       </div>
 
-      <div class="form-group">
-        <label for="phone">טלפון:</label>
-        <input type="tel" id="phone" name="phone" required>
-      </div>
+      <button id="placeOrderBtn" class="btn-primary">שלח הזמנה</button>
+    </section>
 
-      <div class="form-group">
-        <label for="address">כתובת למשלוח:</label>
-        <textarea id="address" name="address" rows="3" required></textarea>
-      </div>
+    <!-- סייד-בר עגלה (גלוי) -->
+    <aside id="cartSidebar" class="cart-sidebar open">
+      <button class="close-sidebar" onclick="closeCartSidebar()">×</button>
+      <h3>🛒 עגלת הקניות (<span id="cartCount">0</span>)</h3>
+      <div id="cartItems"></div>
+    </aside>
 
-      <div class="payment-methods">
-        <label><input type="radio" name="payment" value="cash" checked> מזומן</label>
-        <label><input type="radio" name="payment" value="credit" disabled> אשראי (בהקמה)</label>
-      </div>
+  </main>
 
-      <button type="submit" class="submit-btn">שלח הזמנה</button>
-    </form>
-  </div>
+  <!-- כפתור קבוע לפתיחת הסייד בר בטלפונים -->
+  <button id="cartToggle" class="floating-cart-btn">🛒</button>
 
-  <script>
-    document.getElementById('checkoutForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      alert('✅ ההזמנה התקבלה! תודה שקניתם אצלנו');
-      localStorage.removeItem('cart'); // נקה את העגלה
-      window.location.href = '/'; // חזרה לדף הבית
-    });
-  </script>
-
+  <script src="script/cart.js"></script>
 </body>
 </html>

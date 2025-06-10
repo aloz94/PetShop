@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pet Business Homepage</title>
     <link rel="stylesheet" href="styles/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
     <header>
@@ -13,13 +14,12 @@
             <div class="nav-container">
                 <img src="res/logo.png" alt="Logo" class="logo">
                 <ul class="nav-links">
-                    <li><img src="res/home.png" alt="בית" ><br><a href="#">בית</a></li>
+                    <li><img src="res/home.png" alt="בית" ><br><a href="index.html">בית</a></li>
                     <li><img src="res/pet-shop.png" alt="חנות"><br><a href="#">חנות</a></li>
                     <li><img src="res/dog-sleep.png" alt="פנסיון"><br><a href="#">פנסיון</a></li>
                     <li><img src="res/dog_shower.png" alt="טיפוח"><br><a href="#">טיפוח</a></li>
                     <li><img src="res/care.png" alt="נטושים"><br><a href="#">נטושים</a></li>
                     <li><img src="res/virtual-assistant.png" alt="צור קשר"><br><a href="#">צור קשר</a></li>
-                    <li><a href="handlerDash.html">שליח</a></li>
                 </ul>
             </div>
 
@@ -384,5 +384,12 @@
     <script src="script/web.js"></script>
     <script src="script/cart.js"></script>
 
+    <!-- Custom Alert Popup -->
+<div id="custom-alert" class="custom-alert-overlay" style="display:none;">
+  <div class="custom-alert-box">
+    <span id="custom-alert-message"></span>
+    <button onclick="closeCustomAlert()">אישור</button>
+  </div>
+</div>
 </body>
 </html>
