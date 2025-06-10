@@ -76,53 +76,100 @@ function updateCartDropdown() {
     const cartItemsContainer = document.getElementById('cartItems');
     const countSpan = document.getElementById('cartCount');
 
-    // Update cart count
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     countSpan.textContent = totalItems;
 
-    // If the cart is empty
     if (cart.length === 0) {
         cartItemsContainer.innerHTML = '<p>העגלה ריקה</p>';
         return;
     }
 
-    // Populate the cart sidebar with items
     let total = 0;
     cartItemsContainer.innerHTML = `
-        <table>
+        <table class="cart-table">
             <thead>
                 <tr>
-                 <th>תמונה</th>
-                <th>מוצר</th>
-                <th>כמות</th>
-                <th>סה"כ</th></tr>
+                    <th>תמונה</th>
+                    <th>מוצר</th>
+                    <th>כמות</th>
+                    <th>סה"כ</th>
+                    <th></th>
+                </tr>
             </thead>
             <tbody>
                 ${cart.map(item => {
                     const subtotal = item.quantity * item.price;
                     total += subtotal;
-                    return `<tr>
-                        <td>
-                          ${item.image ? `<img src="/uploads/${item.image}" alt="${item.name}" style="width:50px;height:auto;border-radius:4px;">` : ''}
-                        </td>
+                    return `
+                    <tr data-id="${item.id}">
+                        <td>${item.image ? `<img src="/uploads/${item.image}" alt="${item.name}" class="cart-thumb">` : ''}</td>
                         <td>${item.name}</td>
-                        <td>${item.quantity}</td>
+                        <td>
+                            <button class="qty-btn minus">-</button>
+                            <span class="qty">${item.quantity}</span>
+                            <button class="qty-btn plus">+</button>
+                        </td>
                         <td>₪${subtotal.toFixed(2)}</td>
+                        <td><button class="remove-btn">❌</button></td>
                     </tr>`;
                 }).join('')}
             </tbody>
             <tfoot>
-                <tr><td colspan="2">סה"כ</td><td>₪${total.toFixed(2)}</td></tr>
+                <tr>
+                    <td colspan="3"><strong>סה"כ</strong></td>
+                    <td colspan="2">₪${total.toFixed(2)}</td>
+                </tr>
             </tfoot>
         </table>
-    `;
-
-    // Add checkout button
-    cartItemsContainer.innerHTML += `
-        <div style="text-align: center; margin-top: 10px;">
+        <div style="text-align: center; margin-top: 15px;">
             <a href="/checkout.html" class="checkout-btn">המשך לתשלום</a>
         </div>
     `;
+
+    // Add event listeners for buttons
+    document.querySelectorAll('.qty-btn.plus').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = getRowId(e.target);
+            updateItemQuantity(id, 1);
+        });
+    });
+
+    document.querySelectorAll('.qty-btn.minus').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = getRowId(e.target);
+            updateItemQuantity(id, -1);
+        });
+    });
+
+    document.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = getRowId(e.target);
+            removeItemFromCart(id);
+        });
+    });
+}
+
+// Utility to get row item ID
+function getRowId(element) {
+    return element.closest('tr').getAttribute('data-id');
+}
+
+// These functions should already exist or be implemented:
+function updateItemQuantity(id, delta) {
+    let cart = loadCart();
+    const item = cart.find(i => i.id == id);
+    if (item) {
+        item.quantity += delta;
+        if (item.quantity < 1) item.quantity = 1;
+        saveCart(cart);
+        updateCartDropdown();
+    }
+}
+
+function removeItemFromCart(id) {
+    let cart = loadCart().filter(i => i.id != id);
+    saveCart(cart);
+    updateCartDropdown();
 }
 // Open the cart sidebar
 document.getElementById('cartToggle').addEventListener('click', () => {

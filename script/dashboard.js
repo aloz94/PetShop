@@ -109,6 +109,21 @@ document
     loadCustomerDogsById('BcustomerIdInput', 'BboardingDogSelect');
   }
   );
+  const input = document.getElementById('BcustomerIdInput');
+
+input.addEventListener('keypress', function (e) {
+  if (!/[0-9]/.test(e.key)) {
+    e.preventDefault(); // block non-digit characters
+  }
+});
+
+input.addEventListener('paste', function (e) {
+  const pasted = e.clipboardData.getData('text');
+  if (!/^\d+$/.test(pasted)) {
+    e.preventDefault(); // block pasted non-digits
+  }
+});
+
 
   // טיפול בסאבמיט
   /*  document
@@ -1392,6 +1407,32 @@ async function loadAvailableHoursEdit() {
 document.getElementById('groomingpopup_form')
   .addEventListener('submit', async function(e) {
     e.preventDefault();
+
+ // Gather values
+    const customerId      = document.getElementById('customerIdInput').value.trim();
+    const dogId           = document.getElementById('dogSelect').value;
+    const serviceId       = document.getElementById('serviceSelect').value;
+    const appointmentDate = document.getElementById('appointmentDate').value;
+    const slotTime        = document.getElementById('hourSelect').value;
+    const notes           = document.getElementById('notes').value;
+
+    // --- Logic Checks ---
+    // 1. Required fields
+    if (!customerId || !dogId || !serviceId || !appointmentDate || !slotTime) {
+      alert('נא למלא את כל השדות');
+      return;
+    }
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (appointmentDate < todayStr) {
+      alert('יש לבחור תאריך עתידי או היום');
+      return;
+    }
+    if (notes.length > 500) {
+      alert('ההערות ארוכות מדי (עד 500 תווים)');
+      return;
+    }
+
     const body = {
   customerId:      +document.getElementById('customerIdInput').value,
   dog_id:          +document.getElementById('dogSelect').value,
@@ -1408,6 +1449,10 @@ document.getElementById('groomingpopup_form')
         headers: { 'Content-Type':'application/json' },
         body: JSON.stringify(body)
       });
+
+         
+
+
       const msg = await res.json();
       if (res.ok) {
         alert('התור נקבע בהצלחה');
