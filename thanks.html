@@ -1,0 +1,153 @@
+<!-- public/thanks.html -->
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>תודה על ההזמנה</title>
+
+  <!-- Google Font – מתאים גם לעברית -->
+  <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
+
+  <style>
+    /* ----------  צבעים ופונטים  ---------- */
+    :root {
+      --clr-primary: #008cff;
+      --clr-primary-dark: #0075d3;
+      --clr-bg: #f4f7fa;
+      --clr-text: #1e293b;
+      --radius: 16px;
+    }
+    body {
+      margin: 0;
+      font-family: "Varela Round", sans-serif;
+      background: var(--clr-bg);
+      color: var(--clr-text);
+      line-height: 1.55;
+    }
+
+    /* ----------  כרטיס התודה  ---------- */
+    .thank-card {
+      max-width: 620px;
+      margin: 56px auto;
+      padding: 2.5rem 3rem;
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+      text-align: center;
+    }
+
+    /* עיגול עם אייקון ✓ */
+    .check-icon {
+      width: 74px;
+      height: 74px;
+      margin: 0 auto 1.25rem;
+      border-radius: 50%;
+      background: var(--clr-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.6rem;
+      color: #fff;
+    }
+
+    h1 {
+      font-size: 1.9rem;
+      margin: 0 0 0.25rem;
+    }
+    .subtitle {
+      margin-bottom: 2.2rem;
+      color: #475569;
+      font-size: 1rem;
+    }
+
+    /* ----------  כתובת  ---------- */
+    .addr-box {
+      background: #fafbfd;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      text-align: right;
+      margin-bottom: 2rem;
+      font-size: 0.97rem;
+    }
+
+    /* ----------  טבלת מוצרים  ---------- */
+    table.order-items {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+    .order-items thead th {
+      background: #f6f8fc;
+      padding: 0.75rem;
+      border-bottom: 1px solid #e3e8ee;
+      font-weight: 600;
+    }
+    .order-items tbody td {
+      padding: 0.75rem;
+      border-bottom: 1px solid #edf1f7;
+    }
+    .order-items tfoot td {
+      padding: 0.9rem 0.75rem;
+      font-weight: 700;
+      font-size: 1.05rem;
+      border: none;
+    }
+
+    /* ----------  כפתור חזרה  ---------- */
+    .btn-primary {
+      display: inline-block;
+      margin-top: 2.4rem;
+      padding: 0.8rem 1.8rem;
+      background: var(--clr-primary);
+      color: #fff;
+      font-weight: 600;
+      border-radius: 50px;
+      text-decoration: none;
+      transition: background 0.25s ease;
+    }
+    .btn-primary:hover {
+      background: var(--clr-primary-dark);
+    }
+
+    /* ----------  מובייל  ---------- */
+    @media (max-width: 480px) {
+      .thank-card { padding: 2rem 1.25rem; margin: 32px auto; }
+      h1 { font-size: 1.6rem; }
+      .subtitle { font-size: 0.92rem; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="thank-card">
+    <div class="check-icon">✓</div>
+    <h1>הזמנתך התקבלה!</h1>
+    <p class="subtitle" id="orderNumber">#...</p>
+
+    <h2 style="margin:0 0 .6rem">כתובת משלוח</h2>
+    <div class="addr-box" id="addressBox">טוען…</div>
+
+    <h2 style="margin:1.8rem 0 .6rem">פרטי הזמנה</h2>
+    <table class="order-items" id="itemsTable">
+      <thead>
+        <tr>
+          <th>מוצר</th>
+          <th>כמות</th>
+          <th>מחיר יח׳</th>
+          <th>סה״כ</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+      <tfoot>
+        <tr><td colspan="3">לתשלום</td><td id="orderTotal"></td></tr>
+      </tfoot>
+    </table>
+
+    <a href="/" class="btn-primary">חזרה לחנות</a>
+  </main>
+
+  <script src="script/thanks.js" type="module"></script>
+</body>
+</html>

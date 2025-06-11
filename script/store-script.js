@@ -66,6 +66,17 @@ async function loadFoodProductCards() {
       const imgSrc = `/uploads/${product.img_path}`;
 const price = Number(product.price);
 const formattedPrice = !isNaN(price) ? price.toFixed(2) : 'לא זמין';
+      if (product.stock_quantity === 0) {
+        card.innerHTML = `
+          <img src="${imgSrc}" alt="${product.name}">
+          <div class="info">
+            <h4>${product.name}</h4>
+            <p>₪${formattedPrice}</p>
+            <p>${product.description}</p>
+            <span class="badge-out-of-stock">אזל מהמלאי</span> <!-- Out of stock badge -->
+          </div>
+        `;
+      } else {
 
       card.innerHTML = `
         <img src="${imgSrc}" alt="${product.name}">
@@ -83,7 +94,7 @@ const formattedPrice = !isNaN(price) ? price.toFixed(2) : 'לא זמין';
 
         </div>
       `;
-
+        }
       container.appendChild(card);
     });
 
@@ -106,6 +117,18 @@ async function loadCollarsProductCards() {
 const price = Number(product.price);
 const formattedPrice = !isNaN(price) ? price.toFixed(2) : 'לא זמין';
 
+      if (product.stock_quantity === 0) {
+        card.innerHTML = `
+          <img src="${imgSrc}" alt="${product.name}">
+          <div class="info">
+            <h4>${product.name}</h4>
+            <p>₪${formattedPrice}</p>
+            <p>${product.description}</p>
+            <span class="badge-out-of-stock">אזל מהמלאי</span> <!-- Out of stock badge -->
+          </div>
+        `;
+      } else {
+
       card.innerHTML = `
         <img src="${imgSrc}" alt="${product.name}">
         <div class="info">
@@ -116,12 +139,13 @@ const formattedPrice = !isNaN(price) ? price.toFixed(2) : 'לא זמין';
             ? '<span class="badge-alert">מלאי נמוך</span>' 
             : ''
           }
-    <button class="add-to-cart-btn" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}" data-img="${product.img_path}">
+              <button class="add-to-cart-btn" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}" data-img="${product.img_path}">
       ➕ הוסף לעגלה
     </button>
 
         </div>
       `;
+        }
 
       container.appendChild(card);
     });
@@ -146,6 +170,18 @@ async function loadGroomingProductCards() {
 const price = Number(product.price);
 const formattedPrice = !isNaN(price) ? price.toFixed(2) : 'לא זמין';
 
+      if (product.stock_quantity === 0) {
+        card.innerHTML = `
+          <img src="${imgSrc}" alt="${product.name}">
+          <div class="info">
+            <h4>${product.name}</h4>
+            <p>₪${formattedPrice}</p>
+            <p>${product.description}</p>
+            <span class="badge-out-of-stock">אזל מהמלאי</span> <!-- Out of stock badge -->
+          </div>
+        `;
+      } else {
+
       card.innerHTML = `
         <img src="${imgSrc}" alt="${product.name}">
         <div class="info">
@@ -162,7 +198,7 @@ const formattedPrice = !isNaN(price) ? price.toFixed(2) : 'לא זמין';
 
         </div>
       `;
-
+        }
       container.appendChild(card);
     });
 

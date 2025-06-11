@@ -1686,7 +1686,8 @@ app.get('/products',  async (req, res) => {
   p.min_quantity,
   p.description,
   p.img_path,
-  (p.stock_quantity < p.min_quantity) AS low_stock
+  (p.stock_quantity < p.min_quantity) AS low_stock,
+  (p.stock_quantity = 0) AS unavailable
 FROM products p
 JOIN categories c ON p.category_id = c.id
 ORDER BY p.name;
@@ -1712,6 +1713,7 @@ SELECT
   p.min_quantity,
   p.description,
   p.img_path,
+  (p.stock_quantity = 0) AS unavailable, -- Mark products as unavailable
   (p.stock_quantity < p.min_quantity) AS low_stock
 FROM products p
 JOIN categories c ON p.category_id = c.id
@@ -1738,6 +1740,8 @@ app.get('/products/food',  async (req, res) => {
         p.min_quantity,
         p.description,
         p.img_path,
+          (p.stock_quantity = 0) AS unavailable, -- Mark products as unavailable
+
         (p.stock_quantity < p.min_quantity) AS low_stock
       FROM products p
       JOIN categories c ON p.category_id = c.id
@@ -1764,6 +1768,8 @@ app.get('/products/collars',  async (req, res) => {
   p.min_quantity,
   p.description,
   p.img_path,
+    (p.stock_quantity = 0) AS unavailable, -- Mark products as unavailable
+
   (p.stock_quantity < p.min_quantity) AS low_stock
 FROM products p
 JOIN categories c ON p.category_id = c.id
@@ -1791,6 +1797,8 @@ SELECT
   p.min_quantity,
   p.description,
   p.img_path,
+    (p.stock_quantity = 0) AS unavailable, -- Mark products as unavailable
+
   (p.stock_quantity < p.min_quantity) AS low_stock
 FROM products p
 JOIN categories c ON p.category_id = c.id
@@ -1839,9 +1847,12 @@ app.get('/categories', async (req, res) => {
 // === order ==========
 
 app.post('/orders/create', authenticateToken, async (req, res) => {
+    console.log('Incoming request body:', req.body);
+
   try {
     const { address_id, payment_method, cart } = req.body;
-    const customer_id = user.id; // from JWT
+    const customer_id = req.user.userId; // from JWT
+
     if (!customer_id) {
       return res.status(400).json({ message: 'Customer ID is missing' });
     }
@@ -1869,13 +1880,43 @@ app.post('/orders/create', authenticateToken, async (req, res) => {
     }
 
     await con.query('COMMIT'); // Commit transaction
-    res.sendStatus(200);
+    res.json({ orderId });
   } catch (err) {
     await con.query('ROLLBACK'); // Rollback transaction on error
     console.error(err);
     res.status(500).send('Order failed');
   }
 });
+
+app.get('/orders/:id', authenticateToken, async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const { rows: orderRows } = await con.query(`
+      SELECT o.id, o.total, o.payment_method, o.created_at,
+             a.city, a.street, a.house_number
+      FROM orders o
+      JOIN addresses a ON o.address_id = a.id
+      WHERE o.id = $1 AND o.customer_id = $2`,
+      [orderId, req.user.userId]);
+
+    if (!orderRows.length) return res.status(404).send('Order not found');
+
+    const { rows: items } = await con.query(`
+      SELECT p.name, oi.quantity, oi.unit_price
+      FROM order_items oi
+      JOIN products p ON oi.product_id = p.id
+      WHERE oi.order_id = $1`,
+      [orderId]);
+
+    res.json({ ...orderRows[0], items });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Failed to fetch order');
+  }
+});
+
+
+
 app.get('/home/addresses', authenticateToken, async (req, res) => {
   try {
     const customerId = req.user.id;    // set by authenticateToken

@@ -2352,17 +2352,18 @@ async function loadProductsAccordion() {
         ? `<img src="/uploads/${prod.img_path}" alt="${prod.name}" style="max-width:70px;max-height:70px;border-radius:6px;">`
         : '', // If no image, leave empty or use a placeholder
 
-      low_stock_badge: prod.low_stock
-        ? '<span class="status-badge status-cancelled">מלאי נמוך</span>'
-        : '',
-      price: `₪${prod.price}`,
+stock_badge: prod.stock_quantity === 0
+        ? '<span class="status-badge status-cancelled">אזל מהמלאי</span>' // Out of stock badge
+        : prod.low_stock
+          ? '<span class="status-badge status-alert">מלאי נמוך</span>' // Low stock badge
+          : '',      price: `₪${prod.price}`,
     }));
 
     // Build accordion
     buildAccordionFromData(
       formatted,
       'products-accordion',
-      ['image', 'name', 'category', 'price', 'stock_quantity', 'low_stock_badge'],
+      ['image', 'name', 'category', 'price', 'stock_quantity', 'stock_badge'], // Header fields
       ['description', 'min_quantity'],
       {
         image: 'תמונה',
@@ -2372,7 +2373,7 @@ async function loadProductsAccordion() {
         stock_quantity: 'כמות במלאי',
         min_quantity: 'מינימום מלאי',
         description: 'תיאור',
-        low_stock_badge: ''
+        stock_badge: ''
       }
     );
   } catch (err) {

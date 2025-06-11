@@ -5,6 +5,15 @@ const checkoutCart = loadCart();   // מתוך localStorage
 
 const cart = [];
 
+async function checkLogin() {
+    try {
+        const res = await fetch('http://localhost:3000/profile', { credentials: 'include' });
+        if (!res.ok) throw new Error('Not authenticated');
+    } catch (err) {
+        window.location.href = '/index.html'; // Redirect to login if not authenticated
+    }
+}
+
       //alert 
       function showCustomAlert(message) {
   document.getElementById('custom-alert-message').textContent = message;
@@ -210,13 +219,6 @@ function renderAddress() {
     a ? `${a.street} ${a.house_number}, ${a.city}` : 'אין כתובת';
 }
 
-/* ---------- DOM events ---------- */
-document.addEventListener('DOMContentLoaded', () => {
-  /* טעינת כתובות + ספירת עגלה */
-  fetchAddresses();
-  updateCartCount();
-  updateCartDropdown();
-});
 
 /* כפתור פתיחת סייד-בר */
 document.getElementById('cartToggle')
@@ -319,32 +321,42 @@ document.getElementById('chooseAddressBtn').onclick = () => {
 /* ביצוע הזמנה */
 document.getElementById('placeOrderBtn').onclick = async () => {
   if (!addressId) { alert('בחר כתובת'); return; }
-  const customerId = localStorage.getItem('customerId'); // Assuming customer ID is stored in localStorage or retrieved from the server
-  if (!customerId) { alert('נא להתחבר'); return; }
+
+  // Fetch the logged-in customer's ID
+  let customerId;
+  try {
+    const profileRes = await fetch('/profile', { credentials: 'include' });
+    if (!profileRes.ok) throw new Error('Failed to fetch customer profile');
+    const profileData = await profileRes.json();
+    customerId = profileData.user.userId; // Extract the customer ID from the response
+  } catch (err) {
+    alert('נא להתחבר');
+    return;
+  }
+
   if (checkoutCart.length === 0) { alert('העגלה ריקה'); return; }
 
   const body = {
-    address_id:    addressId,
+    address_id: addressId,
     payment_method: document.querySelector('input[name="pay"]:checked').value,
     cart: checkoutCart,
-    customer_id: customerId, // Add the logged-in customer ID
   };
-
+console.log(body);
   const res = await fetch('/orders/create', {
-    method:'POST',
-    headers:{ 'Content-Type':'application/json' },
-    credentials:'include',
-    body: JSON.stringify(body)
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(body),
   });
 
   if (res.ok) {
     localStorage.removeItem('cart');
-    location.href = '/thanks.html';
+const { orderId } = await res.json();
+location.href = `/thanks.html?id=${orderId}`;
   } else {
     alert(await res.text());
   }
 };
-
 /* ---------- add-to-cart buttons (delegated) ---------- */
 document.addEventListener('click', (e) => {
   if (!e.target.classList.contains('add-to-cart-btn')) return;
@@ -364,3 +376,12 @@ document.addEventListener('click', (e) => {
 
 
 //module.exports = router;
+
+/* ---------- DOM events ---------- */
+document.addEventListener('DOMContentLoaded', async () => {
+  /* טעינת כתובות + ספירת עגלה */
+  await checkLogin();
+  fetchAddresses();
+  updateCartCount();
+  updateCartDropdown();
+});
