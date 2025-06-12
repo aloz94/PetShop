@@ -140,6 +140,84 @@ a { color: inherit; text-decoration: none; }
 }
 .floating-cart-btn:hover { background: #3f3a9d; }
 
+/* בסיס הכרטיס */
+.addr-card {
+  display: flex;              /* תופס 100% רוחב להקל על הלחיצה */
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  user-select: none;
+}
+
+/* גוף הכרטיס */
+.addr-body {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border: 1px solid #e0e3ea;
+  border-radius: 12px;
+    box-sizing: border-box;
+
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,.05);
+  transition: background-color 0.25s ease, border 0.25s ease;
+  width: 100%;            /* תופס את כל הרוחב */
+}
+
+/* אייקון (רדיו מותאם אישית) */
+.addr-icon {
+  
+  width: 20px;
+  height: 20px;
+  border: 2px solid #c2c6d2;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+  transition: border-color 0.25s ease, background-color 0.25s ease;
+}
+
+
+/* טקסט */
+.addr-text {
+  font-size: 1rem;
+  color: #333;
+  flex: 1;                   /* ממלא את השורה */
+  line-height: 1.4;
+}
+
+/* מסתירים את אינפוט הרדיו המקורי */
+.addr-card input[type="radio"] {
+  appearance: none;
+  position: absolute;
+}
+
+/* Hover / focus */
+.addr-card:hover .addr-body {
+  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+  transform: translateY(-2px);
+}
+
+/* Checked state – כשה-radio מסומן */
+.addr-card input[type="radio"]:checked + .addr-body {
+  border-color: #4c45bf;
+  background: linear-gradient(135deg,#4c45bf 0%,#695ff3 100%);
+  color: #fff;
+}
+
+.addr-card input[type="radio"]:checked + .addr-body .addr-icon {
+  border-color: #fff;
+  background-color: #fff;
+}
+
+/* סימן V קטן בתוך האייקון */
+.addr-card input[type="radio"]:checked + .addr-body .addr-icon::after {
+  content: '';
+  position: absolute;
+  top: 4px; left: 4px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #4c45bf;
+}
 /* === רספונסיביות למסכים צרים === */
 @media (max-width: 820px){
   .checkout-grid { grid-template-columns: 1fr; }

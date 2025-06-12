@@ -233,6 +233,8 @@ document.getElementById('cartToggle')
    כפתור “בחר / ערוך כתובת” – יצירת מודאל בחירה / הוספה
 ----------------------------------------------------- */
 document.getElementById('chooseAddressBtn').onclick = () => {
+    let customerId;
+
   // אם המודאל כבר קיים – פשוט הצג
   let modal = document.getElementById('addrModal');
   if (!modal) {
@@ -273,6 +275,14 @@ document.getElementById('chooseAddressBtn').onclick = () => {
 
     /* add new address handler */
     modal.querySelector('#addAddrBtn').onclick = async () => {
+      const profileRes = await fetch('/profile', { credentials: 'include' });
+      if (!profileRes.ok) {
+        alert('נא להתחבר');
+        return;
+      }
+      const profileData = await profileRes.json();
+const customerId = profileData.user.userId; // Extract the customer ID
+
       const city   = modal.querySelector('#newCity').value.trim();
       const street = modal.querySelector('#newStreet').value.trim();
       const num    = modal.querySelector('#newHouseNum').value.trim();
@@ -280,13 +290,12 @@ document.getElementById('chooseAddressBtn').onclick = () => {
         alert('נא למלא את כל השדות'); return;
       }
       // שליחת כתובת חדשה לשרת
-      const r = await fetch('/set/addresses', {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json' },
-        credentials:'include',
-        body: JSON.stringify({ city, street, house_number:num })
-      });
-      if (!r.ok) return alert('שגיאה בהוספת כתובת');
+const r = await fetch('/set/addresses', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  credentials: 'include',
+  body: JSON.stringify({ city, street, house_number: num, customer_id: customerId }) // Include customer ID
+});      if (!r.ok) return alert('שגיאה בהוספת כתובת');
       const newAddr = await r.json();          // { id, city, street, house_number }
       addresses.unshift(newAddr);
       addressId = newAddr.id;
@@ -299,12 +308,18 @@ document.getElementById('chooseAddressBtn').onclick = () => {
   /* --- רנדר רשימת כתובות בכל פתיחה --- */
   function renderAddrList() {
     const list = modal.querySelector('#addrList');
-    list.innerHTML = addresses.map(a => `
-      <label>
-        <input type="radio" name="addr" value="${a.id}" ${a.id==addressId?'checked':''}>
-        ${a.street} ${a.house_number}, ${a.city}
-      </label>`).join('');
-    // מאזין לבחירה
+list.innerHTML = addresses.map(a => `
+  <label class="addr-card">
+    <input type="radio" name="addr" value="${a.id}" ${a.id == addressId ? 'checked' : ''}>
+    <div class="addr-body">
+      <span class="addr-icon"></span>
+      <span class="addr-text">${a.street} ${a.house_number}, ${a.city}</span>
+    </div>
+  </label>
+`).join('');
+css
+Copy
+Edit
     list.querySelectorAll('input[name="addr"]').forEach(inp=>{
       inp.onchange = () => {
         addressId = inp.value;

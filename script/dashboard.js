@@ -1716,7 +1716,206 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
+// Function to load all handlers and populate the dropdown
+async function loadHandlersDropdown() {
+  const handlerSelect = document.getElementById('abndHandlerSelect');
+  handlerSelect.innerHTML = '<option value="">טוען שליחים...</option>'; // Loading state
 
+  try {
+    const res = await fetch('http://localhost:3000/dashboard/couriers', { credentials: 'include' });
+    if (!res.ok) throw new Error('Failed to load handlers');
+    const handlers = await res.json();
+
+    // Populate the dropdown
+    handlerSelect.innerHTML = '<option value="">בחר שליח...</option>';
+    handlers.forEach(handler => {
+      const option = document.createElement('option');
+      option.value = handler.id;
+      option.textContent = handler.name;
+      handlerSelect.appendChild(option);
+    });
+  } catch (err) {
+    console.error('Error loading handlers:', err);
+    handlerSelect.innerHTML = '<option value="">שגיאה בטעינת שליחים</option>';
+  }
+}
+
+async function loadCareProvidersDropdown() {
+  const careProviderSelect = document.getElementById('abndCareProviderSelect');
+  careProviderSelect.innerHTML = '<option value="">טוען גורמי סיוע...</option>'; // Loading state
+
+  try {
+    const res = await fetch('http://localhost:3000/dashboard/care-providers', { credentials: 'include' });
+    if (!res.ok) throw new Error('Failed to load care providers');
+    const careProviders = await res.json();
+
+    // Populate the dropdown
+    careProviderSelect.innerHTML = '<option value="">בחר גורם סיוע...</option>';
+    careProviders.forEach(provider => {
+      const option = document.createElement('option');
+      option.value = provider.id;
+      option.textContent = provider.name;
+      careProviderSelect.appendChild(option);
+    });
+  } catch (err) {
+    console.error('Error loading care providers:', err);
+    careProviderSelect.innerHTML = '<option value="">שגיאה בטעינת גורמי סיוע</option>';
+  }
+}
+
+
+
+// Function to apply search filters for abandoned reports
+function applyAbandonedSearch() {
+  const category = document.getElementById('abdnSearchCategory').value;
+  const searchText = document.getElementById('abndSearchText').value.trim().toLowerCase();
+  const handlerId = document.getElementById('abndHandlerSelect').value;
+  const careProviderId = document.getElementById('abndCareProviderSelect').value;
+  const status = document.getElementById('abndStatusSelect').value;
+
+  const filteredReports = _AbnDataCache.filter(report => {
+    if (category === 'handler') {
+      return handlerId === '' || String(report.handler_id) === handlerId;
+    }
+    if (category === 'care_provider') {
+      return careProviderId === '' || String(report.care_provider_id) === careProviderId;
+    }
+    if (category === 'status') {
+      return status === '' || report.status === status;
+    }
+    if (category) {
+      return report[category]?.toString().toLowerCase().includes(searchText);
+    }
+    return true; // Show all reports if no category is selected
+  });
+
+  renderAbandonedReports(filteredReports); // Render filtered reports
+}
+
+// Event listener for category change
+document.getElementById('abdnSearchCategory').addEventListener('change', () => {
+  const category = document.getElementById('abdnSearchCategory').value;
+  const textInput = document.getElementById('abndSearchText');
+  const handlerSelect = document.getElementById('abndHandlerSelect');
+  const careProviderSelect = document.getElementById('abndCareProviderSelect');
+  const statusSelect = document.getElementById('abndStatusSelect');
+
+  // Reset visibility of all inputs
+  textInput.style.display = 'none';
+  handlerSelect.style.display = 'none';
+  careProviderSelect.style.display = 'none';
+  statusSelect.style.display = 'none';
+
+  // Show the relevant input based on the selected category
+  if (category === 'handler') {
+    handlerSelect.style.display = 'inline-block';
+    loadHandlersDropdown(); // Load handlers dynamically
+  } else if (category === 'care_provider') {
+    careProviderSelect.style.display = 'inline-block';
+    loadCareProvidersDropdown(); // Load care providers dynamically
+  } else if (category === 'status') {
+    statusSelect.style.display = 'inline-block';
+  } else {
+    textInput.style.display = 'inline-block';
+  }
+
+  // Reset values
+  textInput.value = '';
+  handlerSelect.value = '';
+  careProviderSelect.value = '';
+  statusSelect.value = '';
+});
+
+// Event listeners for search functionality
+document.getElementById('abndSearchBtn').addEventListener('click', applyAbandonedSearch);
+document.getElementById('abndClearBtn').addEventListener('click', () => {
+  document.getElementById('abdnSearchCategory').value = '';
+  document.getElementById('abndSearchText').value = '';
+  document.getElementById('abndHandlerSelect').value = '';
+  document.getElementById('abndCareProviderSelect').value = '';
+  
+  document.getElementById('abndHandlerSelect').style.display = 'none';
+  document.getElementById('abndCareProviderSelect').style.display = 'none';
+    document.getElementById('abndStatusSelect').style.display = 'none';
+
+  document.getElementById('abndSearchText').style.display = 'inline-block';
+  renderAbandonedReports(_AbnDataCache); // Reset to show all reports
+});
+
+function renderAbandonedReports(reports) {
+  const container = document.getElementById('accordion-abandoned');
+  container.innerHTML = ''; // Clear existing content
+
+  // Define classMap and labelMap for status badges
+  const classMap = {
+    open: 'status-open',
+    inprogress: 'status-inprogress',
+    accepted: 'status-accepted',
+    rejected: 'status-rejected',
+    ontheway: 'status-ontheway',
+    completed: 'status-completed',
+    cancelled: 'status-cancelled'
+  };
+
+  const labelMap = {
+    open: 'חדש',
+    inprogress: 'בטיפול',
+    accepted: 'התקבלה',
+    rejected: 'נדחתה',
+    ontheway: '<i class="fa fa-car"></i>',
+    completed: 'הושלם',
+    cancelled: 'בוטל'
+  };
+
+  const formatted = reports.map(report => ({
+    ...report,
+    statusBadge: `
+      <span class="status-badge ${classMap[report.status] || ''}">
+        ${labelMap[report.status] || report.status}
+      </span>`
+  }));
+
+  buildAccordionFromData(
+    formatted,
+    'accordion-abandoned',
+    ['id', 'customer_name', 'phone', 'dog_size', 'health_status', 'statusBadge'],
+    ['address', 'notes', 'image_path', 'report_date'],
+    {
+      id: "מס' דוח",
+      customer_name: "שם לקוח",
+      phone: "טלפון",
+      dog_size: "גודל כלב",
+      health_status: "מצב בריאות",
+      report_date: "תאריך דיווח",
+      address: "כתובת",
+      notes: "הערות",
+      statusBadge: "סטטוס"
+    }
+  );
+}
+function showImgModal(src) {
+  const modal     = document.getElementById('img-modal');
+  const modalImg  = document.getElementById('img-modal-img');
+
+  modalImg.src = src;
+  modal.classList.add('open');   // <-- يفعّل ال-CSS الجديد
+  modal.style.display = 'flex';
+}
+
+function closeImgModal() {
+  const modal = document.getElementById('img-modal');
+  modal.classList.remove('open');
+  modal.style.display = 'none';
+  document.getElementById('img-modal-img').src = '';
+}
+
+// Example: Add event listener for image clicks
+document.addEventListener('click', function(e) {
+  if (e.target.closest('#accordion-abandoned img')) {
+    const img = e.target;
+    showImgModal(img.src); // Show the modal with the clicked image
+  }
+});
 // ────────────────────────────────────────────────────────────────────────────
 // 2) הפונקציה שמוציאה לפועל את הפופ-אפ עבור “לא משויך שליח”
 async function showCourierPopup() {
@@ -2104,6 +2303,9 @@ function buildAndShowCarePopup(reportsArray, careList) {
 
 
 // =================== HANDLERS ACCORDION ===================
+
+let _handlersDataCache = [];
+
   async function loadHandlersAccordion() {
     try {
       const res = await fetch('http://localhost:3000/handlers', {
@@ -2111,7 +2313,10 @@ function buildAndShowCarePopup(reportsArray, careList) {
       });
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
       const data = await res.json();
-  
+
+      // Cache the data
+      _handlersDataCache = data;
+
       // הסתרת הטבלה
       const table = document.getElementById('handlers-posts');
       if (table) table.style.display = 'none';
@@ -2137,6 +2342,125 @@ function buildAndShowCarePopup(reportsArray, careList) {
       alert('שגיאה בטעינת שליחים');
     }
   }
+document.getElementById('delivrySearchCategory').addEventListener('change', () => {
+  const category = document.getElementById('delivrySearchCategory').value;
+  const textInput = document.getElementById('delivrySearchText');
+  const vehicleTypeSelect = document.getElementById('vehicleTypeSelect');
+
+  // Reset visibility of all inputs
+  textInput.style.display = 'none';
+  vehicleTypeSelect.style.display = 'none';
+
+  // Show the relevant input based on the selected category
+  if (category === 'vehicle_type') {
+    vehicleTypeSelect.style.display = 'inline-block';
+  } else {
+    textInput.style.display = 'inline-block';
+  }
+
+  // Reset values
+  textInput.value = '';
+  vehicleTypeSelect.value = '';
+});
+
+// Update the search function to handle vehicle type
+function applyDelivrySearch() {
+  const category = document.getElementById('delivrySearchCategory').value;
+  const searchText = document.getElementById('delivrySearchText').value.trim().toLowerCase();
+  const vehicleType = document.getElementById('vehicleTypeSelect').value;
+
+  const filteredHandlers = _handlersDataCache.filter(handler => {
+    if (category === 'vehicle_type') {
+      return vehicleType === '' || handler.vehicle_type === vehicleType;
+    }
+    if (category) {
+      return handler[category]?.toString().toLowerCase().includes(searchText);
+    }
+    return true; // Show all handlers if no category is selected
+  });
+
+  renderHandlers(filteredHandlers); // Render filtered handlers
+}
+
+// Event listeners for search functionality
+document.getElementById('delivrySearchBtn').addEventListener('click', applyDelivrySearch);
+document.getElementById('delivryClearBtn').addEventListener('click', () => {
+  document.getElementById('delivrySearchCategory').value = '';
+  document.getElementById('delivrySearchText').value = '';
+  document.getElementById('vehicleTypeSelect').value = '';
+  document.getElementById('vehicleTypeSelect').style.display = 'none';
+  document.getElementById('delivrySearchText').style.display = 'inline-block';
+  renderHandlers(_handlersDataCache); // Reset to show all handlers
+});
+
+function renderHandlers(handlers) {
+  const container = document.getElementById('accordion-handlers');
+  container.innerHTML = ''; // Clear existing content
+
+  // Format handlers data for rendering
+  const formattedHandlers = handlers.map(handler => ({
+    ...handler,
+    vehicle_type: handler.vehicle_type || 'לא צוין',
+    email: handler.email || 'לא צוין',
+    address: handler.address || 'לא צוין',
+  }));
+
+  // Build accordion from formatted data
+  buildAccordionFromData(
+    formattedHandlers,
+    'accordion-handlers',
+    ['id', 'name', 'phone', 'vehicle_type'], // Header keys
+    ['address', 'email'], // Body keys
+    {
+      id: 'מס\' שליח',
+      name: 'שם',
+      phone: 'טלפון',
+      vehicle_type: 'סוג רכב',
+      address: 'כתובת',
+      email: 'אימייל'
+    }
+  );
+}
+
+document.getElementById('addHandlerForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const body = {
+    id: document.getElementById('handlerId').value.trim(),
+    name: document.getElementById('handlerName').value.trim(),
+    phone: document.getElementById('handlerPhone').value.trim(),
+    address: document.getElementById('handlerAddress').value.trim(),
+    vehicle_type: document.getElementById('handlerVehicleType').value.trim(),
+    email: document.getElementById('handlerEmail').value.trim(),
+  };
+
+  try {
+    const res = await fetch('http://localhost:3000/handlers/add', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (res.ok) {
+      alert('✅ שליח נוסף בהצלחה');
+      closePopup('addHandlerPopup');
+      document.getElementById('addHandlerForm').reset();
+      loadHandlersAccordion(); // Refresh the handlers list
+    } else {
+      const error = await res.json();
+      alert('❌ שגיאה בהוספת שליח: ' + (error.message || res.status));
+    }
+  } catch (err) {
+    console.error('Error adding handler:', err);
+    alert('❌ שגיאה בהוספת שליח');
+  }
+});
+
+// Open the popup when the button is clicked
+document.getElementById('openHandlerBtn').addEventListener('click', () => {
+  openPopup('addHandlerPopup');
+});
   
 // =================== CARE PROVIDERS ACCORDION ===================
   async function loadCareProvidersAccordion() {
@@ -2279,43 +2603,11 @@ if (addForm) {
       alert('יש לבחור תאריכים שהם היום או תאריכים עתידיים');
       return;
     }
-
-    // 3. check_out > check_in
-    if (stayDays < 1) {
+    if (body.check_out <= body.check_in) {
       alert('יש לבחור תאריך יציאה מאוחר יותר מתאריך הכניסה');
       return;
     }
-
-    // 4. Optional: limit maximum stay (e.g. 30 days)
-    const maxStay = 30;
-    if (stayDays > maxStay) {
-      alert(`משך השהייה מוגבל ל־${maxStay} ימים`);
-      return;
-    }
-
-    // 5. Optional: notes length
-    if (body.notes.length > 500) {
-      alert('ההערות ארוכות מדי (עד 500 תווים)');
-      return;
-    }
-
-    // 6. Optional: check availability via your API
-    async function isAvailable(start, end) {
-      const res = await fetch(
-        `http://localhost:3000/boarding-appointments/availability?start=${start}&end=${end}`,
-        { credentials: 'include' }
-      );
-      if (!res.ok) return false;
-      const { available } = await res.json();
-      return available;
-    }
-
-    if (!await isAvailable(body.check_in, body.check_out)) {
-      alert('אין מקום פנוי בתאריכים שבחרת');
-      return;
-    }
-
-    // submit
+    // שלח את הבקשה
     try {
       const res = await fetch('http://localhost:3000/boarding-appointments', {
         method:      'POST',
@@ -2339,51 +2631,85 @@ if (addForm) {
 }
 
 //================products.js========================
-async function loadProductsAccordion() {
+let _productDataCache = [];
+
+// Function to load all products and cache them
+async function loadProducts() {
   try {
     const res = await fetch('http://localhost:3000/products', { credentials: 'include' });
-    if (!res.ok) throw new Error('שגיאה בטעינת מוצרים');
+    if (!res.ok) throw new Error('Failed to load products');
     const products = await res.json();
-
-    // Format for accordion
-    const formatted = products.map(prod => ({
-      ...prod,
-            image: prod.img_path
-        ? `<img src="/uploads/${prod.img_path}" alt="${prod.name}" style="max-width:70px;max-height:70px;border-radius:6px;">`
-        : '', // If no image, leave empty or use a placeholder
-
-stock_badge: prod.stock_quantity === 0
-        ? '<span class="status-badge status-cancelled">אזל מהמלאי</span>' // Out of stock badge
-        : prod.low_stock
-          ? '<span class="status-badge status-alert">מלאי נמוך</span>' // Low stock badge
-          : '',      price: `₪${prod.price}`,
-    }));
-
-    // Build accordion
-    buildAccordionFromData(
-      formatted,
-      'products-accordion',
-      ['image', 'name', 'category', 'price', 'stock_quantity', 'stock_badge'], // Header fields
-      ['description', 'min_quantity'],
-      {
-        image: 'תמונה',
-        name: 'שם מוצר',
-        category: 'קטגוריה',
-        price: 'מחיר',
-        stock_quantity: 'כמות במלאי',
-        min_quantity: 'מינימום מלאי',
-        description: 'תיאור',
-        stock_badge: ''
-      }
-    );
+    _productDataCache = products; // Cache the products
+    renderProducts(products); // Render all products initially
   } catch (err) {
     console.error('Error loading products:', err);
     alert('שגיאה בטעינת מוצרים');
   }
 }
 
+// Function to render products (e.g., in a table or accordion)
+function renderProducts(products) {
+  const container = document.getElementById('products-accordion');
+  container.innerHTML = ''; // Clear existing content
+
+  const formatted = products.map(prod => ({
+    ...prod,
+    image: prod.img_path
+      ? `<img src="/uploads/${prod.img_path}" alt="${prod.name}" style="max-width:70px;max-height:70px;border-radius:6px;">`
+      : '',
+    stock_badge: prod.stock_quantity === 0
+      ? '<span class="status-badge status-cancelled">אזל מהמלאי</span>'
+      : prod.low_stock
+        ? '<span class="status-badge status-alert">מלאי נמוך</span>'
+        : '',
+    price: `₪${prod.price}`,
+  }));
+
+  buildAccordionFromData(
+    formatted,
+    'products-accordion',
+    ['image', 'name', 'category', 'price', 'stock_quantity', 'stock_badge'],
+    ['description', 'min_quantity'],
+    {
+      image: 'תמונה',
+      name: 'שם מוצר',
+      category: 'קטגוריה',
+      price: 'מחיר',
+      stock_quantity: 'כמות במלאי',
+      min_quantity: 'מינימום מלאי',
+      description: 'תיאור',
+      stock_badge: ''
+    }
+  );
+}
+
+// Function to apply search filters
+function applyProductSearch() {
+  const category = document.getElementById('productSearchCategory').value;
+  const searchText = document.getElementById('productSearchText').value.trim().toLowerCase();
+
+  const filteredProducts = _productDataCache.filter(product => {
+    const matchesCategory = !category || product[category]?.toString().toLowerCase().includes(searchText);
+    const matchesText = !searchText || Object.values(product).some(value =>
+      value?.toString().toLowerCase().includes(searchText)
+    );
+    return matchesCategory && matchesText;
+  });
+
+  renderProducts(filteredProducts); // Render filtered products
+}
+
+// Event listeners for search functionality
+document.getElementById('productSearchBtn').addEventListener('click', applyProductSearch);
+document.getElementById('productClearBtn').addEventListener('click', () => {
+  document.getElementById('productSearchCategory').value = '';
+  document.getElementById('productSearchText').value = '';
+  renderProducts(_productDataCache); // Reset to show all products
+});
+
+// Load products on page load
+document.addEventListener('DOMContentLoaded', loadProducts);
 // קרא לפונקציה אחרי טעינת הדף
-document.addEventListener('DOMContentLoaded', loadProductsAccordion);
 
 // =================== ADD PRODUCT FORM SUBMISSION ===================
 async function loadCategories() {

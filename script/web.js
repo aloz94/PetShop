@@ -142,31 +142,24 @@ async function submitlogin(e) {
       const expiry = now + (60 * 60 * 1000); // 1 hour in milliseconds
      localStorage.setItem('expiry', expiry);
      
-      if (loginresult.role === 'handler') {
-        showCustomAlert('התחברת בהצלחה - מועבר לדשבורד שליח'); // 🔥 הודעה למשתמש
-                setTimeout(() => {
-                  window.location.href = 'handlerDash.html';
-                  return;
-                }, 3000);
-            }
-     
-     if (loginresponse.ok) {
-      if (loginresult.role === 'customer') {
-     document.getElementById('auth-buttons').style.display = 'none';
-     document.getElementById('profile-icon').style.display = 'block';
-      showCustomAlert('התחברת בהצלחה!'); // 🔥 הודעה למשתמש
-     setTimeout(() => {
-       window.location.href = 'index.html';
-     }, 3000);
-      } else {
-showCustomAlert('התחברת בהצלחה - מועבר לדשבורד '); // 🔥 הודעה למשתמש
-        setTimeout(() => {
+if (loginresult.role === 'handler') {
+  showCustomAlert('התחברת בהצלחה - מועבר לדשבורד שליח');
+  setTimeout(() => window.location.href = 'handlerDash.html', 3000);
+  return;          // ⬅️ يوقف تنفيذ الدالة هون
+}
 
-        window.location.href = 'dashboard.html';
-        }, 3000);
-      }
-    } 
-  
+if (loginresult.role === 'customer') {
+  document.getElementById('auth-buttons').style.display = 'none';
+  document.getElementById('profile-icon').style.display = 'block';
+  showCustomAlert('התחברת בהצלחה!');
+  setTimeout(() => window.location.href = 'index.html', 3000);
+  return;
+}
+
+// أي دور تاني (עובד, מנהל, ... )
+showCustomAlert('התחברת בהצלחה - מועבר לדשבורד');
+setTimeout(() => window.location.href = 'dashboard.html', 3000);
+    
 
     } else {
       showCustomAlert(loginresult.message || 'שגיאה בהתחברות');

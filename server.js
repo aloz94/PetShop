@@ -169,12 +169,11 @@ app.post('/login', (logreq, logres) => {
           return logres.status(401).json({ message: 'Invalid credentials' });
         }
         // מייצרים טוקן עם role לפי שדה ה־employees.role
-        const token = jwt.sign(
-          { userId: user.id, role: user.role },
-          JWT_SECRET,
-          { expiresIn: '1h' }
-        );
-        logres.cookie('token', token, {
+const token = jwt.sign(
+  { userId: user.id, role: user.role },
+  JWT_SECRET,
+  { expiresIn: '1h' }
+);        logres.cookie('token', token, {
           httpOnly: true,
           secure: false,
           maxAge: 60 * 60 * 1000
@@ -186,7 +185,7 @@ app.post('/login', (logreq, logres) => {
 
       // 3. אם לא ב־employees – מנסים בטבלת handlers
       const handlerQuery = `
-        SELECT id, name, password
+        SELECT id, password
         FROM handlers
         WHERE id = $1
       `;
@@ -204,7 +203,7 @@ app.post('/login', (logreq, logres) => {
           }
           // מייצרים טוקן עם role=handler
           const token = jwt.sign(
-            { userId: user.id, name: user.name, role: 'handler' },
+            { userId: user.id, role: 'handler' },
             JWT_SECRET,
             { expiresIn: '1h' }
           );
@@ -1515,6 +1514,31 @@ app.get('/handlers', authenticateToken, async (req, res) => {
   }
 });
 
+app.post('/handlers/add', authenticateToken, async (req, res) => {
+  const {id, name, phone, address, vehicle_type, email } = req.body;
+
+  if (!id || !name || !phone || !address || !vehicle_type || !email) {
+    return res.status(400).json({ message: 'שדות חובה חסרים' });
+  }
+
+  try {
+    const query = `
+      INSERT INTO handlers (id, name, phone, address, vehicle_type, email)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *;
+    `;
+    const values = [id, name, phone, address, vehicle_type, email];
+    const result = await con.query(query, values);
+
+    res.status(201).json({
+      message: 'שליח נוסף בהצלחה',
+      handler: result.rows[0],
+    });
+  } catch (err) {
+    console.error('Error adding handler:', err);
+    res.status(500).json({ message: 'שגיאה בהוספת שליח' });
+  }
+});
 
 // מחזיר את רשימת גורמי הסיוע
 app.get('/care-providers', authenticateToken, async (req, res) => {
@@ -1919,13 +1943,13 @@ app.get('/orders/:id', authenticateToken, async (req, res) => {
 
 app.get('/home/addresses', authenticateToken, async (req, res) => {
   try {
-    const customerId = req.user.id;    // set by authenticateToken
+    const customer_id = req.user.userId; // from JWT
     const { rows } = await con.query(
       `SELECT id, label, city, street, house_number, zip
        FROM   addresses
        WHERE  customer_id = $1
        ORDER  BY id DESC`,
-      [customerId]
+      [customer_id]
     );
     res.json(rows);                    // 200 OK
   } catch (err) {
@@ -1939,12 +1963,12 @@ app.post('/set/addresses', authenticateToken, async (req, res) => {
     return res.status(400).json({ message: 'חסרים שדות' });
 
   try {
-    const customerId = req.user.id;  // ‏האיידי מגיע מה-JWT
+    const customer_id = req.user.userId;  // ‏האיידי מגיע מה-JWT
     const { rows } = await con.query(
       `INSERT INTO addresses (customer_id, city, street, house_number)
        VALUES ($1, $2, $3, $4)
        RETURNING id, city, street, house_number`,
-      [customerId, city, street, house_number]
+      [customer_id, city, street, house_number]
     );
     res.json(rows[0]);               // מחזיר את הכתובת החדשה
   } catch (err) {

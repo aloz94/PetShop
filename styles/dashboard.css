@@ -1399,6 +1399,41 @@ padding: 0;
   box-shadow: 0 0 0 2px #2196f3;
 }
 
+/* Styles specific to the img-modal popup */
+/* Styles specific to the img-modal popup */
+#img-modal.popup-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+#img-modal .popup-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  position: relative;
+}
+
+#img-modal .close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+
+
+
+
 #manager-dashboard .kpi-bar {
   display: flex;
   gap: 18px;

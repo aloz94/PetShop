@@ -310,7 +310,24 @@
             <option value="completed">הושלם</option>
             <option value="cancelled">בוטל</option>
           </select>
-        
+
+        <select id="abndHandlerSelect" style="display: none;">
+  <!-- Options will be dynamically populated -->
+</select>
+<select id="abndCareProviderSelect" style="display: none;">
+  <!-- Options will be dynamically populated -->
+</select>
+
+<select id="abndStatusSelect" style="display: none;">
+  <option value="">בחר סטטוס...</option>
+  <option value="open">חדש</option>
+  <option value="inprogress">בטיפול</option>
+  <option value="accepted">התקבלה</option>
+  <option value="rejected">נדחתה</option>
+  <option value="ontheway">בדרך</option>
+  <option value="completed">הושלם</option>
+  <option value="cancelled">בוטל</option>
+</select>
   <button id="abndSearchBtn" class="btn-search" title="חפש">
     🔍
   </button>
@@ -378,40 +395,40 @@
       </table>
       
       <div id="accordion-abandoned"></div>
+<div id="img-modal" class="popup-container" style="display: none;">
+    <span class="close-btn" onclick="closeImgModal()">&times;</span>
+    <img id="img-modal-img" src="" alt="Image Preview">
+  </div>
           </section>
 
 
           
           <SECTION CLASS="content" ID="delivry">
                     <div class="search-group">
-          <button class="add-btn" type="button" id="openBoardingBtn">
+          <button class="add-btn" type="button" id="openHandlerBtn">
          <i class="fas fa-plus"></i>
           </button>
-          <select id="boardingSearchCategory">
-            <option value="">קטגורית חיפוש</option>
-            <option value="id">מס' תור</option>
-            <option value="customer_id">מס' לקוח (ID)</option>
-            <option value="customer_name">שם לקוח</option>
-            <option value="dog_id">מס' כלב (ID)</option>
-            <option value="dog_name">שם כלב</option>
-            <option value="check_in">תאריך כניסה</option>
-            <option value="check_out">תאריך יציאה</option>
-            <option value="status">סטטוס</option>
+          <select id="delivrySearchCategory">
+  <option value="">קטגורית חיפוש</option>
+  <option value="id">מס' שליח</option>
+  <option value="name">שם שליח</option>
+  <option value="phone">טלפון</option>
+  <option value="vehicle_type">גודל רכב</option>
+  <option value="address">כתובת</option>
+  <option value="email">אימייל</option>
           </select>
-        
-  <input   id="boardingSearchText" type="text"  placeholder="חפש…"  class="search-input"  />
-          <select id="boardingSearchStatusSelect" style="display:none">
-            <option value="">כל הסטטוסים</option>
-            <option value="pending">ממתין</option>
-            <option value="inprogress">בתהליך</option>
-            <option value="completed">הושלם</option>
-            <option value="cancelled">בוטל</option>
-          </select>
-        
-  <button id="boardingSearchBtn" class="btn-search" title="חפש">
+
+  <input   id="delivrySearchText" type="text"  placeholder="חפש…"  class="search-input"  />
+<select id="vehicleTypeSelect" style="display:none">
+  <option value="">בחר גודל רכב...</option>
+  <option value="גדול">גדול</option>
+  <option value="בינוני">בינוני</option>
+  <option value="קטן">קטן</option>
+</select>
+  <button id="delivrySearchBtn" class="btn-search" title="חפש">
     🔍
   </button>
-  <button id="boardingClearBtn" class="btn-clear" type="button" title="נקה">
+  <button id="delivryClearBtn" class="btn-clear" type="button" title="נקה">
     ✖
   </button>
 </div>
@@ -465,14 +482,10 @@
           </button>
           <select id="boardingSearchCategory">
             <option value="">קטגורית חיפוש</option>
-            <option value="id">מס' תור</option>
-            <option value="customer_id">מס' לקוח (ID)</option>
-            <option value="customer_name">שם לקוח</option>
-            <option value="dog_id">מס' כלב (ID)</option>
-            <option value="dog_name">שם כלב</option>
-            <option value="check_in">תאריך כניסה</option>
-            <option value="check_out">תאריך יציאה</option>
-            <option value="status">סטטוס</option>
+            <option value="id">מס' גורם</option>
+            <option value="dog_name">שם גורם</option>
+            <option value="address">כתובת</option>
+            <option value="phone">טלפון</option>
           </select>
         
   <input   id="boardingSearchText" type="text"  placeholder="חפש…"  class="search-input"  />
@@ -862,40 +875,42 @@
 
     <h2>הוסף מוצר חדש</h2>
 
+          <label>שם מוצר:</label>
       <div class="input-field">
-      <label>שם מוצר:</label>
       <input type="text" name="name" required>
       </div>
 
-      <div class="input-field">
       <label>קטגוריה:</label>
+      <div class="input-field">
       <select name="category_id" id="categorySelect" required>
         <option value="">בחר קטגוריה</option>
       </select>
       </div>
 
-      <div class="input-field">
       <label>מחיר:</label>
+      <div class="input-field">
       <input type="number" step="0.01" name="price" required>
       </div>
+      <label>כמות במלאי:</label>
 
       <div class="input-field">
-      <label>כמות במלאי:</label>
       <input type="number" name="stock_quantity" required>
       </div>
+      <label>כמות מינימלית:</label>
 
       <div class="input-field">
-      <label>כמות מינימלית:</label>
       <input type="number" name="min_quantity" required>
       </div>
 
-      <div class="input-field">
       <label>תיאור:</label>
+      <div class="input-field">
       <textarea name="description" rows="3"></textarea>
       </div>
 
+
+            <label>תמונה:</label>
+
       <div class="input-field">
-      <label>תמונה:</label>
       <input type="file" name="img" accept="image/*" required>
       </div>
 
@@ -904,6 +919,53 @@
 </div>
     </form>
 
+<!-- popup add handler-->
+<form id="addHandlerForm">
+  <div id="addHandlerPopup" class="popup-container">
+    <div class="popup-content">
+      <span class="close-btn" onclick="closePopup('addHandlerPopup')">&times;</span>
+      <img src="res/logo.png" alt="Logo" />
+      <h2>הוסף שליח חדש</h2>
+
+      <label>ת.ז. שליח:</label>
+      <div class="input-field">
+        <input type="text" id="handlerId" name="id" required pattern="\d*" inputmode="numeric" maxlength="9" />
+      </div>
+
+      <label>שם:</label>
+      <div class="input-field">
+        <input type="text" id="handlerName" name="name" required />
+      </div>
+
+      <label>טלפון:</label>
+      <div class="input-field">
+        <input type="text" id="handlerPhone" name="phone" required />
+      </div>
+
+      <label>כתובת:</label>
+      <div class="input-field">
+        <input type="text" id="handlerAddress" name="address" required />
+      </div>
+
+      <label>סוג רכב:</label>
+      <div class="input-field">
+        <select id="handlerVehicleType" name="vehicle_type" required>
+          <option value="">בחר סוג רכב...</option>
+          <option value="גדול">גדול</option>
+          <option value="בינוני">בינוני</option>
+          <option value="קטן">קטן</option>
+        </select>
+      </div>
+
+      <label>אימייל:</label>
+      <div class="input-field">
+        <input type="email" id="handlerEmail" name="email" required />
+      </div>
+
+      <button type="submit" class="popup-button">הוסף שליח</button>
+    </div>
+  </div>
+</form>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <script src="script/dashboard.js"></script>
