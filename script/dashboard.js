@@ -1,23 +1,35 @@
 // =================== LOGIN & LOGOUT ===================
 async function checkLogin() {
- try {
-    // Fetch user profile data
-    const res = await fetch('http://localhost:3000/profile', { credentials: 'include' });
-    const data = await res.json();
-    if (res.ok && data.username) {
-      // Update the DOM element with the username
-      if (userNameElement) {
-      }
-             document.getElementById('loggedInUserName').textContent = `Welcome, ${data.username}`;
+    try {
+        // Fetch user profile data
+        const res = await fetch('http://localhost:3000/profile', { credentials: 'include' });
+        const data = await res.json();
 
-    } else {
-      console.warn('Failed to fetch username or user is not authenticated.');
+        // Check if the response is OK and contains a username
+        if (res.ok && data.username) {
+            const userNameElement = document.getElementById('loggedInUserName');
+            if (userNameElement) {
+                userNameElement.textContent = `ברוך הבא, ${data.username}`;
+            }
+        } else {
+            console.warn('Failed to fetch username or user is not authenticated.');
+            const userNameElement = document.getElementById('loggedInUserName');
+            if (userNameElement) {
+                userNameElement.textContent = 'Guest';
+            }
+        }
+    } catch (err) {
+        console.error('Error fetching user profile:', err);
+        const userNameElement = document.getElementById('loggedInUserName');
+        if (userNameElement) {
+            userNameElement.textContent = 'Guest';
+        }
+            window.location.href = '/index.html';
+
     }
-  } catch (err) {
-    console.error('Error fetching user profile:', err);
-        document.getElementById('loggedInUserName').textContent = 'Guest';
 
-  }}
+}
+
 async function logout() {
     await fetch('http://localhost:3000/logout', {
         method: 'POST',
@@ -25,6 +37,7 @@ async function logout() {
     });
     window.location.href = '/index.html';
 }
+
 // =================== POPUP HANDLERS ===================
 function openPopup(popupId) {
     document.getElementById(popupId).style.display = "flex";
@@ -2773,32 +2786,3 @@ document.getElementById('addProductForm').addEventListener('submit', async (e) =
   }
 });
 
-//============= manager features =================
-  const ctx = document.getElementById('myChart').getContext('2d');
-  const myChart = new Chart(ctx, {
-    type: 'bar', // 'line', 'pie', 'doughnut', etc.
-    data: {
-      labels: ['ינואר', 'פברואר', 'מרץ', 'אפריל'],
-      datasets: [{
-        label: 'הכנסות ₪',
-        data: [1200, 1900, 3000, 2500],
-        backgroundColor: 'rgba(54, 162, 235, 0.5)',
-        borderColor: 'rgba(54, 162, 235, 1)',
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        y: {
-          beginAtZero: true
-        }
-      },
-      plugins: {
-        legend: {
-          display: true,
-          position: 'top'
-        }
-      }
-    }
-  });

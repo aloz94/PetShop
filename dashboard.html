@@ -14,7 +14,7 @@
 
  <div class="container">
     <aside class="sidebar">
-      <div id="loggedInUserName"></div>
+      <div id="loggedInUserName" class="welcome-message"></div>
       <img src="res\logo.png" alt="Logo" class="sidebar-logo" style="width: 80px; display: block; margin: 16px auto;" />
       <div class="sidebar-top">Aloz</div>
       <ul>
@@ -632,13 +632,13 @@
     <div class="kpi-card blue">
       <div class="icon"><i class="fas fa-dog"></i></div>
       <div class="value" id="total-dogs">--</div>
-      <div class="label">סה"כ כלבים</div>
+      <div class="label">סה"כ כלבים בפנסיון</div>
     </div>
-    <div class="kpi-card orange">
-      <div class="icon"><i class="fas fa-box"></i></div>
-      <div class="value" id="low-stock-count">--</div>
-      <div class="label">מוצרים במלאי נמוך</div>
-    </div>
+<div class="kpi-card orange">
+  <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
+  <div class="value" id="low-stock-count">--</div>
+  <div class="label">מוצרים במלאי נמוך</div>
+</div>
     <div class="kpi-card red">
       <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
       <div class="value" id="open-abandoned">--</div>
@@ -676,6 +676,15 @@
 </main>
 
 <!--****************************************Dashboard PopUps******************************************-->
+<div id="lowStockModal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn">&times;</span>
+    <h2>מוצרים במלאי נמוך</h2>
+
+    <!-- רשימת מוצרים -->
+    <ul id="lowStockModalList" class="low-stock-list"></ul>
+  </div>
+</div>
 
 <!-- popup add spa order-->
 
@@ -970,5 +979,6 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <script src="script/dashboard.js"></script>
+  <script src="script/Manager.js"></script>
 </body>
 </html>

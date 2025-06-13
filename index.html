@@ -25,12 +25,11 @@
 
             <!-- Authentication buttons (register/log in)-->
             <div class="auth-buttons" id="auth-buttons">
-                <button onclick="openPopup('loginpopup')"><img src="res/Login-icon.png" alt="*">כניסה</button>
-                <button onclick="openPopup('regispopup')"><img src="res/sign up.png" alt="*">רישום</button>
+              <!--  <button onclick="openPopup('loginpopup')"><img src="res/Login-icon.png" alt="*">כניסה</button>-->
                 
             </div>
-
-        <div class="cart-container">
+<div class="left-navbar">
+        <div class="cart-container" >
     <button id="cartToggle">🛒 עגלה (<span id="cartCount">0</span>)</button>
 <div id="cartSidebar" class="cart-sidebar" style="display: none;">
     <button class="close-sidebar" onclick="closeCartSidebar()">×</button>
@@ -39,14 +38,29 @@
         <!-- Cart items will be dynamically added here -->
     </div>
 </div>            
-
+<div id="logout-button" style="display: none;">
+<button class="logout-button" onclick="logout()">
+    <i class="fas fa-sign-out-alt"></i> התנתק
+</button>
+</div>
+<div id="login-button" style="display: block;">
+<button class="login-button" onclick="openPopup('loginpopup')">
+    <i class="fas fa-sign-in-alt"></i> התחבר
+</button>
+</div>
+<div id="register-button" style="display: block;">
+<button class="register-button" onclick="openPopup('regispopup')">
+    <i class="fas fa-user-plus"></i> הרשמה
+</button>
+            </div>
             <div id="profile-icon" style="display: none;">
+              <span class="profile-name"></span>
                 <a href="profile.html">
                 <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile" width="40" height="40">
                 </a>
             </div>
             
-
+        </div>
         </nav>
     </header>
 
@@ -382,6 +396,7 @@
 </form>  
     <script src="script/web.js"></script>
     <script src="script/cart.js"></script>
+    <script src="script/Manager.js"></script>
 
     <!-- Custom Alert Popup -->
 <div id="custom-alert" class="custom-alert-overlay" style="display:none;">

@@ -1984,6 +1984,103 @@ app.post('/set/addresses', authenticateToken, async (req, res) => {
   }
 });
 
+// Manager dashboard 
+
+app.get('/manager/stats/employees', authenticateToken, async (req, res) => {
+  try {
+    const rows = await con.query('SELECT COUNT(*) AS total FROM employees');
+    const employeeCount = parseInt(rows.rows[0].total, 10);
+    res.json({ employeeCount });    
+  } catch (err) {
+    console.error('DB - employee count error:', err);
+    res.status(500).json({ error: 'DB error' });
+  }
+});
+
+app.get('/manager/stats/dogs', authenticateToken, async (req, res) => {
+  try {
+    const rows = await con.query('SELECT COUNT(*) AS total FROM boarding_appointments WHERE status = \'inprogress\' AND CURRENT_DATE BETWEEN check_in AND check_out');
+    const dogCount = parseInt(rows.rows[0].total, 10);
+    res.json({ dogCount });
+  } catch (err) {
+    console.error('DB - dog count error:', err);
+    res.status(500).json({ error: 'DB error' });
+  }
+});
+
+app.get('/manager/stats/low-stock', authenticateToken, async (req, res) => {
+  try {
+
+    const rows = await con.query(`
+      SELECT COUNT(*) AS total
+      FROM products
+      WHERE stock_quantity > 0
+        AND stock_quantity < min_quantity
+    `);
+    const lowStockCount = parseInt(rows.rows[0].total, 10);
+    res.json({ lowStockCount }); // Ensure this returns an object
+  } catch (err) {
+    console.error('DB - low stock count error:', err);
+    res.status(500).json({ error: 'DB error' });
+  }
+});
+
+app.get('/manager/stats/low-stock/list', authenticateToken, async (req, res) => {
+  try {
+    const { rows } = await con.query(`
+      SELECT id, name, stock_quantity
+      FROM products
+      WHERE stock_quantity > 0
+        AND stock_quantity < min_quantity
+      ORDER BY stock_quantity ASC
+    `);
+    res.json(rows);                // بيرجع Array
+  } catch (err) {
+    console.error('DB - low stock list error:', err);
+    res.status(500).json({ error: 'DB error' });
+  }
+});
+
+
+app.get('/manager/stats/revenue-today', authenticateToken, async (req, res) => {
+  const pricePerNight = 100;              // עלות לילה בפנסיון
+  const sql = `
+    WITH
+    grooming_income AS (
+      SELECT COALESCE(SUM(s.price), 0) AS total
+      FROM grooming_appointments ga
+      JOIN services s ON s.id = ga.service_id
+      WHERE ga.appointment_date = CURRENT_DATE
+        AND ga.status = 'completed'
+    ),
+    boarding_income AS (
+      SELECT COUNT(*) * $1::numeric AS total
+      FROM boarding_appointments ba
+      WHERE CURRENT_DATE BETWEEN ba.check_in AND ba.check_out
+        AND ba.status = 'checked_in'
+    ),
+    store_income AS (
+      SELECT COALESCE(SUM(o.total), 0) AS total
+      FROM orders o
+      WHERE o.created_at::date = CURRENT_DATE
+    )
+    SELECT
+      (SELECT total FROM grooming_income) +
+      (SELECT total FROM boarding_income) +
+      (SELECT total FROM store_income)     AS revenue_today;
+  `;
+
+  try {
+    const { rows } = await con.query(sql, [pricePerNight]);
+    res.json({ total: Number(rows[0].revenue_today) });
+  } catch (err) {
+    console.error('DB – revenue today error:', err);
+    res.status(500).json({ error: 'DB error' });
+  }
+});
+
+
+
 //module.exports = router;
 app.listen(3000, () => {
     console.log("Server running on http://localhost:3000");

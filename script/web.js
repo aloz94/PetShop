@@ -234,15 +234,26 @@ async function checkLoginStatus() {
             method: 'GET',
             credentials: 'include' // 🔥 חשוב
         });
-
-        if (response.ok) {
             const data = await response.json();
+
+        if (response.ok && data.username) {
             console.log('User is logged in:', data);
             currentUserId = data.user.userId; // 🔥 שמרי את ה-ID בזיכרון
+user_name = data.user.name; // 🔥 שמרי את השם המלא
+const profileIcon = document.getElementById('profile-icon');
+            const profileName = document.querySelector('.profile-name');
+if (profileIcon && profileName) {
+                profileIcon.style.display = 'flex'; // Show the profile icon
+                profileName.textContent = `ברוך הבא, ${data.username}`;
+            }
 
 
             document.getElementById('auth-buttons').style.display = 'none';
             document.getElementById('profile-icon').style.display = 'block';
+            document.querySelector('.profile-name').textContent = user_name;
+            document.getElementById('logout-button').style.display = 'block'; // Show the logout button
+            document.getElementById('login-button').style.display = 'none'; // Hide the login button
+            document.getElementById('register-button').style.display = 'none'; // Hide the register button
         } else {
             throw new Error('Unauthorized');
         }
@@ -251,6 +262,14 @@ async function checkLoginStatus() {
         document.getElementById('auth-buttons').style.display = 'block';
         document.getElementById('profile-icon').style.display = 'none';
     }
+}
+
+async function logout() {
+    await fetch('http://localhost:3000/logout', {
+        method: 'POST',
+        credentials: 'include'
+    });
+    window.location.href = '/index.html';
 }
 
 async function loadServices() {
