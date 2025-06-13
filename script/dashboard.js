@@ -1,12 +1,23 @@
 // =================== LOGIN & LOGOUT ===================
 async function checkLogin() {
-    try {
-        const res = await fetch('http://localhost:3000/profile', { credentials: 'include' });
-        if (!res.ok) throw new Error('Not authenticated');
-    } catch (err) {
-        window.location.href = '/index.html'; // Redirect to login if not authenticated
+ try {
+    // Fetch user profile data
+    const res = await fetch('http://localhost:3000/profile', { credentials: 'include' });
+    const data = await res.json();
+    if (res.ok && data.username) {
+      // Update the DOM element with the username
+      if (userNameElement) {
+      }
+             document.getElementById('loggedInUserName').textContent = `Welcome, ${data.username}`;
+
+    } else {
+      console.warn('Failed to fetch username or user is not authenticated.');
     }
-}
+  } catch (err) {
+    console.error('Error fetching user profile:', err);
+        document.getElementById('loggedInUserName').textContent = 'Guest';
+
+  }}
 async function logout() {
     await fetch('http://localhost:3000/logout', {
         method: 'POST',
@@ -155,52 +166,64 @@ document.querySelectorAll('.sidebar-nav a').forEach(link => {
   });
   
 // =================== ACCORDION BUILDERS ===================
+function renderAccordionHeaderRow(container, headerKeys, labels) {
+    const row = document.createElement('div');
+
+  // إذا فيه صف قديم – نشيله
+  const oldHeaderRow = container.querySelector('.accordion-header-row');
+  if (oldHeaderRow) oldHeaderRow.remove();
+
+  const headerRow = document.createElement('div');
+  headerRow.classList.add('accordion-header-row');
+
+  headerKeys.forEach(key => {
+    const span = document.createElement('span');
+    span.textContent = labels[key] || key;
+    headerRow.appendChild(span);
+  });
+
+  /* نضيفه قبل الأكورديونات */
+  container.prepend(headerRow);
+}
+
 function buildAccordionFromData(data, container, headerKeys, bodyKeys, labels) {
-    // אם קיבלת מחרוזת – שלוף את האלמנט
-    if (typeof container === 'string') {
-      container = document.getElementById(container);
-    }
-    if (!container) {
-      console.error('Accordion container not found');
-      return;
-    }
-  
-    // נקה מה שהיה שם
-    container.innerHTML = '';
-  
-    data.forEach(item => {
-      const accordion = document.createElement('div');
-      accordion.classList.add('accordion');
-  
-      // כותרת
-      const header = document.createElement('div');
-      header.classList.add('accordion-header');
-      header.innerHTML = headerKeys
-        .map(key =>
-          (key === 'statusBadge' || key === 'editHtml')
-            ? `<span>${labels[key]} ${item[key] || ''}</span>`
-            : `<span>${labels[key]}: ${item[key] || ''}</span>`
-        )
-        .join('');
-  
-      // גוף
-      const body = document.createElement('div');
-      body.classList.add('accordion-body');
-      body.style.display = 'none';
-      body.innerHTML = bodyKeys
-        .map(key => `<span data-label="${labels[key]}">${item[key] || ''}</span>`)
-        .join('');
-  
-      // טריגר פתיחה/סגירה
-      header.addEventListener('click', () => {
-        const open = header.classList.toggle('open');
-        body.style.display = open ? 'flex' : 'none';
-      });
-  
-      accordion.append(header, body);
-      container.append(accordion);
+  if (typeof container === 'string') container = document.getElementById(container);
+  if (!container) return console.error('Accordion container not found');
+
+  container.innerHTML = ''; // ننظّف
+
+  // 🔥 نحطّ سطر العناوين
+  renderAccordionHeaderRow(container, headerKeys, labels);
+
+  data.forEach(item => {
+    const accordion = document.createElement('div');
+    accordion.classList.add('accordion');
+
+    // === header (قيم فقط) ===
+    const header = document.createElement('div');
+    header.classList.add('accordion-header');
+    header.innerHTML = headerKeys
+      .map(key => `<span>${item[key] || ''}</span>`)   // ❗ بدون label
+      .join('');
+
+    // === body ===
+    const body = document.createElement('div');
+    body.classList.add('accordion-body');
+    body.style.display = 'none';
+    body.innerHTML = bodyKeys
+      .map(key => `<span data-label="${labels[key]}">${item[key] || ''}</span>`)
+      .join('');
+
+    // toggle
+    header.addEventListener('click', () => {
+      const open = header.classList.toggle('open');
+      body.style.display = open ? 'flex' : 'none';
     });
-  }
+
+    accordion.append(header, body);
+    container.append(accordion);
+  });
+}
 // =================== TABLE TO ACCORDION TRANSFORMER ===================
 function transformTableToAccordion(cfg) {
   const { tableId, containerId, headerKeys, bodyKeys, labels } = cfg;
@@ -1595,8 +1618,8 @@ let editingAbnId  = null;
       buildAccordionFromData(
         formatted,
         'accordion-abandoned',
-        ['id','customer_name','phone','dog_size','health_status','care_provider_name','handler_name','statusBadge'],
-        ['address','notes','status','image_path','report_date','statusSelect','editHtml'],
+        ['id','phone','dog_size','health_status','care_provider_name','handler_name','statusBadge'],
+        ['customer_name','address','notes','status','image_path','report_date','statusSelect','editHtml'],
         {
           id:             "מס' דוח",
           customer_name:  "שם לקוח",

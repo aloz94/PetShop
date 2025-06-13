@@ -145,7 +145,7 @@ async function submitlogin(e) {
 if (loginresult.role === 'handler') {
   showCustomAlert('התחברת בהצלחה - מועבר לדשבורד שליח');
   setTimeout(() => window.location.href = 'handlerDash.html', 3000);
-  return;          // ⬅️ يوقف تنفيذ الدالة هون
+  return;         
 }
 
 if (loginresult.role === 'customer') {
@@ -156,7 +156,7 @@ if (loginresult.role === 'customer') {
   return;
 }
 
-// أي دور تاني (עובד, מנהל, ... )
+//  (עובד, מנהל, ... )
 showCustomAlert('התחברת בהצלחה - מועבר לדשבורד');
 setTimeout(() => window.location.href = 'dashboard.html', 3000);
     

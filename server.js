@@ -152,9 +152,9 @@ app.post('/login', (logreq, logres) => {
 
     // 2. אם לא ב־customers – מנסים בטבלת employees
     const employeeQuery = `
-      SELECT id, password, role
+      SELECT id, password, role, full_name AS name
       FROM employees
-      WHERE id = $1
+      WHERE id = $1 
     `;
     con.query(employeeQuery, [id], (err2, empResult) => {
       if (err2) {
@@ -170,17 +170,18 @@ app.post('/login', (logreq, logres) => {
         }
         // מייצרים טוקן עם role לפי שדה ה־employees.role
 const token = jwt.sign(
-  { userId: user.id, role: user.role },
+  { userId: user.id, role: user.role , name: user.name },
   JWT_SECRET,
   { expiresIn: '1h' }
-);        logres.cookie('token', token, {
-          httpOnly: true,
-          secure: false,
-          maxAge: 60 * 60 * 1000
-        });
-        return logres
-          .status(200)
-          .json({ message: 'Login successful', role: user.role });
+);
+      logres.cookie('token', token, {
+        httpOnly: true,
+        secure: false,
+        maxAge: 60 * 60 * 1000
+      });
+      return logres
+        .status(200)
+        .json({ message: 'Login successful', role: user.role , name: user.name });
       }
 
       // 3. אם לא ב־employees – מנסים בטבלת handlers
@@ -240,6 +241,8 @@ function authenticateToken(req, res, next) {
     }
 
     if (!token) {
+              console.log('No token provided');
+
         return res.sendStatus(401); // אין טוקן בכלל
     }
 
@@ -252,7 +255,11 @@ function authenticateToken(req, res, next) {
 
 //-------------------- מסלול לפרופיל--------------------
 app.get('/profile', authenticateToken, (req, res) => {
-    res.json({ user: req.user });
+    console.log('Authenticated user:', req.user);
+    if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+    }
+    res.json({ user: req.user, username: req.user.name });
 });
 
 // ------------------ מסלול ליציאה-------------------
