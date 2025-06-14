@@ -1,32 +1,4 @@
 //============= manager features =================
-  const ctx = document.getElementById('myChart').getContext('2d');
-  const myChart = new Chart(ctx, {
-    type: 'bar', // 'line', 'pie', 'doughnut', etc.
-    data: {
-      labels: ['ינואר', 'פברואר', 'מרץ', 'אפריל'],
-      datasets: [{
-        label: 'הכנסות ₪',
-        data: [1200, 1900, 3000, 2500],
-        backgroundColor: 'rgba(54, 162, 235, 0.5)',
-        borderColor: 'rgba(54, 162, 235, 1)',
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        y: {
-          beginAtZero: true
-        }
-      },
-      plugins: {
-        legend: {
-          display: true,
-          position: 'top'
-        }
-      }
-    }
-  });
 
 
   function loadManagerStats() {
@@ -172,6 +144,7 @@ async function loadRevenueToday() {
     if (!res.ok) throw new Error('bad response');
     const { total } = await res.json();
 
+
     document.getElementById('revenue-today').textContent =
       new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' })
         .format(total);
@@ -180,3 +153,125 @@ async function loadRevenueToday() {
     document.getElementById('revenue-today').textContent = '—';
   }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const ctx = document.getElementById('incomeChart').getContext('2d');
+  const incomeChart = new Chart(ctx, {
+    type : 'bar',
+    data : {
+      labels   : ['טיפוח', 'פנסיון', 'חנות אונליין'],
+      datasets : [{
+        label      : 'הכנסה (₪)',
+        data       : [0, 0, 0],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      scales    : { y: { beginAtZero: true } },
+      plugins   : { legend: { display: false } }
+    }
+  });
+
+  async function loadRevenueChart() {
+    try {
+      const res = await fetch('/manager/stats/revenue-components-today', {
+        credentials: 'include'
+      });
+      if (!res.ok) throw new Error('Bad response');
+
+      const { grooming, boarding, store } = await res.json();
+      incomeChart.data.datasets[0].data = [grooming, boarding, store];
+      incomeChart.update();
+    } catch (err) {
+      console.error('chart fetch error:', err);
+    }
+  }
+
+  loadRevenueChart();   // הפעלה ראשונה
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const card      = document.querySelector('.kpi-card.purple');
+  const container = document.getElementById('incomeChartContainer');
+  const Scontainer = document.getElementById('DailyGroomingServicesChart')
+  let hideTimer;                                       // מזהה לטיימר
+
+  if (card && container) {
+    
+        card.addEventListener('click', () => {
+      container.style.display = 'block';
+      Scontainer.style.display = 'block';
+    });
+
+    /* הצגה מיידית כשעוברים עם העכבר */
+    card.addEventListener('mouseenter', () => {
+      clearTimeout(hideTimer);                         // מבטל טיימר קודם
+      container.style.display = 'block';
+            Scontainer.style.display = 'block';
+
+    });
+
+    /* הסתרה – 5 שניות אחרי שהעכבר יוצא */
+    card.addEventListener('mouseleave', () => {
+      hideTimer = setTimeout(() => {
+        container.style.display = 'none';
+      }, 5000);                                        // 5000 ms = 5 שניות
+    });
+  }
+});
+
+
+  async function loadPieChartForServices() {
+    try {
+      const res = await fetch('/manager/stats/service-counts-today');
+      const data = await res.json();
+
+      const labels = ['רחצה וטיפוח מלא', 'תספורת קיץ ', 'ניקוי שיניים '];
+      const values = [data.service1, data.service2, data.service3];
+
+      const total = values.reduce((a, b) => a + b, 0);
+
+      const ctx = document.getElementById('GroomingPieChart').getContext('2d');
+
+      new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            },
+            datalabels: {
+              color: '#000',
+              font: {
+                weight: 'bold',
+                size: 14
+              },
+              formatter: (value, context) => {
+                const percentage = ((value / total) * 100).toFixed(1);
+                return `${value} (${percentage}%)`;
+              }
+            },
+            title: {
+              display: true,
+              text: 'התפלגות תורים לפי שירות'
+            }
+          }
+        },
+        plugins: [ChartDataLabels]
+      });
+
+    } catch (err) {
+      console.error('Error loading pie chart:', err);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', loadPieChartForServices);

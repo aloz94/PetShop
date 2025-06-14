@@ -2051,13 +2051,14 @@ app.get('/manager/stats/revenue-today', authenticateToken, async (req, res) => {
       FROM grooming_appointments ga
       JOIN services s ON s.id = ga.service_id
       WHERE ga.appointment_date = CURRENT_DATE
-        AND ga.status = 'completed'
+        AND ga.status = 'completed' 
+        
     ),
     boarding_income AS (
       SELECT COUNT(*) * $1::numeric AS total
       FROM boarding_appointments ba
       WHERE CURRENT_DATE BETWEEN ba.check_in AND ba.check_out
-        AND ba.status = 'checked_in'
+      AND ba.status != 'cancelled'  -- Exclude cancelled bookings
     ),
     store_income AS (
       SELECT COALESCE(SUM(o.total), 0) AS total
@@ -2079,6 +2080,86 @@ app.get('/manager/stats/revenue-today', authenticateToken, async (req, res) => {
   }
 });
 
+// routes/dashboard.js
+app.get(
+  '/manager/stats/revenue-components-today',
+  authenticateToken,
+  async (req, res) => {
+    const pricePerNight = 100;   // עלות לילה בפנסיון
+
+    const sql = `
+      WITH
+      grooming_income AS (
+        SELECT COALESCE(SUM(s.price), 0) AS total
+        FROM grooming_appointments ga
+        JOIN services s ON s.id = ga.service_id
+        WHERE ga.appointment_date = CURRENT_DATE
+          AND ga.status = 'completed'
+      ),
+      boarding_income AS (
+        SELECT COUNT(*) * $1::numeric AS total
+        FROM boarding_appointments ba
+        WHERE CURRENT_DATE BETWEEN ba.check_in AND ba.check_out
+      ),
+      store_income AS (
+        SELECT COALESCE(SUM(o.total), 0) AS total
+        FROM orders o
+        WHERE o.created_at::date = CURRENT_DATE
+      )
+      SELECT
+        g.total AS grooming,
+        b.total AS boarding,
+        s.total AS store
+      FROM grooming_income g, boarding_income b, store_income s;
+    `;
+
+    try {
+      const { rows } = await con.query(sql, [pricePerNight]);
+      res.json(rows[0]);            // { grooming, boarding, store }
+    } catch (err) {
+      console.error('revenue-components error:', err);
+      res.status(500).json({ error: 'DB error' });
+    }
+  }
+);
+
+app.get('/manager/stats/service-counts-today', async (req, res) => {
+  try {
+    const q1 = `
+      SELECT COUNT(*) AS count
+      FROM grooming_appointments
+      WHERE appointment_date = CURRENT_DATE AND service_id = 1
+    `;
+
+    const q2 = `
+      SELECT COUNT(*) AS count
+      FROM grooming_appointments
+      WHERE appointment_date = CURRENT_DATE AND service_id = 2
+    `;
+
+    const q3 = `
+      SELECT COUNT(*) AS count
+      FROM grooming_appointments
+      WHERE appointment_date = CURRENT_DATE AND service_id = 3
+    `;
+
+    const [s1, s2, s3] = await Promise.all([
+      con.query(q1),
+      con.query(q2),
+      con.query(q3)
+    ]);
+
+    res.json({
+      service1: parseInt(s1.rows[0].count),
+      service2: parseInt(s2.rows[0].count),
+      service3: parseInt(s3.rows[0].count)
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error fetching service counts');
+  }
+});
 
 
 //module.exports = router;

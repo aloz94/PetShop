@@ -650,7 +650,24 @@
       <div class="label">הכנסות היום</div>
     </div>
   </header>
-<canvas id="myChart" width="400" height="200"></canvas>
+  <section class="manager-charts-row" style="display: flex; gap: 24px; align-items: flex-start;">
+    <div id="incomeChartContainer" style="display: none;">
+      <h2 id="incomeChartTitle">הכנסות יומיות</h2>
+      <canvas id="incomeChart"></canvas>
+    </div>
+    <div id="DailyGroomingPieChart">
+      <h2>התפלגות תורים לפי שירות (היום)</h2>
+      <canvas id="GroomingPieChart"></canvas>
+    </div>
+  </section>
+<!--<div id="incomeChartContainer" style="display: none;">
+  <h2 id="incomeChartTitle">הכנסות יומיות</h2>
+  <canvas id="incomeChart"></canvas>
+</div>
+<div id="DailyGroomingPieChart" >
+  <h2>התפלגות תורים לפי שירות (היום)</h2>
+  <canvas id="GroomingPieChart"></canvas>
+</div>-->
 
 
   <div class="dashboard-row">
@@ -672,6 +689,13 @@
     </div>
   </div>
 </section>
+
+<div style="display:none">
+  <span id="rev-grooming"></span>
+  <span id="rev-boarding"></span>
+  <span id="rev-store"></span>
+</div>
+
 
 </main>
 
@@ -977,6 +1001,8 @@
   </div>
 </form>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
 
   <script src="script/dashboard.js"></script>
   <script src="script/Manager.js"></script>
