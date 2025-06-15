@@ -16,9 +16,9 @@
                 <ul class="nav-links">
                     <li><img src="res/home.png" alt="בית" ><br><a href="index.html">בית</a></li>
                     <li><img src="res/pet-shop.png" alt="חנות"><br><a href="#">חנות</a></li>
-                    <li><img src="res/dog-sleep.png" alt="פנסיון"><br><a href="#">פנסיון</a></li>
-                    <li><img src="res/dog_shower.png" alt="טיפוח"><br><a href="#">טיפוח</a></li>
-                    <li><img src="res/care.png" alt="נטושים"><br><a href="#">נטושים</a></li>
+                    <li><a href="Boarding.html"><img src="res/dog-sleep.png" alt="פנסיון"><br>פנסיון</a></li>
+                    <li><a href="AboutGrooming.html"><img src="res/dog_shower.png" alt="טיפוח"><br>טיפוח</a></li>
+                    <li><a href="AboutAband.html"><img src="res/care.png" alt="נטושים"><br>נטושים</a></li>
                     <li><img src="res/virtual-assistant.png" alt="צור קשר"><br><a href="#">צור קשר</a></li>
                 </ul>
             </div>
@@ -99,15 +99,23 @@
     </section>
 
     <!-- subscribe-->
-    <section class="subscribe">
-        <h2>הצטרפו למועדון  הלקוחות</h2>
-        <form>
-            <input type="text" placeholder="שם">
-            <input type="tel" placeholder="טלפון">
-            <input type="email" placeholder="מייל">
-            <button type="submit">צירף אותי</button>
-        </form>
-    </section>
+<section class="tour-form-box">
+  <div class="tour-img">
+    <img src="res/BoardingTour.png" alt="סיור בפנסיון לכלבים" />
+  </div>
+
+  <div class="tour-form-section">
+    <h2>בקשת סיור לפנסיון</h2>
+    <form id="tourForm">
+      <input type="text" name="name" placeholder="שם מלא" required />
+      <input type="tel" name="phone" placeholder="טלפון" required />
+      <input type="email" name="email" placeholder="אימייל" required />
+      <button type="submit">בקשת סיור</button>
+    </form>
+    <div id="tourFormMessage"></div>
+  </div>
+</section>
+
 
     <!-- carousel (images)-->
     <div class="carousel-container">

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>שירותי הטיפוח</title>
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Assistant', sans-serif;
+      margin: 0;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    .main-title {
+      text-align: center;
+      font-size: 2rem;
+      margin: 2rem 0 1rem;
+    }
+    .hero {
+      background: url('https://images.unsplash.com/photo-1603052875673-3f4b1d45b0e6') center/cover no-repeat;
+      height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.8rem;
+      font-weight: bold;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      padding: 2rem;
+    }
+    .service-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+    .service-card:hover {
+      transform: translateY(-5px);
+    }
+    .service-card img {
+      width: 60px;
+      height: 60px;
+      margin-bottom: 1rem;
+    }
+    .info-box {
+      background-color: #e6f7ff;
+      padding: 2rem;
+      margin: 2rem;
+      border-radius: 1rem;
+      text-align: center;
+    }
+    .faq {
+      max-width: 700px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    .faq h3 {
+      font-size: 1.2rem;
+      margin: 1rem 0 0.5rem;
+    }
+    .cta-button {
+      display: block;
+      background-color: #ff8000;
+      color: white;
+      text-align: center;
+      font-size: 1.1rem;
+      padding: 1rem 2rem;
+      margin: 3rem auto;
+      border-radius: 0.5rem;
+      width: max-content;
+      text-decoration: none;
+      transition: background-color 0.3s ease;
+    }
+    .cta-button:hover {
+      background-color: #e56f00;
+    }
+  </style>
+</head>
+<body>
+
+  <h1 class="main-title">שירותי הטיפוח שלנו</h1>
+  <div class="hero">
+    כי כל כלב ראוי להרגיש רענן ומטופח
+  </div>
+
+  <div class="services-grid">
+    <div class="service-card">
+      <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="רחצה מקצועית">
+      <h3>רחצה מקצועית</h3>
+      <p>חפיפה עם שמפו איכותי, ייבוש וטיפוח פרווה לפי סוג הכלב.</p>
+    </div>
+    <div class="service-card">
+      <img src="https://cdn-icons-png.flaticon.com/512/616/616554.png" alt="תספורת אישית">
+      <h3>תספורת אישית</h3>
+      <p>תספורת לפי גזע או לפי בקשת הלקוח עם מכשור מקצועי וניקיון מלא.</p>
+    </div>
+    <div class="service-card">
+      <img src="https://cdn-icons-png.flaticon.com/512/3448/3448590.png" alt="ניקוי אוזניים וגזיזת ציפורניים">
+      <h3>ניקוי אוזניים וגזיזת ציפורניים</h3>
+      <p>שירותים בריאותיים משלימים לנוחות וניקיון הכלב.</p>
+    </div>
+  </div>
+
+  <section class="info-box">
+    <h2>התאמה אישית לכל כלב</h2>
+    <p>אנו מתאימים את תהליך הטיפוח לגזע, לאופי ולצרכים של כל כלב.</p>
+  </section>
+
+  <section class="faq">
+    <h3>כמה זמן לוקח תהליך הטיפוח?</h3>
+    <p>בין שעה לשעתיים, תלוי בגודל ובשירותים הנדרשים.</p>
+    <h3>האם אפשר להביא כלב בפעם הראשונה ללא קביעת תור?</h3>
+    <p>אנו ממליצים לקבוע תור מראש כדי להבטיח זמינות.</p>
+    <h3>האם אתם מטפלים גם בגזעים עם פרווה רגישה?</h3>
+    <p>בהחלט. אנו משתמשים בחומרים מותאמים ובגישה רגישה לכל כלב.</p>
+  </section>
+
+  <a href="/book-grooming" class="cta-button">קבע תור לטיפוח</a>
+
+</body>
+</html>

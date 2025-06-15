@@ -2161,6 +2161,457 @@ app.get('/manager/stats/service-counts-today', async (req, res) => {
   }
 });
 
+app.get('/manager/stats/revenue-components', authenticateToken, async (req, res) => {
+  const period = req.query.period || 'today';
+  const pricePerNight = 100;
+
+  let groomingCondition = '';
+  let boardingCondition = '';
+  let storeCondition = '';
+
+  switch (period) {
+    case 'week':
+      groomingCondition = `ga.appointment_date >= CURRENT_DATE - INTERVAL '7 days'`;
+      boardingCondition = `CURRENT_DATE BETWEEN ba.check_in AND ba.check_out`; // נשאר קבוע
+      storeCondition = `o.created_at::date >= CURRENT_DATE - INTERVAL '7 days'`;
+      break;
+    case 'month':
+      groomingCondition = `ga.appointment_date >= CURRENT_DATE - INTERVAL '1 month'`;
+      boardingCondition = `CURRENT_DATE BETWEEN ba.check_in AND ba.check_out`;
+      storeCondition = `o.created_at::date >= CURRENT_DATE - INTERVAL '1 month'`;
+      break;
+    default:
+      groomingCondition = `ga.appointment_date = CURRENT_DATE`;
+      boardingCondition = `CURRENT_DATE BETWEEN ba.check_in AND ba.check_out`;
+      storeCondition = `o.created_at::date = CURRENT_DATE`;
+  }
+
+  const sql = `
+    WITH
+    grooming_income AS (
+      SELECT COALESCE(SUM(s.price), 0) AS total
+      FROM grooming_appointments ga
+      JOIN services s ON s.id = ga.service_id
+      WHERE ${groomingCondition} AND ga.status = 'completed'
+    ),
+    boarding_income AS (
+      SELECT COUNT(*) * $1::numeric AS total
+      FROM boarding_appointments ba
+      WHERE ${boardingCondition}
+    ),
+    store_income AS (
+      SELECT COALESCE(SUM(o.total), 0) AS total
+      FROM orders o
+      WHERE ${storeCondition}
+    )
+    SELECT
+      g.total AS grooming,
+      b.total AS boarding,
+      s.total AS store
+    FROM grooming_income g, boarding_income b, store_income s;
+  `;
+
+  try {
+    const { rows } = await con.query(sql, [pricePerNight]);
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('revenue-components error:', err);
+    res.status(500).json({ error: 'DB error' });
+  }
+});
+
+app.get('/manager/stats/service-counts', authenticateToken, async (req, res) => {
+  const period = req.query.period || 'today';
+
+  let condition = '';
+  switch (period) {
+    case 'week':
+      condition = `appointment_date >= CURRENT_DATE - INTERVAL '7 days'`;
+      break;
+    case 'month':
+      condition = `appointment_date >= CURRENT_DATE - INTERVAL '1 month'`;
+      break;
+    default:
+      condition = `appointment_date = CURRENT_DATE`;
+  }
+
+  try {
+    const sql = `
+      SELECT service_id, COUNT(*) AS count
+      FROM grooming_appointments
+      WHERE ${condition}
+      GROUP BY service_id
+    `;
+
+    const result = await con.query(sql);
+
+    const counts = { service1: 0, service2: 0, service3: 0 };
+    result.rows.forEach(row => {
+      if (row.service_id === 1) counts.service1 = parseInt(row.count);
+      if (row.service_id === 2) counts.service2 = parseInt(row.count);
+      if (row.service_id === 3) counts.service3 = parseInt(row.count);
+    });
+
+    res.json(counts);
+  } catch (err) {
+    console.error('service-counts error:', err);
+    res.status(500).json({ error: 'DB error' });
+  }
+});
+
+app.get('/manager/stats/top-products', authenticateToken, async (req, res) => {
+  try {
+    const sql = `
+      SELECT p.name, SUM(oi.quantity) AS total_sold
+      FROM order_items oi
+      JOIN products p ON p.id = oi.product_id
+      GROUP BY p.name
+      ORDER BY total_sold DESC
+      LIMIT 5
+    `;
+
+    const result = await con.query(sql);
+    res.json(result.rows); // [{ name: 'Product A', total_sold: 120 }, ...]
+  } catch (err) {
+    console.error('Error fetching top products:', err);
+    res.status(500).json({ error: 'DB error' });
+  }
+});
+
+app.get('/manager/stats/top-products', authenticateToken, async (req, res) => {
+  try {
+    const sql = `
+      SELECT p.name, SUM(oi.quantity) AS total_sold, p.price, 
+             SUM(oi.quantity) * p.price AS total_revenue
+      FROM order_items oi
+      JOIN products p ON p.id = oi.product_id
+      GROUP BY p.name, p.price
+      ORDER BY total_sold DESC
+      LIMIT 5
+    `;
+
+    const result = await con.query(sql);
+    res.json(result.rows); // name, total_sold, price, total_revenue
+  } catch (err) {
+    console.error('Error fetching top products:', err);
+    res.status(500).json({ error: 'DB error' });
+  }
+});
+
+app.get('/reports/customers-active', async (req, res) => {
+  try {
+    const query = `
+      SELECT DISTINCT c.id, c.first_name || ' ' || c.last_name AS name, c.phone, c.email
+FROM customers c
+WHERE c.id IN (
+  SELECT customer_id FROM grooming_appointments
+  WHERE appointment_date >= CURRENT_DATE - INTERVAL '2 months'
+  UNION
+  SELECT customer_id FROM boarding_appointments
+  WHERE check_in >= CURRENT_DATE - INTERVAL '2 months'
+  UNION
+  SELECT o.customer_id FROM orders o
+  WHERE o.created_at >= CURRENT_DATE - INTERVAL '2 months'
+)
+ORDER BY name;
+
+    `;
+
+    const result = await con.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching active customers report:', err);
+    res.status(500).json({ error: 'Failed to fetch report' });
+  }
+});
+
+app.get('/reports/customers-inactive', async (req, res) => {
+  try {
+    const query = `
+      SELECT c.id, c.first_name || ' ' || c.last_name AS name, c.phone, c.email
+      FROM customers c
+      WHERE c.id NOT IN (
+        SELECT customer_id FROM grooming_appointments
+        WHERE appointment_date >= CURRENT_DATE - INTERVAL '2 months'
+        UNION
+        SELECT customer_id FROM boarding_appointments
+        WHERE check_in >= CURRENT_DATE - INTERVAL '2 months'
+        UNION
+        SELECT customer_id FROM orders
+        WHERE created_at >= CURRENT_DATE - INTERVAL '2 months'
+      )
+      ORDER BY name;
+    `;
+
+    const result = await con.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error loading inactive customers report:', err);
+    res.status(500).json({ error: 'Failed to load report' });
+  }
+});
+
+app.get('/reports/customers-new', async (req, res) => {
+  try {
+    const query = `
+      SELECT DISTINCT c.id, c.first_name || ' ' || c.last_name AS name, c.phone, c.email
+      FROM customers c
+      WHERE c.id IN (
+        SELECT customer_id
+        FROM grooming_appointments
+        WHERE appointment_date >= CURRENT_DATE - INTERVAL '1 month'
+        AND customer_id NOT IN (
+          SELECT customer_id
+          FROM grooming_appointments
+          WHERE appointment_date < CURRENT_DATE - INTERVAL '1 month'
+        )
+        UNION
+        SELECT customer_id
+        FROM boarding_appointments
+        WHERE check_in >= CURRENT_DATE - INTERVAL '1 month'
+        AND customer_id NOT IN (
+          SELECT customer_id
+          FROM boarding_appointments
+          WHERE check_in < CURRENT_DATE - INTERVAL '1 month'
+        )
+        UNION
+        SELECT o.customer_id
+        FROM orders o
+        WHERE o.created_at >= CURRENT_DATE - INTERVAL '1 month'
+        AND o.customer_id NOT IN (
+          SELECT customer_id FROM orders
+          WHERE created_at < CURRENT_DATE - INTERVAL '1 month'
+        )
+      )
+      ORDER BY name;
+    `;
+    const result = await con.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error loading new customers:', err);
+    res.status(500).json({ error: 'Failed to load report' });
+  }
+});
+
+app.get('/reports/customers-returning', async (req, res) => {
+  try {
+    const query = `
+      SELECT c.id, c.first_name || ' ' || c.last_name AS name, c.phone, c.email,
+             COUNT(*) AS total_reservations
+      FROM customers c
+      JOIN boarding_appointments b ON c.id = b.customer_id
+      GROUP BY c.id, name, c.phone, c.email
+      HAVING COUNT(*) > 1
+      ORDER BY total_reservations DESC;
+    `;
+    const result = await con.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error loading returning boarding customers:', err);
+    res.status(500).json({ error: 'Failed to load report' });
+  }
+});
+
+app.get('/reports/boarding-upcoming', async (req, res) => {
+  try {
+    const query = `
+      SELECT b.id, c.id AS customer_id,
+             c.first_name || ' ' || c.last_name AS customer_name,
+             d.name AS dog_name,
+             b.check_in, b.check_out
+      FROM boarding_appointments b
+      JOIN customers c ON b.customer_id = c.id
+      JOIN dogs d ON b.dog_id = d.id
+      WHERE b.check_in >= CURRENT_DATE
+      ORDER BY b.check_in ASC;
+    `;
+    const result = await con.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error loading upcoming boarding appointments:', err);
+    res.status(500).json({ error: 'Failed to load report' });
+  }
+});
+
+app.get('/reports/grooming-returning', async (req, res) => {
+  try {
+    const query = `
+      SELECT c.id AS customer_id,
+             c.first_name || ' ' || c.last_name AS name,
+             c.phone,
+             c.email,
+             COUNT(*) AS total_appointments
+      FROM customers c
+      JOIN grooming_appointments g ON c.id = g.customer_id
+      GROUP BY c.id, name, c.phone, c.email
+      HAVING COUNT(*) > 1
+      ORDER BY total_appointments DESC;
+    `;
+    const result = await con.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error loading grooming returning customers:', err);
+    res.status(500).json({ error: 'Failed to load report' });
+  }
+});
+
+app.get('/reports/grooming-upcoming', async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        g.id AS appointment_id,
+        c.id AS customer_id,
+        c.first_name || ' ' || c.last_name AS customer_name,
+        d.name AS dog_name,
+        s.name AS service_name,
+        g.appointment_date,
+        g.slot_time
+      FROM grooming_appointments g
+      JOIN customers c ON g.customer_id = c.id
+      JOIN dogs d ON g.dog_id = d.id
+      JOIN services s ON g.service_id = s.id
+      WHERE g.appointment_date >= CURRENT_DATE
+      ORDER BY g.appointment_date ASC, g.slot_time ASC;
+    `;
+    const result = await con.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error loading upcoming grooming appointments:', err);
+    res.status(500).json({ error: 'Failed to load report' });
+  }
+});
+
+
+app.get('/reports/products-sold-all', async (req, res) => {
+  try {
+    const query = `
+SELECT 
+  p.id AS product_id,
+  p.name AS product_name,
+  SUM(oi.quantity) AS total_sold
+FROM order_items oi
+JOIN products p ON p.id = oi.product_id
+GROUP BY p.id, p.name
+ORDER BY total_sold DESC;
+    `;
+    const result = await con.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error loading product sales (all):', err);
+    res.status(500).json({ error: 'Failed to load report' });
+  }
+});
+
+app.get('/reports/sales-by-category', async (req, res) => {
+  try {
+    const query = `
+      SELECT cat.id AS category_id, cat.name AS category_name, SUM(oi.quantity) AS total_sold
+      FROM order_items oi
+      JOIN products p ON p.id = oi.product_id
+      JOIN categories cat ON cat.id = p.category_id
+      GROUP BY cat.id, cat.name
+      ORDER BY total_sold DESC;
+    `;
+    const result = await con.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error loading sales by category:', err);
+    res.status(500).json({ error: 'Failed to load report' });
+  }
+});
+
+
+app.get('/reports/referrals-comparison', async (req, res) => {
+  try {
+    const query = `
+      SELECT cp.type AS destination_type, COUNT(*) AS total_referrals
+      FROM abandoned_dog_reports r
+      JOIN care_provider cp ON cp.id = r.care_provider
+      GROUP BY cp.type;
+    `;
+    const result = await con.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error loading referrals comparison report:', err);
+    res.status(500).json({ error: 'Failed to load report' });
+  }
+});
+
+/*app.get('/reports/transport-counts', async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        h.id AS handler_id,
+        h.name AS handler_name,
+        h.phone,
+        COUNT(*) AS completed_transports
+      FROM abandoned_dog_reports r
+      JOIN handlers h ON h.id = r.handler_id
+      WHERE r.status = 'completed'
+      GROUP BY h.id, h.name, h.phone
+      ORDER BY completed_transports DESC;
+    `;
+    const result = await con.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error loading handler transport counts:', err);
+    res.status(500).json({ error: 'Failed to load report' });
+  }
+});
+*/
+
+app.get('/reports/transport-counts', async (req, res) => {
+  const period = req.query.period || 'all';
+
+  let timeCondition = 'TRUE';
+  if (period === 'today') {
+    timeCondition = `r.status_updated_at::date = CURRENT_DATE`;
+  } else if (period === 'week') {
+    timeCondition = `r.status_updated_at >= CURRENT_DATE - INTERVAL '7 days'`;
+  } else if (period === 'month') {
+    timeCondition = `r.status_updated_at >= date_trunc('month', CURRENT_DATE)`;
+  }
+
+  const query = `
+    SELECT h.id AS handler_id, h.name AS handler_name, h.phone,
+           COUNT(*) AS completed_transports
+    FROM abandoned_dog_reports r
+    JOIN handlers h ON h.id = r.handler_id
+    WHERE r.status = 'completed' AND ${timeCondition}
+    GROUP BY h.id, h.name, h.phone
+    ORDER BY completed_transports DESC;
+  `;
+
+  try {
+    const result = await con.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error loading report:', err);
+    res.status(500).json({ error: 'DB error' });
+  }
+});
+
+
+
+
+
+
+app.post('/api/tours', async (req, res) => {
+  const { name, phone, email } = req.body;
+
+  try {
+    const result = await con.query(
+      `INSERT INTO boarding_tours (name, phone, email) VALUES ($1, $2, $3) RETURNING *`,
+      [name, phone, email]
+    );
+
+    res.status(201).json({ success: true, tour: result.rows[0] });
+  } catch (err) {
+    console.error('Error saving tour request:', err);
+    res.status(500).json({ success: false, message: 'שגיאה בשמירת הטופס' });
+  }
+});
+
 
 //module.exports = router;
 app.listen(3000, () => {

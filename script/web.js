@@ -615,6 +615,30 @@ body: JSON.stringify({
       showCustomAlert('שגיאה בשליחת הטופס');
     }
   }
+
+    document.getElementById('tourForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData.entries());
+
+    const res = await fetch('/api/tours', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    const result = await res.json();
+
+    const msgBox = document.getElementById('tourFormMessage');
+    if (result.success) {
+      msgBox.textContent = 'הבקשה נשלחה בהצלחה!';
+      this.reset();
+    } else {
+      msgBox.textContent = 'אירעה שגיאה, נסי שוב.';
+    }
+  });
+
   
       //alert 
       function showCustomAlert(message) {

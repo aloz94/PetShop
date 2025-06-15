@@ -28,6 +28,7 @@
         <li><a href="#" data-target="manager-dashboard">לוח בקרה למנהל</a></li>
 
         <li><a href="#" data-target="help">לקוחות</a></li>
+        <li><a href="#" data-target="manager-Report">דוחות</a></li>
       </ul>
       <button class="sidebar-bottom" onclick="logout()">התנתקות</button>
     </aside>
@@ -650,16 +651,35 @@
       <div class="label">הכנסות היום</div>
     </div>
   </header>
-  <section class="manager-charts-row" style="display: flex; gap: 24px; align-items: flex-start;">
-    <div id="incomeChartContainer" style="display: none;">
-      <h2 id="incomeChartTitle">הכנסות יומיות</h2>
-      <canvas id="incomeChart"></canvas>
+<section class="manager-charts-row">
+  <!-- גרף הכנסות -->
+  <div id="incomeChartContainer">
+    <h2>הכנסות לפי מקור</h2>
+    <canvas id="incomeChart"></canvas>
+    <div id="incomeChartPeriodSelector">
+      <label><input type="radio" name="incomePeriod" value="today" checked> היום</label>
+      <label><input type="radio" name="incomePeriod" value="week"> שבוע</label>
+      <label><input type="radio" name="incomePeriod" value="month"> חודש</label>
     </div>
-    <div id="DailyGroomingPieChart">
-      <h2>התפלגות תורים לפי שירות (היום)</h2>
-      <canvas id="GroomingPieChart"></canvas>
+  </div>
+
+  <!-- גרף שירותים -->
+  <div id="DailyGroomingPieChart">
+    <h2>התפלגות תורים לפי שירות</h2>
+    <canvas id="GroomingPieChart"></canvas>
+    <div id="pieChartPeriodSelector">
+      <label><input type="radio" name="piePeriod" value="today" checked> היום</label>
+      <label><input type="radio" name="piePeriod" value="week"> שבוע</label>
+      <label><input type="radio" name="piePeriod" value="month"> חודש</label>
     </div>
-  </section>
+  </div>
+
+  <div id="TopProductsChartContainer"  dir="rtl">
+  <h2>5 המוצרים הנמכרים ביותר</h2>
+  <canvas id="TopProductsChart"></canvas>
+</div>
+
+</section>
 <!--<div id="incomeChartContainer" style="display: none;">
   <h2 id="incomeChartTitle">הכנסות יומיות</h2>
   <canvas id="incomeChart"></canvas>
@@ -695,6 +715,91 @@
   <span id="rev-boarding"></span>
   <span id="rev-store"></span>
 </div>
+
+ <section class="content" id="manager-Report">
+<div class="report-category-wrapper">
+
+  <!-- לקוחות -->
+<!-- ניהול לקוחות -->
+<div class="report-section">
+  <div class="report-header" onclick="this.parentElement.classList.toggle('open')">
+    👤 ניהול לקוחות
+  </div>
+  <div class="report-buttons">
+    <!-- <button onclick="loadReport('customers-all')">👥 כל הלקוחות</button> -->
+    <button onclick="loadReport('customers-new')">✨ לקוחות חדשים</button>
+    <button onclick="loadReport('customers-active')">📅 לקוחות פעילים</button>
+    <button onclick="loadReport('customers-inactive')">⚠️ לקוחות שאינם אקטיבים</button>
+  </div>
+</div>
+
+<!-- ניהול פנסיון -->
+<div class="report-section">
+  <div class="report-header" onclick="this.parentElement.classList.toggle('open')">
+    🏨 ניהול פנסיון
+  </div>
+  <div class="report-buttons">
+    <button onclick="loadReport('customers-returning')">♻️ לקוחות חוזררים</button>
+    <button onclick="loadReport('boarding-upcoming')">📆 הזמנות פנסיון עוד</button>
+    <!-- <button onclick="loadReport('boarding-occupancy')">🏨 תפוסה בפנסיון</button> -->
+    <!-- <button onclick="loadReport('boarding-current')">🐶 כלבים ששוהים עכשיו</button> -->
+  </div>
+</div>
+
+<!-- ניהול טיפוח -->
+<div class="report-section">
+  <div class="report-header" onclick="this.parentElement.classList.toggle('open')">
+    💇️ ניהול טיפוח
+  </div>
+  <div class="report-buttons">
+    <button onclick="loadReport('grooming-returning')">♻️ לקוחות חוזררי בטיפוח</button>
+    <button onclick="loadReport('grooming-upcoming')">📆 הזמנות טיפוח עוד</button>
+    <!-- <button onclick="loadReport('grooming-daily')">🗓 פגישות ליום הנוכחי</button> -->
+    <button onclick="loadReport('grooming-periodic')">📊 סקירה שבוע/חודש</button>
+  </div>
+</div>
+
+<!-- מלאי ומכירות -->
+<div class="report-section">
+  <div class="report-header" onclick="this.parentElement.classList.toggle('open')">
+    📦 מלאי ומכירות
+  </div>
+  <div class="report-buttons">
+    <button onclick="loadReport('inventory-status')">🏛️ מצב מלאי כללי</button>
+    <button onclick="loadReport('products-sold-all')">💼 מוצרים נמכרים</button>
+    <button onclick="loadReport('sales-summary')">💸 מכירות יומי/חודשי/שנתי</button>
+    <button onclick="loadReport('sales-by-category')">📋 מכירות לפי קטגוריות</button>
+  </div>
+</div>
+
+<!-- נטושים ותפעול -->
+<div class="report-section">
+  <div class="report-header" onclick="this.parentElement.classList.toggle('open')">
+    🐕 נטושים ותפעול
+  </div>
+  <div class="report-buttons">
+    <button onclick="loadReport('dogs-in-treatment')">🦥 כלבים בטיפול פעילי</button>
+    <button onclick="loadReport('referrals-comparison')">📊 השווות למקלט/וטרינר</button>
+    <button onclick="loadReport('transport-counts')">🚗 כמה הסעות לכל שליח</button>
+    <button onclick="loadReport('referrals-summary')">📢 הפניות לעמותות/וטרינרים</button>
+  </div>
+</div>
+
+<!-- דו"חות כספיים -->
+<div class="report-section">
+  <div class="report-header" onclick="this.parentElement.classList.toggle('open')">
+    💰 דו"חות כספיים
+  </div>
+  <div class="report-buttons">
+    <button onclick="loadReport('revenue-by-service')">💳 הכנסות לפי שירות</button>
+    <button onclick="loadReport('revenue-by-products')">📈 הכנסות ממוצרים</button>
+    <button onclick="loadReport('revenue-total')">📅 סכם כללי של הכנסות</button>
+  </div>
+</div>
+</div>
+    <section id="reportContainer">
+  <p>בחרי דוח להצגה</p>
+</section>
 
 
 </main>

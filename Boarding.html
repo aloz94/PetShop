@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>שירותי הפנסיון</title>
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Assistant', sans-serif;
+      margin: 0;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    .main-title {
+      text-align: center;
+      font-size: 2rem;
+      margin: 2rem 0 1rem;
+    }
+    .hero {
+      background: url('https://images.unsplash.com/photo-1561948955-570b270e7c36') center/cover no-repeat;
+      height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.8rem;
+      font-weight: bold;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      padding: 2rem;
+    }
+    .service-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+    .service-card:hover {
+      transform: translateY(-5px);
+    }
+    .service-card img {
+      width: 60px;
+      height: 60px;
+      margin-bottom: 1rem;
+    }
+    .nutrition-box {
+      background-color: #fff4e6;
+      padding: 2rem;
+      margin: 2rem;
+      border-radius: 1rem;
+      text-align: center;
+    }
+    .faq {
+      max-width: 700px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    .faq h3 {
+      font-size: 1.2rem;
+      margin: 1rem 0 0.5rem;
+    }
+    .cta-button {
+      display: block;
+      background-color: #ff8000;
+      color: white;
+      text-align: center;
+      font-size: 1.1rem;
+      padding: 1rem 2rem;
+      margin: 3rem auto;
+      border-radius: 0.5rem;
+      width: max-content;
+      text-decoration: none;
+      transition: background-color 0.3s ease;
+    }
+    .cta-button:hover {
+      background-color: #e56f00;
+    }
+  </style>
+</head>
+<body>
+
+  <h1 class="main-title">שירותי הפנסיון שלנו</h1>
+  <div class="hero">
+    כי גם לחבר הכי טוב שלך מגיע מקום מפנק
+  </div>
+
+  <div class="services-grid">
+    <div class="service-card">
+      <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="חדרים פרטיים">
+      <h3>חדרים פרטיים</h3>
+      <p>כל כלב מקבל חדר פרטי נעים, מרווח ומאוורר עם מיטה אישית.</p>
+    </div>
+    <div class="service-card">
+      <img src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" alt="טיפול אישי">
+      <h3>טיפול אישי</h3>
+      <p>צוות מסור שמלווה את הכלב שלך 24/7 ודואג לצרכיו.</p>
+    </div>
+    <div class="service-card">
+      <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="טיולים יומיים">
+      <h3>טיולים יומיים</h3>
+      <p>טיולים פעמיים ביום באוויר הפתוח, עם הרבה אהבה.</p>
+    </div>
+  </div>
+
+  <section class="nutrition-box">
+    <h2>תזונה ובריאות</h2>
+    <p>אנו מספקים אוכל איכותי לפי צרכים תזונתיים אישיים, עם אפשרות להביא אוכל מהבית.</p>
+  </section>
+
+  <section class="faq">
+    <h3>איך מתבצעת קליטה לכלב חדש?</h3>
+    <p>בפגישה הראשונה נבצע היכרות עם הכלב, נבדוק את ההתאמה ונענה על כל שאלה.</p>
+    <h3>מה קורה אם הכלב חולה במהלך השהות?</h3>
+    <p>יש לנו קשר עם וטרינר זמין, ואנו מודיעים לבעלים על כל שינוי במצב הכלב.</p>
+    <h3>האם אפשר לבוא לביקור לפני ההשארה?</h3>
+    <p>בהחלט! נשמח לארח אתכם לסיור היכרות בפנסיון.</p>
+  </section>
+
+  <a href="/book-boarding" class="cta-button">הזמן מקום לפנסיון</a>
+
+</body>
+</html>

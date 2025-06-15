@@ -1634,7 +1634,7 @@ let editingAbnId  = null;
         ['id','phone','dog_size','health_status','care_provider_name','handler_name','statusBadge'],
         ['customer_name','address','notes','status','image_path','report_date','statusSelect','editHtml'],
         {
-          id:             "מס' דוח",
+          id:             "מס' סידורי",
           customer_name:  "שם לקוח",
           phone:          "טלפון",
           dog_size:       "גודל כלב",

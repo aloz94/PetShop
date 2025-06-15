@@ -154,7 +154,7 @@ async function loadRevenueToday() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+/*document.addEventListener('DOMContentLoaded', () => {
   const ctx = document.getElementById('incomeChart').getContext('2d');
   const incomeChart = new Chart(ctx, {
     type : 'bar',
@@ -171,30 +171,41 @@ document.addEventListener('DOMContentLoaded', () => {
       scales    : { y: { beginAtZero: true } },
       plugins   : { legend: { display: false } }
     }
-  });
+  });bar chart*/ 
 
-  async function loadRevenueChart() {
-    try {
-      const res = await fetch('/manager/stats/revenue-components-today', {
-        credentials: 'include'
-      });
-      if (!res.ok) throw new Error('Bad response');
+let incomeChart;
+let pieChart;
 
-      const { grooming, boarding, store } = await res.json();
-      incomeChart.data.datasets[0].data = [grooming, boarding, store];
-      incomeChart.update();
-    } catch (err) {
-      console.error('chart fetch error:', err);
+async function loadRevenueChart(period = 'today') {
+  const res = await fetch(`/manager/stats/revenue-components?period=${period}`);
+  const { grooming, boarding, store } = await res.json();
+
+  const ctx = document.getElementById('incomeChart').getContext('2d');
+
+  if (incomeChart) incomeChart.destroy();
+
+  incomeChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['טיפוח', 'פנסיון', 'חנות אונליין'],
+      datasets: [{
+        label: 'הכנסה (₪)',
+        data: [grooming, boarding, store],
+        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true } }
     }
-  }
-
-  loadRevenueChart();   // הפעלה ראשונה
-});
+  });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   const card      = document.querySelector('.kpi-card.purple');
   const container = document.getElementById('incomeChartContainer');
-  const Scontainer = document.getElementById('DailyGroomingServicesChart')
+  const Scontainer = document.getElementById('DailyGroomingPieChart')
   let hideTimer;                                       // מזהה לטיימר
 
   if (card && container) {
@@ -222,56 +233,636 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-  async function loadPieChartForServices() {
-    try {
-      const res = await fetch('/manager/stats/service-counts-today');
-      const data = await res.json();
+async function loadPieChartForServices(period = 'today') {
+  const res = await fetch(`/manager/stats/service-counts?period=${period}`);
+  const data = await res.json();
+  const labels = ['רחצה וטיפוח מלא', 'תספורת קיץ', 'ניקוי שיניים'];
+  const values = [data.service1, data.service2, data.service3];
+  const total = values.reduce((a, b) => a + b, 0);
+  const ctx = document.getElementById('GroomingPieChart').getContext('2d');
 
-      const labels = ['רחצה וטיפוח מלא', 'תספורת קיץ ', 'ניקוי שיניים '];
-      const values = [data.service1, data.service2, data.service3];
+  if (pieChart) pieChart.destroy();
 
-      const total = values.reduce((a, b) => a + b, 0);
+  pieChart = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: values,
+        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom' },
+        datalabels: {
+          color: '#000',
+          font: { weight: 'bold', size: 14 },
+          formatter: (value) => {
+            const percent = total ? ((value / total) * 100).toFixed(1) : 0;
+            return `${value} (${percent}%)`;
+          }
+        }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+}
 
-      const ctx = document.getElementById('GroomingPieChart').getContext('2d');
+document.addEventListener('DOMContentLoaded', () => {
+  // טעינה ראשונית
+  loadRevenueChart();
+  loadPieChartForServices();
 
-      new Chart(ctx, {
-        type: 'pie',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: values,
-            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
-          }]
+  // שינוי לפי רדיו להכנסות
+  document.querySelectorAll('input[name="incomePeriod"]').forEach(radio => {
+    radio.addEventListener('change', () => loadRevenueChart(radio.value));
+  });
+
+  // שינוי לפי רדיו לשירותים
+  document.querySelectorAll('input[name="piePeriod"]').forEach(radio => {
+    radio.addEventListener('change', () => loadPieChartForServices(radio.value));
+  });
+});
+
+let topProductsChart;
+
+async function loadTopProductsChart() {
+  try {
+    const res = await fetch('/manager/stats/top-products');
+    const data = await res.json();
+
+    const labels = data.map(p => p.name);
+    const values = data.map(p => p.total_sold);
+    const revenues = data.map(p => p.total_revenue);
+
+    const ctx = document.getElementById('TopProductsChart').getContext('2d');
+
+    if (topProductsChart) topProductsChart.destroy();
+
+    topProductsChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'כמות שנמכרה',
+          data: values,
+          backgroundColor: '#4dc9f6'
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        layout: {
+          padding: { right: 20 }
         },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              position: 'bottom'
-            },
-            datalabels: {
-              color: '#000',
-              font: {
-                weight: 'bold',
-                size: 14
-              },
-              formatter: (value, context) => {
-                const percentage = ((value / total) * 100).toFixed(1);
-                return `${value} (${percentage}%)`;
+        plugins: {
+          legend: { display: false },
+          title: {
+            display: true,
+            text: '5 המוצרים הנמכרים ביותר',
+            align: 'end'
+          },
+          tooltip: {
+            rtl: true,
+            callbacks: {
+              label: (ctx) => {
+                const i = ctx.dataIndex;
+                return `כמות: ${values[i]} | הכנסה: ₪${revenues[i].toFixed(2)}`;
               }
-            },
-            title: {
-              display: true,
-              text: 'התפלגות תורים לפי שירות'
             }
+          },
+          datalabels: {
+            
+            anchor: 'end',
+            align: 'center',
+            
+            font: {
+              weight: 'bold',
+              size: 12
+            },
+            color: '#333',
+            formatter: (value, context) => context.chart.data.labels[context.dataIndex]
           }
         },
-        plugins: [ChartDataLabels]
-      });
+        scales: {
+          x: {
+            beginAtZero: true,
+            reverse: true,
+            position: 'top',
+            ticks: { font: { size: 12 } },
+            grid: { drawOnChartArea: false }
+          },
+          y: {
+            position: 'right',
+            ticks: {
+                    display: false,// << הסתרת שמות המוצרים בציר
 
-    } catch (err) {
-      console.error('Error loading pie chart:', err);
-    }
+              font: { size: 14 },
+              align: 'start',
+              padding: 10
+            }
+          } 
+        }
+      },
+          grid: {
+      display: false
+          },
+      plugins: [ChartDataLabels]
+    });
+
+  } catch (err) {
+    console.error('Error loading top products chart:', err);
   }
+}
 
-  document.addEventListener('DOMContentLoaded', loadPieChartForServices);
+document.addEventListener('DOMContentLoaded', loadTopProductsChart);
+
+//reports 
+
+function loadReport(type) {
+
+  const period = "weekly";
+  const container = document.getElementById('reportContainer');
+  container.innerHTML = '<p>טוען דוח...</p>';
+
+  switch (type) {
+    case 'customers-active':
+      container.innerHTML = `
+        <h3>לקוחות פעילים</h3>
+        <p>לקוחות שביצעו הזמנה/שירות בחודשיים האחרונים</p>
+        <table class="report-table">
+          <thead>
+          <tr>
+          <th>#</th>
+          <th>ת.ז. </th>
+          <th>שם</th>
+          <th>טלפון</th>
+          <th>אימייל</th>
+          </tr>
+          </thead>
+          <tbody id="reportTableBody"></tbody>
+        </table>`;
+      fetch('/reports/customers-active')
+        .then(res => res.json())
+        .then(data => {
+          const tbody = document.getElementById('reportTableBody');
+          tbody.innerHTML = data.map((c, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${c.id } </td>
+              <td>${c.name}</td>
+              <td>${c.phone}</td>
+              <td>${c.email}</td>
+            </tr>`).join('');
+        });
+      break;
+
+case 'customers-inactive':
+  container.innerHTML = `
+    <h3>⚠️ לקוחות לא פעילים</h3>
+    <p>לקוחות שלא ביצעו הזמנה או רכישה בחודשיים האחרונים</p>
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>ת.ז. </th>
+          <th>שם</th>
+          <th>טלפון</th>
+          <th>אימייל</th>
+        </tr>
+      </thead>
+      <tbody id="reportTableBody"></tbody>
+    </table>
+  `;
+
+  fetch('/reports/customers-inactive')
+    .then(res => res.json())
+    .then(data => {
+      const tbody = document.getElementById('reportTableBody');
+      tbody.innerHTML = data.map((c, i) => `
+        <tr>
+          <td>${i + 1}</td>
+         <td>${c.id } </td>
+          <td>${c.name}</td>
+          <td>${c.phone}</td>
+          <td>${c.email}</td>
+        </tr>
+      `).join('');
+    })
+    .catch(err => {
+      container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>';
+      console.error(err);
+    });
+  break;
+
+  case 'customers-new':
+  container.innerHTML = `
+    <h3>✨ לקוחות חדשים</h3>
+    <p>לקוחות שנרשמו למערכת בחודש האחרון</p>
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>ת.ז. </th>
+
+          <th>שם</th>
+          <th>טלפון</th>
+          <th>אימייל</th>
+        </tr>
+      </thead>
+      <tbody id="reportTableBody"></tbody>
+    </table>
+  `;
+
+  fetch('/reports/customers-new')
+    .then(res => res.json())
+    .then(data => {
+      const tbody = document.getElementById('reportTableBody');
+      tbody.innerHTML = data.map((c, i) => `
+        <tr>
+          <td>${i + 1}</td>
+         <td>${c.id } </td>
+          <td>${c.name}</td>
+          <td>${c.phone}</td>
+          <td>${c.email}</td>
+        </tr>
+      `).join('');
+    })
+    .catch(err => {
+      container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>';
+      console.error(err);
+    });
+  break;
+
+  case 'customers-returning':
+  container.innerHTML = `
+    <h3>♻️ לקוחות חוזרים בפנסיון</h3>
+    <p>לקוחות שביצעו יותר מהזמנת פנסיון אחת</p>
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>ת.ז. </th>
+          <th>שם</th>
+          <th>טלפון</th>
+          <th>אימייל</th>
+          <th>סה"כ הזמנות</th>
+        </tr>
+      </thead>
+      <tbody id="reportTableBody"></tbody>
+    </table>
+  `;
+
+  //פנסיון
+  fetch('/reports/customers-returning')
+    .then(res => res.json())
+    .then(data => {
+      const tbody = document.getElementById('reportTableBody');
+      tbody.innerHTML = data.map((c, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${c.id } </td>
+          <td>${c.name}</td>
+          <td>${c.phone}</td>
+          <td>${c.email}</td>
+          <td>${c.total_reservations}</td>
+        </tr>
+      `).join('');
+    })
+    .catch(err => {
+      container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>';
+      console.error(err);
+    });
+  break;
+
+case 'boarding-upcoming':
+  container.innerHTML = `
+    <h3>📆 הזמנות פנסיון עתידיות</h3>
+    <p>רשימת הזמנות עתידיות לפנסיון מהיום והלאה</p>
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>ת.ז.</th>
+          <th>שם לקוח</th>
+          <th>שם הכלב</th>
+          <th>תאריך כניסה</th>
+          <th>תאריך יציאה</th>
+        </tr>
+      </thead>
+      <tbody id="reportTableBody"></tbody>
+    </table>
+  `;
+
+  fetch('/reports/boarding-upcoming')
+    .then(res => res.json())
+    .then(data => {
+      const tbody = document.getElementById('reportTableBody');
+      tbody.innerHTML = data.map((row, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${row.customer_id}</td>
+          <td>${row.customer_name}</td>
+          <td>${row.dog_name}</td>
+          <td>${new Date(row.check_in).toLocaleDateString('he-IL')}</td>
+          <td>${new Date(row.check_out).toLocaleDateString('he-IL')}</td>
+        </tr>
+      `).join('');
+    })
+    .catch(err => {
+      container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>';
+      console.error(err);
+    });
+  break;
+
+case 'grooming-returning':
+  container.innerHTML = `
+    <h3>♻️ לקוחות חוזרים בטיפוח</h3>
+    <p>לקוחות שביצעו יותר מפגישת טיפוח אחת</p>
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>תעודת זהות</th>
+          <th>שם</th>
+          <th>טלפון</th>
+          <th>אימייל</th>
+          <th>סה"כ פגישות</th>
+        </tr>
+      </thead>
+      <tbody id="reportTableBody"></tbody>
+    </table>
+  `;
+
+  fetch('/reports/grooming-returning')
+    .then(res => res.json())
+    .then(data => {
+      const tbody = document.getElementById('reportTableBody');
+      tbody.innerHTML = data.map((c, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${c.customer_id}</td>
+          <td>${c.name}</td>
+          <td>${c.phone}</td>
+          <td>${c.email}</td>
+          <td>${c.total_appointments}</td>
+        </tr>
+      `).join('');
+    })
+    .catch(err => {
+      container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>';
+      console.error(err);
+    });
+  break;
+
+  case 'grooming-upcoming':
+  container.innerHTML = `
+    <h3>🗓 הזמנות טיפוח עתידיות</h3>
+    <p>רשימת הזמנות טיפוח החל מהיום והלאה</p>
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>ת"ז לקוח</th>
+          <th>שם לקוח</th>
+          <th>שם הכלב</th>
+          <th>שירות</th>
+          <th>תאריך</th>
+          <th>שעה</th>
+        </tr>
+      </thead>
+      <tbody id="reportTableBody"></tbody>
+    </table>
+  `;
+
+  fetch('/reports/grooming-upcoming')
+    .then(res => res.json())
+    .then(data => {
+      const tbody = document.getElementById('reportTableBody');
+      tbody.innerHTML = data.map((row, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${row.customer_id}</td>
+          <td>${row.customer_name}</td>
+          <td>${row.dog_name}</td>
+          <td>${row.service_name}</td>
+          <td>${new Date(row.appointment_date).toLocaleDateString('he-IL')}</td>
+          <td>${row.slot_time.slice(0, 5)}</td>
+        </tr>
+      `).join('');
+    })
+    .catch(err => {
+      container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>';
+      console.error(err);
+    });
+  break;
+
+
+    case 'products-top':
+      container.innerHTML = `
+        <h3>מוצרים נמכרים ביותר</h3>
+        <canvas id="TopProductsChart"></canvas>`;
+      fetch('/reports/products-top')
+        .then(res => res.json())
+        .then(data => {
+          const ctx = document.getElementById('TopProductsChart').getContext('2d');
+          new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: data.map(p => p.name),
+              datasets: [{
+                label: 'כמות',
+                data: data.map(p => p.quantity),
+                backgroundColor: '#4c8bf5'
+              }]
+            },
+            options: {
+              indexAxis: 'y',
+              responsive: true,
+              plugins: { legend: { display: false } }
+            }
+          });
+        });
+      break;
+case 'products-sold-all':
+  container.innerHTML = `
+    <h3>📦 כל המוצרים שנמכרו</h3>
+    <p>הכמות הכוללת שנמכרה לכל מוצר</p>
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>סריאלי</th>
+          <th>שם מוצר</th>
+          <th>סה״כ כמות</th>
+        </tr>
+      </thead>
+      <tbody id="reportTableBody"></tbody>
+    </table>
+  `;
+
+  fetch('/reports/products-sold-all')
+    .then(res => res.json())
+    .then(data => {
+      const tbody = document.getElementById('reportTableBody');
+      tbody.innerHTML = data.map((p, i) => `
+        <tr>
+          <td>${i + 1}</td>
+    <td>${p.product_id}</td>
+          <td>${p.product_name}</td>
+          <td>${p.total_sold}</td>
+        </tr>
+      `).join('');
+    })
+    .catch(err => {
+      container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>';
+      console.error(err);
+    });
+  break;
+
+
+  case 'sales-by-category':
+  container.innerHTML = `
+    <h3>📋 מכירות לפי קטגוריות</h3>
+    <p>סה״כ כמות יחידות שנמכרו בכל קטגוריה</p>
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>מזהה קטגוריה</th>
+          <th>שם קטגוריה</th>
+          <th>סה״כ שנמכרו</th>
+        </tr>
+      </thead>
+      <tbody id="reportTableBody"></tbody>
+    </table>
+  `;
+
+  fetch('/reports/sales-by-category')
+    .then(res => res.json())
+    .then(data => {
+      const tbody = document.getElementById('reportTableBody');
+      tbody.innerHTML = data.map((cat, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${cat.category_id}</td>
+          <td>${cat.category_name}</td>
+          <td>${cat.total_sold}</td>
+        </tr>
+      `).join('');
+    })
+    .catch(err => {
+      container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>';
+      console.error(err);
+    });
+  break;
+
+  case 'referrals-comparison':
+  container.innerHTML = `
+    <h3>📊 השוואת הפניות למאלטים / וטרינרים</h3>
+    <p>מספר הפניות שהופנו לכל אחד מהגורמים המטפלים</p>
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>סוג יעד</th>
+          <th>סה״כ פניות</th>
+        </tr>
+      </thead>
+      <tbody id="reportTableBody"></tbody>
+    </table>
+  `;
+
+  fetch('/reports/referrals-comparison')
+    .then(res => res.json())
+    .then(data => {
+      const tbody = document.getElementById('reportTableBody');
+      tbody.innerHTML = data.map((row, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${row.destination_type === 'וטרינר' ? 'וטרינר' : 'מקלט'}</td>
+          <td>${row.total_referrals}</td>
+        </tr>
+      `).join('');
+    })
+    .catch(err => {
+      container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>';
+      console.error(err);
+    });
+  break;
+
+/*case 'transport-counts':
+  container.innerHTML = `
+    <h3>🚗 מספר ההסעות שביצע כל שליח</h3>
+    <p>רשימת שליחים שביצעו הסעות עם סטטוס "הושלם"</p>
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>ת"ז שליח</th>
+          <th>שם שליח</th>
+          <th>טלפון</th>
+          <th>סה״כ הסעות</th>
+        </tr>
+      </thead>
+      <tbody id="reportTableBody"></tbody>
+    </table>
+  `;
+
+  fetch('/reports/transport-counts')
+    .then(res => res.json())
+    .then(data => {
+      const tbody = document.getElementById('reportTableBody');
+      tbody.innerHTML = data.map((h, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${h.handler_id}</td>
+          <td>${h.handler_name}</td>
+          <td>${h.phone}</td>
+          <td>${h.completed_transports}</td>
+        </tr>
+      `).join('');
+    })
+    .catch(err => {
+      container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>';
+      console.error(err);
+    });
+  break;*/
+      case 'transport-counts':
+      fetch(`/reports/transport-counts?period=${period}`)
+        .then(res => res.json())
+        .then(data => {
+          container.innerHTML = `
+            <h3>🚗 הסעות לפי שליח</h3>
+            <table class="report-table">
+              <thead>
+                <tr>
+                  <th>#</th><th>שליח</th><th>טלפון</th><th>סה"כ</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${data.map((h, i) => `
+                  <tr>
+                    <td>${i + 1}</td>
+                    <td>${h.handler_name}</td>
+                    <td>${h.phone}</td>
+                    <td>${h.completed_transports}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `;
+        });
+      break;
+
+
+    default:
+      container.innerHTML = '<p>דוח לא מוגדר עדיין</p>';
+  }
+}
+
+
+
+
