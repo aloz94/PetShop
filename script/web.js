@@ -4,7 +4,7 @@
 // It is important to ensure that the server is running and the endpoints are correctly set up to handle the requests.
 
 /* carousel(images) script*/
-let index = 0;
+/*let index = 0;
 const images = document.querySelector(".carousel-images");
 const totalImages = images.children.length;
 
@@ -22,7 +22,48 @@ function prevSlide() {
     showSlide();
 }
 
-setInterval(nextSlide, 3000);
+setInterval(nextSlide, 3000);*/
+  const track = document.querySelector('.carousel-track');
+  const dotsContainer = document.getElementById('carouselDots');
+  const images = document.querySelectorAll('.carousel-image');
+  let current = 0;
+
+  function updateCarousel() {
+    track.style.transform = `translateX(-${current * 100}%)`;
+    updateDots();
+  }
+
+  function changeSlide(direction) {
+    current = (current + direction + images.length) % images.length;
+    updateCarousel();
+  }
+
+  function updateDots() {
+    const dots = document.querySelectorAll('.carousel-dots span');
+    dots.forEach((dot, index) => {
+      dot.classList.toggle('active', index === current);
+    });
+  }
+
+  function createDots() {
+    images.forEach((_, index) => {
+      const dot = document.createElement('span');
+      dot.addEventListener('click', () => {
+        current = index;
+        updateCarousel();
+      });
+      dotsContainer.appendChild(dot);
+    });
+    updateDots();
+  }
+
+  createDots();
+
+  // Optional autoplay:
+  setInterval(() => {
+    changeSlide(1);
+  }, 5000);
+
 
  /* popup  script*/
 function openPopup(popupId) {
@@ -152,7 +193,8 @@ if (loginresult.role === 'customer') {
   document.getElementById('auth-buttons').style.display = 'none';
   document.getElementById('profile-icon').style.display = 'block';
   showCustomAlert('התחברת בהצלחה!');
-  setTimeout(() => window.location.href = 'index.html', 3000);
+  setTimeout(() =>   window.location.reload()
+, 3000);
   return;
 }
 

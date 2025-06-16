@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>שירותי הטיפוח</title>
   <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="styles/styles.css">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
   <style>
     body {
       font-family: 'Assistant', sans-serif;
@@ -85,6 +88,60 @@
   </style>
 </head>
 <body>
+<header>
+<nav class="navbar">
+            <div class="nav-container">
+                <img src="res/logo.png" alt="Logo" class="logo">
+                <ul class="nav-links">
+                    <li><img src="res/home.png" alt="בית" ><br><a href="index.html">בית</a></li>
+                    <li><img src="res/pet-shop.png" alt="חנות"><br><a href="#">חנות</a></li>
+                    <li><a href="Boarding.html"><img src="res/dog-sleep.png" alt="פנסיון"><br>פנסיון</a></li>
+                    <li><a href="AboutGrooming.html"><img src="res/dog_shower.png" alt="טיפוח"><br>טיפוח</a></li>
+                    <li><a href="AboutAband.html"><img src="res/care.png" alt="נטושים"><br>נטושים</a></li>
+                    <li><img src="res/virtual-assistant.png" alt="צור קשר"><br><a href="#">צור קשר</a></li>
+                </ul>
+            </div>
+
+            <!-- Authentication buttons (register/log in)-->
+            <div class="auth-buttons" id="auth-buttons">
+              <!--  <button onclick="openPopup('loginpopup')"><img src="res/Login-icon.png" alt="*">כניסה</button>-->
+                
+            </div>
+<div class="left-navbar">
+        <div class="cart-container" >
+    <button id="cartToggle">🛒 עגלה (<span id="cartCount">0</span>)</button>
+<div id="cartSidebar" class="cart-sidebar" style="display: none;">
+    <button class="close-sidebar" onclick="closeCartSidebar()">×</button>
+    <h3>🛒 עגלת הקניות</h3>
+    <div id="cartItems">
+        <!-- Cart items will be dynamically added here -->
+    </div>
+</div>            
+<div id="logout-button" style="display: none;">
+<button class="logout-button" onclick="logout()">
+    <i class="fas fa-sign-out-alt"></i> התנתק
+</button>
+</div>
+<div id="login-button" style="display: block;">
+<button class="login-button" onclick="openPopup('loginpopup')">
+    <i class="fas fa-sign-in-alt"></i> התחבר
+</button>
+</div>
+<div id="register-button" style="display: block;">
+<button class="register-button" onclick="openPopup('regispopup')">
+    <i class="fas fa-user-plus"></i> הרשמה
+</button>
+            </div>
+            <div id="profile-icon" style="display: none;">
+              <span class="profile-name"></span>
+                <a href="profile.html">
+                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile" width="40" height="40">
+                </a>
+            </div>
+            
+        </div>
+        </nav>
+    </header>
 
   <h1 class="main-title">שירותי הטיפוח שלנו</h1>
   <div class="hero">
@@ -115,15 +172,187 @@
   </section>
 
   <section class="faq">
-    <h3>כמה זמן לוקח תהליך הטיפוח?</h3>
-    <p>בין שעה לשעתיים, תלוי בגודל ובשירותים הנדרשים.</p>
+    <h3>האם הכלב שלי חייב להיות מחוסן כדי לעבור טיפול טיפוח?
+</h3>
+    <p>כן, לצורך שמירה על בריאות כל הכלבים במקום, אנו דורשים הצגת פנקס חיסונים עדכני לפני כל טיפול.
+
+</p>
     <h3>האם אפשר להביא כלב בפעם הראשונה ללא קביעת תור?</h3>
     <p>אנו ממליצים לקבוע תור מראש כדי להבטיח זמינות.</p>
     <h3>האם אתם מטפלים גם בגזעים עם פרווה רגישה?</h3>
     <p>בהחלט. אנו משתמשים בחומרים מותאמים ובגישה רגישה לכל כלב.</p>
   </section>
 
-  <a href="/book-grooming" class="cta-button">קבע תור לטיפוח</a>
+  <a href="#" onclick="openPopup('groomingpopup')" class="cta-button">קבע תור לטיפוח</a>
+
+
+<div id="custom-alert" class="custom-alert-overlay" style="display:none;">
+  <div class="custom-alert-box">
+    <span id="custom-alert-message"></span>
+    <button onclick="closeCustomAlert()">אישור</button>
+  </div>
+</div>
+
+    <!-- popup spa order-->
+
+    <form id="groomingpopup_form"> 
+        <div id="groomingpopup" class="popup-container">
+          <div class="popup-content">
+            <span class="close-btn" onclick="closePopup('groomingpopup')">&times;</span>
+            <img src="res/logo.png" alt="Logo">
+            <h2>הזמן פינוק לחייתך</h2>
+      
+            <!-- תאריך -->
+            <div class="input-field">
+              <input type="date" id="appointmentDate" required>
+            </div>
+      
+            <!-- שעה -->
+            <div class="input-field">
+              <select id="hourSelect" required>
+                <option value="">בחר שעה</option>
+              </select>
+            </div>
+      
+            <!-- שירות -->
+            <div class="input-field">
+              <select id="serviceSelect" required>
+                <option value="">בחר שירות</option>
+              </select>
+            </div>
+      
+            <!-- כלב -->
+            <div class="input-field">
+              <select id="dogSelect" required>
+                <option value="">בחר כלב</option>
+              </select>
+            </div>
+      
+            <!-- הערות -->
+            <div class="input-field">
+              
+              <textarea id="notes" rows="flex" placeholder="האם יש משהו חשוב שנדע?"></textarea>
+            </div>
+      
+            <!-- מחיר -->
+                <div id="priceDisplay" class="price-label">עלות - </div>
+            
+                    
+            <!-- כפתור שליחה -->
+            <button class="popup-button" type="submit">הזמן טיפוח</button>
+          </div>
+        </div>
+      </form>
+
+
+
+  <!--    log in popup-->
+    <form id="loginpopup_form">
+<div id="loginpopup" class="popup-container">
+    <div class="popup-content">
+        <span class="close-btn" onclick="closePopup('loginpopup')">&times;</span>
+        <img src="res/logo.png" alt="Logo">
+        <h2>כניסה</h2>
+        
+        <label>שם משתמש</label>
+        <div class="input-field">
+            <input type="integer" id="log_id" placeholder="הכנס שם משתמש" required>
+        </div>
+        
+        <label>סיסמא</label>
+        <div class="input-field">
+            <input type="password" id="log_pass" placeholder="הכנס סיסמא" required>
+        </div>
+        
+        <a href="#" class="forgot-password">שכחת סיסמא?</a>
+     
+      <button class="popup-button" type="submit">כניסה</button>
+    </div>
+</div>
+    </form>
+<!--    register popup-->
+    <form id="regispopup_form">
+<div id="regispopup" class="popup-container">
+    <div class="popup-content">
+        <span class="close-btn" onclick="closePopup('regispopup')">&times;</span>
+        <img src="./res/logo.png" alt="Logo">
+        <hr></hr>
+        <h2>רישום</h2>
+        <hr></hr>
+        <h3>פרטים אישיים</h3>
+
+        <div class="form-columns">
+
+        <div class="column">
+                <div class="input-field"><input type="text" id="customerId" placeholder="ת.ז. *"   inputmode="numeric" required></div>
+            <div class="input-field"><input type="text" id="firstName" placeholder="שם פרטי *" required></div>
+            <div class="input-field"><input type="text" id="lastName" placeholder="שם משפחה *" required></div>
+            <div class="input-field"><input type="text" id="telephone"   inputmode="tel"      inputmode="numeric"   placeholder="נייד *" required></div>
+        </div>
+        
+            
+            
+        
+        <div class="column">
+
+            <div class="input-field"><input type="text" id="address" placeholder="כתובת "></div>
+            <div class="input-field"><input type="text" id="email" placeholder="מייל"></div>
+            <div class="input-field"><input type="password" id="pass" placeholder="סיסמא *" required></div>
+            <div class="input-field"><input type="password" id="passconfirm" placeholder="אישור סיסמא *" required></div>
+        </div>
+        </div>
+        <hr></hr>
+        <h3>פרטי הכלב</h3>
+        <div class="input-group">
+            <div class="input-field"><input type="text" id="dogName" placeholder="שם הכלב *" required></div>
+            <div class="input-field">
+              <!--<input type="text" id="dogBreed" placeholder="גזע">-->
+              <select id="dogBreed">
+    <option value="" disabled selected>בחר גזע</option>
+    <option value="לברדור רטריבר">לברדור רטריבר</option>
+    <option value="גולדן רטריבר">גולדן רטריבר</option>
+    <option value="פודל">פודל</option>
+    <option value="ביגל">ביגל</option>
+    <option value="פאג">פאג</option>
+    <option value="בולדוג צרפתי">בולדוג צרפתי</option>
+    <option value="רוטוויילר">רוטוויילר</option>
+    <option value="שיצו">שיצו</option>
+    <option value="האסקי סיבירי">האסקי סיבירי</option>
+    <option value="דוברמן">דוברמן</option>
+    <option value="אחר">אחר</option>
+
+  </select>
+            </div>
+        </div>
+        <div class="input-group">
+            <div class="input-field"><input type="number" id="dogAge" placeholder="גיל"></div>
+
+            <div class="input-field" >
+                <select id="dogSize">
+                    <option value="" disabled selected>בחר גודל *</option>
+                    
+                    <option>קטן</option>
+                    <option>בינוני</option>
+                    <option>גדול</option>
+                </select>
+            </div>
+        </div>
+        <div class="input-group">
+          
+            <div class="input-field radio-field">
+              <span>  מין *</span>
+                <label><input type="radio" name="dogGender" value="זכר"> זכר</label>
+                <label><input type="radio" name="dogGender" value="נקבה"> נקבה</label>
+            </div>
+        </div>
+        <button class="popup-button" type="submit" onclick="submitRegistration()">רישום</button>
+        </div>
+    </div>
+</form>  
+    <script src="script/store-script.js"></script>
+    <script src="script/cart.js"></script>
+    <script src="script/web.js"></script>
+
 
 </body>
 </html>
