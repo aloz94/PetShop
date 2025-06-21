@@ -194,15 +194,7 @@ async function loadKpiData() {
     console.error('Error loading KPI data', err);
   }
 }
-const courierList = [
-  { id: 1, name: 'שליח א׳' },
-  { id: 2, name: 'שליח ב׳' },
-];
-const careList = [
-  { id: 10, name: 'גורם סיוע א׳' },
-  { id: 11, name: 'גורם סיוע ב׳' },
-];
-
+  
 const dropdown = document.getElementById('kpi-dropdown');
 const selectEl = document.getElementById('kpi-select');
 

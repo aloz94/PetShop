@@ -642,6 +642,76 @@ app.post('/report-dog', authenticateToken, upload.single('image'), async (req, r
   }
 });
 
+app.get('/manager/boarding/checkins-today', async (req, res) => {
+  try {
+    const result = await con.query(`
+SELECT 
+  ba.id, 
+  d.name AS dog_name, 
+  ba.check_in, 
+  ba.status,
+  c.first_name || ' ' || c.last_name AS customer_name,
+  c.phone
+FROM boarding_appointments ba
+JOIN dogs d ON ba.dog_id = d.id
+JOIN customers c ON d.customer_id = c.id
+WHERE DATE(ba.check_in) = CURRENT_DATE
+  AND ba.status = 'pending';
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
+
+app.get('/manager/boarding/checkouts-today', async (req, res) => {
+  try {
+    const result = await con.query(`
+SELECT 
+  ba.id, 
+  d.name AS dog_name, 
+  ba.check_out, 
+  ba.status,
+  c.first_name || ' ' || c.last_name AS customer_name,
+  c.phone
+FROM boarding_appointments ba
+JOIN dogs d ON ba.dog_id = d.id
+JOIN customers c ON d.customer_id = c.id
+WHERE DATE(ba.check_out) = CURRENT_DATE
+  AND ba.status = 'inprogress';
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
+
+app.get('/manager/boarding/cancelled-today', async (req, res) => {
+  try {
+    const result = await con.query(`
+SELECT 
+  ga.id,
+  d.name AS dog_name,
+  c.phone,
+  c.first_name || ' ' || c.last_name AS customer_name,
+  ga.check_in
+
+FROM boarding_appointments ga
+JOIN dogs d ON ga.dog_id = d.id
+JOIN customers c ON d.customer_id = c.id
+WHERE DATE(ga.status_updated_at) = CURRENT_DATE
+  AND ga.status = 'cancelled'
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
+
+
 // ------------------ מסלול לקבלת פרטי פרופיל-------------------
 app.get('/profile/details', authenticateToken, async (req, res) => {
   try {
@@ -1127,6 +1197,47 @@ LIMIT 1;
   }
 });
 
+app.get('/manager/grooming/today', async (req, res) => {
+  try {
+    const result = await con.query(`
+      SELECT ga.id, d.name AS dog_name, s.name AS service_name, ga.slot_time
+      FROM grooming_appointments ga
+      JOIN dogs d ON ga.dog_id = d.id
+      JOIN services s ON ga.service_id = s.id
+      WHERE DATE(ga.appointment_date) = CURRENT_DATE
+        AND ga.status = 'scheduled'
+      ORDER BY ga.slot_time ASC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
+
+app.get('/manager/grooming/cancelled-today', authenticateToken, async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        ga.id,
+        d.name AS dog_name,
+        c.first_name || ' ' || c.last_name AS customer_name,
+        c.phone,
+        ga.appointment_date
+      FROM grooming_appointments ga
+      JOIN dogs d ON ga.dog_id = d.id
+      JOIN customers c ON d.customer_id = c.id
+      WHERE DATE(ga.status_updated_at) = CURRENT_DATE
+        AND ga.status = 'cancelled'
+      ORDER BY ga.appointment_date
+    `;
+    const result = await con.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching cancelled grooming appointments:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
 
 // מחזיר את רשימת הכלבים של לקוח לפי ת"ז
@@ -1369,6 +1480,58 @@ WHERE report_date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jerusalem')::date
     return res.status(500).json({ message: 'שגיאה בטעינת הסטטיסטיקות' });
   }
 });
+
+app.get('/manager/abandoned/cancelled-today', authenticateToken, async (req, res) => {
+  try {
+    const query = `
+SELECT 
+  ar.id,
+  ar.report_date,
+  ar.status,
+  c.first_name || ' ' || c.last_name AS customer_name,
+  c.phone
+FROM abandoned_dog_reports ar
+JOIN customers c ON ar.customer_id = c.id
+WHERE ar.status = 'cancelled'
+  AND DATE(ar.status_updated_at) = CURRENT_DATE
+ORDER BY ar.report_date DESC;
+    `;
+
+    const result = await con.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching cancelled abandoned reports:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.get('/manager/reports/by-status/:status', authenticateToken, async (req, res) => {
+  const status = req.params.status;
+
+  try {
+    const query = `
+SELECT 
+  ar.id,
+  ar.report_date,
+  c.first_name || ' ' || c.last_name AS customer_name,
+  c.phone AS customer_phone,
+  h.name AS handler_name,
+  h.phone AS handler_phone
+FROM abandoned_dog_reports ar
+JOIN customers c ON ar.customer_id = c.id
+LEFT JOIN handlers h ON ar.handler_id = h.id
+WHERE ar.status = $1
+ORDER BY ar.report_date DESC;
+    `;
+
+    const result = await con.query(query, [status]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching reports by status:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 
 app.get('/api/handler/abandoned-dogs/kpi', authenticateToken, async (req, res) => {
   try {

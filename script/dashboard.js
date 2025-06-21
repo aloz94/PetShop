@@ -268,7 +268,7 @@ async function loadBoardingData() {
     if (!res.ok) throw new Error('Network error');
     const items = await res.json();
     _boardingDataCache = items; // שמור
-
+//boarding status
     // מיפוי צבעים ותוויות
     const classMap = {
       pending:    'status-pending',
@@ -604,14 +604,6 @@ async function loadKpiData() {
     console.error('Error loading KPI data', err);
   }
 }
-const courierList = [
-  { id: 1, name: 'שליח א׳' },
-  { id: 2, name: 'שליח ב׳' },
-];
-const careList = [
-  { id: 10, name: 'גורם סיוע א׳' },
-  { id: 11, name: 'גורם סיוע ב׳' },
-];
 
 const dropdown = document.getElementById('kpi-dropdown');
 const selectEl = document.getElementById('kpi-select');
@@ -727,6 +719,187 @@ document.addEventListener('DOMContentLoaded', () => {
   loadGroomingStats();
 });
 
+document.getElementById('grooming_today').addEventListener('click', async () => {
+  console.log("clicked");
+  try {
+    const res = await fetch('/manager/grooming/today', { credentials: 'include' });
+    const appointments = await res.json();
+
+    const tbody = document.querySelector('#groomingTodayTable tbody');
+tbody.innerHTML = '';
+
+
+    if (appointments.length === 0) {
+      tbody.innerHTML = '<li>אין תורים להיום</li>';
+    } else {
+appointments.forEach(app => {
+  const row = document.createElement('tr');
+  row.innerHTML = `
+    <td>${app.id}</td>
+    <td>${app.slot_time}</td>
+    <td>${app.dog_name}</td>
+    <td>${app.service_name}</td>
+  `;
+  tbody.appendChild(row);
+});
+    }
+
+    document.getElementById('groomingTodayModal').style.display = 'block';
+  } catch (err) {
+    console.error('Error fetching grooming appointments:', err);
+  }
+});
+
+function closeGroomingModal() {
+  document.getElementById('groomingTodayModal').style.display = 'none';
+}
+
+
+document.getElementById('grooming_cancelled').addEventListener('click', async () => {
+  try {
+    const res = await fetch('/manager/grooming/cancelled-today', { credentials: 'include' });
+    const data = await res.json();
+
+    const tbody = document.getElementById('cancelledGroomingTableBody');
+    tbody.innerHTML = '';
+
+    if (data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5">אין תורים מבוטלים להיום</td></tr>';
+    } else {
+      data.forEach(app => {
+        const row = document.createElement('tr');
+        const dateOnly = new Date(app.appointment_date).toLocaleDateString('he-IL');
+        row.innerHTML = `
+          <td>${app.id}</td>
+          <td>${app.dog_name}</td>
+          <td>${app.customer_name}</td>
+          <td>${app.phone}</td>
+          <td>${dateOnly}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    document.getElementById('cancelledGroomingModal').style.display = 'block';
+  } catch (err) {
+    console.error('Error loading cancelled grooming appointments:', err);
+  }
+});
+
+function closeCancelledGroomingModal() {
+  document.getElementById('cancelledGroomingModal').style.display = 'none';
+}
+
+
+//boardig stats table
+//in
+document.getElementById('checkin_today').addEventListener('click', async () => {
+  try {
+    const res = await fetch('/manager/boarding/checkins-today', { credentials: 'include' });
+    const checkins = await res.json();
+
+    const tbody = document.querySelector('#boardingCheckinsTable tbody');
+    tbody.innerHTML = '';
+
+    if (checkins.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="3">אין כניסות ממתינות להיום</td></tr>';
+    } else {
+      checkins.forEach(c => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${c.id}</td>
+          <td>${c.dog_name}</td>
+          <td>${c.phone}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    document.getElementById('boardingCheckinsModal').style.display = 'block';
+  } catch (err) {
+    console.error('Error fetching check-in data:', err);
+  }
+});
+
+function closeCheckinsModal() {
+  document.getElementById('boardingCheckinsModal').style.display = 'none';
+  
+}
+
+
+
+//out
+
+document.getElementById('chekcout_todaynun').addEventListener('click', async () => {
+  try {
+    const res = await fetch('/manager/boarding/checkouts-today', { credentials: 'include' });
+    const checkouts = await res.json();
+
+    const tbody = document.querySelector('#boardingCheckoutsTable tbody');
+    tbody.innerHTML = '';
+
+    if (checkouts.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="3">אין יציאות ממתינות להיום</td></tr>';
+    } else {
+      checkouts.forEach(c => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${c.id}</td>
+          <td>${c.dog_name}</td>
+          <td>${c.phone}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    document.getElementById('boardingCheckoutsModal').style.display = 'block';
+  } catch (err) {
+    console.error('Error fetching check-out data:', err);
+  }
+});
+
+function closeCheckoutsModal() {
+  document.getElementById('boardingCheckoutsModal').style.display = 'none';
+}
+
+//deleted 
+document.getElementById('cancelled-Ap').addEventListener('click', async () => {
+  try {
+    const res = await fetch('/manager/boarding/cancelled-today', { credentials: 'include' });
+    const cancelled = await res.json();
+
+    const tbody = document.querySelector('#cancelledAppointmentsTable tbody');
+    tbody.innerHTML = '';
+
+    if (cancelled.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4">אין תורים שבוטלו היום</td></tr>';
+    } else {
+      cancelled.forEach(c => {
+        const row = document.createElement('tr');
+          const formattedDate = new Date(c.check_in).toISOString().split('T')[0];
+
+        row.innerHTML = `
+          <td>${c.id}</td>
+          <td>${c.dog_name}</td>
+          <td>${c.customer_name}</td>
+          <td>${c.phone}</td>
+          <td>${formattedDate}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    document.getElementById('cancelledAppointmentsModal').style.display = 'block';
+  } catch (err) {
+    console.error('Error fetching cancelled appointments:', err);
+  }
+});
+
+function closeCancelledModal() {
+  document.getElementById('cancelledAppointmentsModal').style.display = 'none';
+}
+
+
 
 // =================== GROOMING APPOINTMENTS ===================
 
@@ -752,7 +925,7 @@ async function loadGroomingAppointments() {
 
 // 2) Shared render function
 function renderGroomingAccordion(items) {
-  // statuses lookup
+  // grooming status
   const statuses = [
     { value: 'scheduled',    label: 'נקבע'       },
     { value: 'arrived',      label: 'הגיע'       },
@@ -1604,7 +1777,9 @@ let editingAbnId  = null;
           <option value="completed"  ${item.status==='completed'  ? 'selected' : ''}>הושלם</option>
           <option value="cancelled"  ${item.status==='cancelled'  ? 'selected' : ''}>בוטל</option>
         </select>`,
-      editHtml: `<button class="action-btn btn-edit" data-id="${item.id}">ערוך/שבץ</button>`
+      editHtml: `<button class="action-btn btn-edit" data-id="${item.id}">
+  <i class="fa fa-edit"></i>
+</button>`
     }));
 
 
@@ -1631,8 +1806,8 @@ let editingAbnId  = null;
       buildAccordionFromData(
         formatted,
         'accordion-abandoned',
-        ['id','phone','dog_size','health_status','care_provider_name','handler_name','statusBadge'],
-        ['customer_name','address','notes','status','image_path','report_date','statusSelect','editHtml'],
+        ['id','dog_size','health_status','care_provider_name','handler_name','statusBadge','editHtml'],
+        ['image_path','customer_name','phone','address','notes','report_date','statusSelect'],
         {
           id:             "מס' סידורי",
           customer_name:  "שם לקוח",
@@ -1645,10 +1820,10 @@ let editingAbnId  = null;
           status:         "סטטוס",
           handler_name:       "שליח",
           care_provider_name: "גורם מטפל ",
-          image_path:     "תמונה",
+          image_path:     "",
          statusBadge:   " ",
         statusSelect:  "עדכן סטטוס",
-        editHtml:      "ערוך/שבץ"
+        editHtml:      "ערוך"
 
         }
       );
@@ -1798,6 +1973,122 @@ async function loadCareProvidersDropdown() {
     careProviderSelect.innerHTML = '<option value="">שגיאה בטעינת גורמי סיוע</option>';
   }
 }
+
+document.getElementById('Abandoned_cancelled').addEventListener('click', async () => {
+  try {
+    const res = await fetch('/manager/abandoned/cancelled-today', { credentials: 'include' });
+    const reports = await res.json();
+
+    const tbody = document.querySelector('#abandonedCancelledTable tbody');
+    tbody.innerHTML = '';
+
+    if (reports.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4">אין פניות מבוטלות להיום</td></tr>';
+    } else {
+      reports.forEach(r => {
+        const row = document.createElement('tr');
+row.innerHTML = `
+  <td>${r.id}</td>
+  <td>${r.customer_name}</td>
+  <td>${r.phone}</td>
+  <td>${r.report_date.split('T')[0]}</td>
+`;
+        tbody.appendChild(row);
+      });
+    }
+
+    document.getElementById('abandonedCancelledModal').style.display = 'block';
+  } catch (err) {
+    console.error('Error fetching cancelled abandoned reports:', err);
+  }
+});
+
+// כפתור סגירה
+function closeAbandonedCancelledModal() {
+  document.getElementById('abandonedCancelledModal').style.display = 'none';
+}
+
+async function loadAbandonedCancelledCount() {
+  try {
+    const res = await fetch('/manager/abandoned/cancelled-today', { credentials: 'include' });
+    const data = await res.json();
+    document.getElementById('Abandoned-cancelled-today').textContent = data.length;
+  } catch (err) {
+    console.error('Error loading abandoned cancelled count:', err);
+  }
+}
+
+// קריאה בעת הטעינה
+loadAbandonedCancelledCount();
+
+
+async function updateHandlerReportCounts() {
+  const statuses = ['accepted', 'ontheway', 'rejected'];
+
+  for (const status of statuses) {
+    try {
+      const res = await fetch(`/manager/reports/by-status/${status}`, { credentials: 'include' });
+      const data = await res.json();
+
+      if (status === 'accepted') {
+        document.getElementById('Hacceptedcount').textContent = data.length;
+      } else if (status === 'ontheway') {
+        document.getElementById('Honthewaycount').textContent = data.length;
+      } else if (status === 'rejected') {
+        document.getElementById('Hrejectedcount').textContent = data.length;
+      }
+    } catch (err) {
+      console.error(`Failed to load count for ${status}:`, err);
+    }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', updateHandlerReportCounts);
+
+const statusMap = {
+  'sub-accepted': 'accepted',
+  'sub-ontheway': 'ontheway',
+  'sub-rejected': 'rejected'
+};
+
+Object.entries(statusMap).forEach(([divId, status]) => {
+  document.getElementById(divId).addEventListener('click', async () => {
+    try {
+      const res = await fetch(`/manager/reports/by-status/${status}`, { credentials: 'include' });
+      const reports = await res.json();
+
+      const tbody = document.querySelector('#handlerReportsTable tbody');
+      tbody.innerHTML = '';
+
+      if (reports.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4">אין פניות עם סטטוס ${status}</td></tr>`;
+      } else {
+        reports.forEach(r => {
+          const row = document.createElement('tr');
+row.innerHTML = `
+  <td>${r.id}</td>
+  <td>${r.customer_name}</td>
+  <td>${r.customer_phone}</td>
+  <td>${r.handler_name || '—'}</td>
+  <td>${r.handler_phone || '—'}</td>
+  <td>${r.report_date.split('T')[0]}</td>
+`;
+          tbody.appendChild(row);
+        });
+      }
+
+      document.getElementById('handlerReportsModal').style.display = 'block';
+    } catch (err) {
+      console.error('Error loading reports for status:', err);
+    }
+  });
+});
+
+function closeHandlerReportsModal() {
+  document.getElementById('handlerReportsModal').style.display = 'none';
+}
+
+
 
 
 

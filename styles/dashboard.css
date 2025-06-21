@@ -491,6 +491,11 @@ background-color: rgba(240, 167, 11, 0.7); /* 70% opacity */
   font-weight: bolder;
 }
 
+.accordion-abandoned:hover {
+  background-color: var(--brand-primary);
+
+}
+
 /* 4. גוף האקורדיון */
 /* גוף האקורדיון */
 
@@ -710,71 +715,79 @@ padding: 0;
 
 /* קונטיינר ה-KPI BAR */
 .kpi-bar {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 16px;
-  margin-bottom: 32px;
-}
-
-/* עיצוב כל כרטיס KPI */
-.kpi-card {
-    position: relative;        /* for positioning dropdown */
-  background: #fff;
-  border-radius: 8px;
-  padding: 16px;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* אפקט הובר */
-.kpi-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-/* אייקון בכרטיס */
-.kpi-card .icon {
-  font-size: 28px;
-  margin-bottom: 12px;
-  color: #fff;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
+  gap: 1rem;
   justify-content: center;
-}
-
-/* ערך מספרי */
-.kpi-card .value {
-  font-size: 2rem;
-  font-weight: bold;
-  margin-bottom: 8px;
-}
-
-/* תיאור קצר */
-.kpi-card .label {
-  font-size: 0.95rem;
-  opacity: 0.8;
+  flex-wrap: wrap;
+  margin: 2rem 0;
   direction: rtl;
 }
 
-/* צבעים לפי סוג KPI */
-.kpi-card.green    { background-color: #e1f5e8; }
-.kpi-card.green .icon { background-color: #0a7e07; }
+.kpi-card {
+  flex: 1 1 250px;
+  padding: 20px;
+  border-radius: 16px;
+  color: #000;
+  background-color: #f9f9f9;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+}
 
-.kpi-card.blue     { background-color: #e6f0fa; }
-.kpi-card.blue .icon  { background-color: #0b61d6; }
+.kpi-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
 
-.kpi-card.yellow   { background-color: #fff8e1; }
-.kpi-card.yellow .icon { background-color: #e6a800; }
+.kpi-card .icon {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
 
-.kpi-card.red      { background-color: #fce8e6; }
-.kpi-card.red .icon   { background-color: #d32f2f; }
+.kpi-card .value {
+  font-size: 2.2rem;
+  font-weight: 700;
+}
+
+.kpi-card .label {
+  font-size: 1rem;
+  color: #555;
+  margin-top: 5px;
+}
+
+/* צבעים ייחודיים */
+.kpi-card.green {
+  background: linear-gradient(135deg, #e0f5e9, #b4e3c1);
+  color: #1d6b3f;
+}
+
+.kpi-card.blue {
+  background: linear-gradient(135deg, #e3efff, #c1d8ff);
+  color: #1b4c91;
+}
+
+.kpi-card.red {
+  background: linear-gradient(135deg, #ffe9e9, #ffc4c4);
+  color: #a11717;
+}
+
+/* אייקון עגול */
+.kpi-card .icon i {
+  background-color: #ffffff60;
+  padding: 10px;
+  border-radius: 50%;
+}
+.kpi-card .label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+  margin-top: 6px;
+  letter-spacing: 0.5px;
+  line-height: 1.4;
+}
+
 
 .kpi-card .values { display: flex; flex-direction: column; gap: 4px; }
 .kpi-card .main-value { font-size: 1.8rem; }
@@ -971,6 +984,84 @@ padding: 0;
   display: none;
 }
 
+#handlers_update .kpi-sub-values {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+#handlers_update .kpi-sub-value {
+  flex: 1;
+  background-color: #f5f7fa;
+  border-radius: 8px;
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: default;
+  transition: background 0.2s;
+}
+
+#handlers_update .kpi-sub-value.clickable {
+  cursor: pointer;
+}
+
+#handlers_update .kpi-sub-value.clickable:hover {
+  background-color: #e1e9f5;
+}
+
+#handlers_update .kpi-sub-number {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 4px;
+}
+
+#handlers_update .kpi-sub-label {
+  font-size: 0.9rem;
+  color: #555;
+  text-align: center;
+  white-space: nowrap;
+}
+
+#handlers_update .kpi-label {
+  margin-top: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #777;
+  text-transform: uppercase;
+}
+
+#handlers_update #sub-accepted {
+  background-color: #a3f8a6 !important;
+  color: #fff;
+}
+
+#handlers_update #sub-ontheway {
+  background-color: #da9ef1 !important;
+  color: #fff;
+}
+
+#handlers_update #sub-rejected{
+    background-color: #fda3a3 !important;
+  color: #fff;
+
+}
+
+#handlers_update .kpi-sub-values::before {
+  content: '';
+  position: absolute;
+  top: calc(50% - 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 48px;
+  background-color: #dde1e7;
+  display: none;
+}
+
+
 /* 1. תוודאו שהסלקטור ב־CSS תואם למה שבאמת מיוצר ב־JS */
 .accordion-body .dogs-list {
   display: flex;
@@ -1111,12 +1202,22 @@ padding: 0;
   margin-top: 24px; /* or any value you like */
 }
 
+/* עטיפת שורת החיפוש */
+.boarding-search-bar,
+.grooming-search-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+/* כפתור הוספה */
 .add-btn {
-  width: 32px;
-  height: 32px;
-  font-size: 1.2rem;
-  margin: 0;
-  margin-left: 5px;
+  width: 38px;
+  height: 38px;
+  font-size: 1.4rem;
   border-radius: 50%;
   background: #f0a70b;
   color: #fff;
@@ -1124,96 +1225,111 @@ padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  vertical-align: middle;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: background 0.2s ease, transform 0.2s ease;
 }
 .add-btn:hover {
-  background: #eec383;
+  background: #e09106;
+  transform: scale(1.1);
 }
 
-.boarding-search-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px; /* space between button and search */
-}
-
-.grooming-search-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px; /* space between button and search */
-  margin-bottom: 24px;
-}
-
-
-/* Container + layout */
+/* קבוצת החיפוש */
 .search-group {
   display: flex;
-  border: 1px solid var(--neutral-grey);
-  border-radius: 6px;
+  align-items: center;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
   overflow: hidden;
-  font-size: 0.95rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.3s ease;
 }
 
-
-.search-select {
-  width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-  display: inline-block; /* or block if you want it on its own line */
+.search-group:focus-within {
+  box-shadow: 0 0 0 2px rgba(240, 167, 11, 0.3);
+  border-color: #f0a70b;
 }
-.search-select.search-select--active {
-  width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-  display: block;
-}
-
-/* The text input */
+/* שדה החיפוש */
 .search-input {
   flex: 1;
   border: none;
-  padding: 0.6em 0.8em;
-  color: var(--text-primary);
+  padding: 10px 14px;
+  font-size: 0.95rem;
+  background-color: #f9f9f9;
+  color: #222;
+}
+.search-input::placeholder {
+  color: #999;
 }
 .search-input:focus {
   outline: none;
-  border-color: var(--brand-primary);
+  background-color: #fff;
 }
 
-/* Primary “search” button */
+/* כפתור חיפוש */
 .btn-search {
-  background: var(--brand-primary);
+  background: #f0a70b;
   color: #fff;
   border: none;
-  padding: 0 1em;
-  cursor: pointer;
+  padding: 10px 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s, transform 0.1s;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 .btn-search:hover {
-  background: var(--brand-primary-dark);
-  transform: translateY(-1px);
+  background: #e09106;
 }
 
-/* Secondary “clear” button */
+/* כפתור ניקוי */
 .btn-clear {
-  background: var(--neutral-grey);
-  color: #f0c465;
-  border-right: 1px solid var(--neutral-grey-dark);
-  border-color: #f0c465;
-  /* preserve the rounded ends on the right side only */
-  border-top-left-radius: 6px;
-  border-bottom-left-radius: 6px;
-  padding: 0 0.8em;
+  background: #ffe7c2;
+  color: #f0a70b;
+  border: none;
+  padding: 10px 14px;
   cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
+  transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .btn-clear:hover {
-  background: var(--neutral-grey-dark);
-  transform: translateY(-1px);
+  background: #fcdba5;
 }
 
+/* תפריט קטגוריה */
+.search-select {
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  color: #333;
+  min-width: 160px;
+  appearance: none;
+  font-family: inherit;
+  position: relative;
+
+  /* custom arrow */
+  background-image: url("data:image/svg+xml,%3Csvg fill='black' height='12' viewBox='0 0 24 24' width='12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left 10px center;
+  background-size: 12px;
+  padding-left: 35px;
+  transition: border 0.2s ease;
+}
+
+.search-select:focus {
+  outline: none;
+  border-color: #f0a70b;
+  background-color: #fff;
+  box-shadow: 0 0 0 2px rgba(240, 167, 11, 0.2);
+}
+
+.search-select:hover {
+  background-color: #f2f2f2;
+}
 /* ========= POPUP OVERLAY & MODAL ========== */
 .popup-overlay {
   position: fixed;
@@ -1346,6 +1462,66 @@ padding: 0;
   background-color: #aaa;
   cursor: not-allowed;
 }
+
+.modal table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+  font-family: Arial, sans-serif;
+  font-size: 0.95rem;
+  direction: rtl;
+  background-color: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.modal thead {
+  background-color: #f5f5f5;
+  color: #333;
+  font-weight: bold;
+  border-bottom: 2px solid #ddd;
+}
+
+.modal thead th {
+  padding: 12px 16px;
+  text-align: center;
+}
+
+.modal tbody td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #eee;
+  text-align: center;
+  color: #444;
+}
+
+.modal tbody tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+.modal tbody tr:hover {
+  background-color: #f0f8ff;
+  transition: background 0.2s ease;
+}
+
+.modal td:first-child,
+.modal th:first-child {
+  border-right: 1px solid #eee;
+}
+
+.modal td:last-child,
+.modal th:last-child {
+  border-left: 1px solid #eee;
+}
+
+
+.close-btn {
+  float: left;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+
 
 /*================== HANDLERDASH.HTML ==================*/
 /* General container */
@@ -1545,12 +1721,13 @@ padding: 0;
   position: fixed; inset: 0;
   background: rgba(0,0,0,.55);
   z-index: 1000;
+  
 }
 
 .modal-content {
   background: #fff;
   width: 92%;
-  max-width: 460px;
+  max-width: 700px;
   margin: 7% auto;
   padding: 2rem 2.2rem;
   border-radius: 10px;

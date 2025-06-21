@@ -73,21 +73,21 @@
 
         <h1>ניהול פנסיון</h1>
         <header class="kpi-bar">
-          <div class="kpi-card green" >
+          <div class="kpi-card green" id="checkin_today">
             <div class="icon"><i class="fas fa-sign-in-alt"></i>
             </div>
             <div class="value" id="checkins-today">12</div>
             <div class="label">כניסה היום</div>
           </div>
       
-          <div class="kpi-card blue">
+          <div class="kpi-card blue" id="chekcout_todaynun">
             <div class="icon"><i class="fas fa-sign-out-alt"></i>
             </div>
             <div class="value" id="checkouts-today">5</div>
             <div class="label">יציאה היום</div>
           </div>
       
-          <div class="kpi-card red" >
+          <div class="kpi-card red" id="cancelled-Ap" >
             <div class="icon"><i class="fas fa-times-circle"></i>
             </div>
             <div class="value" id="cancelled-today">-</div>
@@ -148,6 +148,63 @@
             </div>
           </div>
         </form>
+
+        <div id="boardingCheckinsModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeCheckinsModal()">×</span>
+    <h3>כניסות ממתינות להיום</h3>
+    <table id="boardingCheckinsTable" class="appointments-table">
+      <thead>
+        <tr>
+          <th>מספר</th>
+          <th>שם הכלב</th>
+          <th>נייד</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="boardingCheckoutsModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeCheckoutsModal()">×</span>
+    <h3>יציאות  היום</h3>
+    <table id="boardingCheckoutsTable" class="appointments-table">
+      <thead>
+        <tr>
+          <th>מספר</th>
+          <th>שם הכלב</th>
+          <th>נייד</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- Deleted Modal-->
+ <div id="cancelledAppointmentsModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeCancelledModal()">×</span>
+    <h3>תורים שבוטלו היום</h3>
+    <table id="cancelledAppointmentsTable">
+<thead>
+  <tr>
+    <th>מספר</th>
+    <th>שם הכלב</th>
+    <th>שם הלקוח</th>
+    <th>טלפון</th>
+    <th>תאריך הזמנה</th>
+  </tr>
+</thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+
       </section>
     
 
@@ -203,12 +260,11 @@
         <h1>ניהול טיפוח</h1>
 <header class="kpi-bar">
   <!-- כרטיס 1 - תורים היום -->
-  <div class="kpi-card green">
+  <div class="kpi-card green" id="grooming_today">
     <div class="icon"><i class="fa-solid fa-calendar-check"></i></div>
     <div class="value" id="grooming-today">12</div>
     <div class="label">תורים לסיום היום</div>
   </div>
-
   <!-- כרטיס 2 - תור נוכחי -->
   <div class="kpi-card blue">
     <div class="icon"><i class="fa-solid fa-clock"></i></div>
@@ -217,21 +273,22 @@
   </div>
 
   <!-- כרטיס 3 - תור הבא -->
-  <div class="kpi-card blue">
+  <div class="kpi-card blue"  >
     <div class="icon"><i class="fa-solid fa-calendar-plus"></i></div>
     <div class="value" id="grooming-next">--</div>
     <div class="label">תור הבא</div>
   </div>
 
   <!-- כרטיס 4 - תורים שבוטלו -->
-  <div class="kpi-card red">
+  <div class="kpi-card red" id="grooming_cancelled">
     <div class="icon"><i class="fas fa-times-circle"></i></div>
     <div class="value" id="grooming-cancelled-today">-</div>
     <div class="label">מבוטלים היום</div>
   </div>
+
 </header>
         
-          
+
 
 
 
@@ -253,10 +310,51 @@
         </table>
         <div id="accordion-grooming"></div>
 
+          <div id="groomingTodayModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeGroomingModal()">×</span>
+    <h3>תורים מתוכננים להיום</h3>
+    <table id="groomingTodayTable" class="appointments-table">
+      <thead>
+        <tr>
+          <th>מספר</th>
+          <th>שעה</th>
+          <th>שם הכלב</th>
+          <th>שירות</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="cancelledGroomingModal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeCancelledGroomingModal()">&times;</span>
+    <h2>תורים מבוטלים בטיפוח - היום</h2>
+    <table class="modern-table">
+      <thead>
+        <tr>
+          <th>מס׳</th>
+          <th>שם הכלב</th>
+          <th>שם הלקוח</th>
+          <th>טלפון</th>
+          <th>תאריך תור</th>
+        </tr>
+      </thead>
+      <tbody id="cancelledGroomingTableBody">
+        <!-- rows go here -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
       </section>
 
 
     <section class="content" id="orders">
+
       <h2>הכנסות</h2>
       <p>כאן יופיעו נתוני הכנסות</p>
     </section>
@@ -374,6 +472,31 @@
     <select id="kpi-select"></select>
   </div>
 </div>
+
+<div class="kpi-card" id="handlers_update">
+  <div class="kpi-sub-values">
+    <div class="kpi-sub-value clickable" id="sub-accepted">
+      <span class="kpi-sub-number" id="Hacceptedcount">–</span>
+      <span class="kpi-sub-label">פניות שהתקבלו</span>
+    </div>
+    <div class="kpi-sub-value clickable" id="sub-ontheway">
+      <span class="kpi-sub-number" id="Honthewaycount">–</span>
+      <span class="kpi-sub-label">פניות בדרך</span>
+    </div>
+    <div class="kpi-sub-value clickable" id="sub-rejected">
+      <span class="kpi-sub-number" id="Hrejectedcount">–</span>
+      <span class="kpi-sub-label">פניות נדחו</span>
+    </div>
+  </div>
+  <div class="kpi-sub-value clickable" id="in_progress_reports">–</div>
+  <div class="kpi-label"> פניות בטיפול שליחים</div>
+</div>
+
+  <div class="kpi-card red" id="Abandoned_cancelled">
+    <div class="icon"><i class="fas fa-times-circle"></i></div>
+    <div class="value" id="Abandoned-cancelled-today">-</div>
+    <div class="label">מבוטלים היום</div>
+  </div>
   </header>
 
 
@@ -401,6 +524,50 @@
     <span class="close-btn" onclick="closeImgModal()">&times;</span>
     <img id="img-modal-img" src="" alt="Image Preview">
   </div>
+  <div id="abandonedCancelledModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeAbandonedCancelledModal()">&times;</span>
+    <h3>פניות מבוטלות להיום</h3>
+    <table id="abandonedCancelledTable" class="styled-table">
+      <thead>
+        <tr>
+          <th>מספר</th>
+          <th>שם מוסר</th>
+          <th>טלפון</th>
+          <th>תאריך דיווח</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- JS יכניס את התוכן -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<div id="handlerReportsModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeHandlerReportsModal()">&times;</span>
+    <h3>פניות לפי סטטוס</h3>
+    <table id="handlerReportsTable" class="styled-table">
+      <thead>
+        <tr>
+          <th>מספר</th>
+          <th>שם לקוח</th>
+          <th>טלפון</th>
+          <th>שם שליח</th>
+          <th>מספר שליח</th>
+          <th>תאריך דיווח</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- נתונים יוזנו כאן -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
           </section>
 
 
