@@ -3077,3 +3077,135 @@ document.getElementById('addProductForm').addEventListener('submit', async (e) =
   }
 });
 
+
+//============ timeline------------
+// grooming-timeline.js
+
+document.addEventListener('DOMContentLoaded', () => {
+  const dateInput = document.getElementById('selectedDate');
+  const prevBtn = document.getElementById('prevDay');
+  const nextBtn = document.getElementById('nextDay');
+  const serviceFilter = document.getElementById('serviceFilter');
+
+  const today = new Date();
+  dateInput.value = today.toISOString().split('T')[0];
+
+  // Load initial data
+  fetchAppointments(dateInput.value);
+
+  prevBtn.addEventListener('click', () => {
+    const date = new Date(dateInput.value);
+    date.setDate(date.getDate() - 1);
+    dateInput.value = date.toISOString().split('T')[0];
+    fetchAppointments(dateInput.value);
+  });
+
+  nextBtn.addEventListener('click', () => {
+    const date = new Date(dateInput.value);
+    date.setDate(date.getDate() + 1);
+    dateInput.value = date.toISOString().split('T')[0];
+    fetchAppointments(dateInput.value);
+  });
+
+  dateInput.addEventListener('change', () => {
+    fetchAppointments(dateInput.value);
+  });
+
+  serviceFilter.addEventListener('change', () => {
+    fetchAppointments(dateInput.value);
+  });
+
+  async function fetchAppointments(date) {
+    try {
+      const res = await fetch(`/grooming-appointments/by-date?date=${date}`, {
+        credentials: 'include'
+      });
+      let appointments = await res.json();
+
+      // Fill service filter if needed
+      populateServiceFilter(appointments);
+
+      const selectedService = serviceFilter.value;
+      if (selectedService) {
+        appointments = appointments.filter(a => a.service_name === selectedService);
+      }
+
+      renderTimeline(appointments);
+    } catch (err) {
+      console.error('Failed to fetch appointments', err);
+    }
+  }
+
+  function populateServiceFilter(appointments) {
+    const services = [...new Set(appointments.map(a => a.service_name))];
+    serviceFilter.innerHTML = '<option value="">כל השירותים</option>';
+    services.forEach(service => {
+      const opt = document.createElement('option');
+      opt.value = service;
+      opt.textContent = service;
+      serviceFilter.appendChild(opt);
+    });
+  }
+
+function timeToDecimal(timeStr) {
+  const [h, m] = timeStr.split(':').map(Number);
+  return h + m/60;
+}
+function formatHour(decimalHour) {
+  const hour = Math.floor(decimalHour);
+  const minutes = Math.round((decimalHour - hour) * 60);
+  return `${hour.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}`;
+}
+
+function renderTimeline(appointments) {
+  const labels = document.getElementById('timelineLabels');
+  const grid   = document.getElementById('timelineGrid');
+  labels.innerHTML = '';
+  grid.innerHTML   = '';
+
+  const startHour  = 9;
+  const endHour    = 16.5;
+  const unitHeight = 30; // 15 דק = 30px
+
+  // 1. בונים את תוויות הזמן (כל 15 דק)
+  for (let h = startHour; h <= endHour; h += 0.25) {
+    const lbl = document.createElement('div');
+    lbl.className    = 'time-label';
+    lbl.textContent  = formatHour(h);
+    lbl.style.height = `${unitHeight}px`;
+    labels.appendChild(lbl);
+  }
+
+  // 2. יישור אוטומטי של גובה ה-grid לפי גובה ה-labels
+  const labelsHeight = labels.getBoundingClientRect().height;
+  grid.style.height  = `${labelsHeight}px`;
+
+  // 3. מציבים את התורים
+  appointments.forEach(app => {
+    const start    = timeToDecimal(app.slot_time);
+    const duration = parseInt(app.duration, 10);
+
+    const minutesFromStart = (start - startHour) * 60;      
+    const top    = (minutesFromStart / 15) * unitHeight;    
+    const height = (duration           / 15) * unitHeight;  
+
+    // Debug־console כדאי להסיר בהמשך
+    console.log(
+      app.service_name,
+      `slot_time=${app.slot_time}`, `→ start=${start}`,
+      `min=${minutesFromStart}`, `top=${top}px`, `h=${height}px`
+    );
+
+    const block = document.createElement('div');
+    block.className = `appointment-block status-${app.status}`;
+    block.style.top    = `${top}px`;
+    block.style.height = `${height}px`;
+    block.innerHTML = `
+      <strong>${app.dog_name}</strong><br>
+      ${app.service_name}
+    `;
+    grid.appendChild(block);
+  });
+}
+
+  });

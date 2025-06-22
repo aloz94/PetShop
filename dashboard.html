@@ -258,6 +258,26 @@
   </button>
 </div>
         <h1>ניהול טיפוח</h1>
+
+<section class="timeline-container">
+  <div class="timeline-header">
+    <button id="prevDay">◀</button>
+    <input type="date" id="selectedDate">
+    <button id="nextDay">▶</button>
+    <select id="serviceFilter">
+      <option value="">כל השירותים</option>
+    </select>
+  </div>
+
+  <div class="timeline-content">
+    <div class="timeline-labels" id="timelineLabels"></div>
+    <div class="timeline-appointments" id="timelineGrid"></div>
+  </div>
+</section>
+
+
+
+
 <header class="kpi-bar">
   <!-- כרטיס 1 - תורים היום -->
   <div class="kpi-card green" id="grooming_today">
@@ -288,6 +308,7 @@
 
 </header>
         
+
 
 
 

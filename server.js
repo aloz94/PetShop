@@ -2776,6 +2776,45 @@ app.post('/api/tours', async (req, res) => {
 });
 
 
+
+
+
+//=========================TImeLine==============================
+
+app.get('/grooming-appointments/by-date', authenticateToken, async (req, res) => {
+  const selectedDate = req.query.date; // Expected format: YYYY-MM-DD
+
+  if (!selectedDate) {
+    return res.status(400).json({ message: 'Missing date parameter' });
+  }
+
+  try {
+    const query = `
+      SELECT 
+        ga.id,
+        ga.appointment_date,
+        ga.slot_time,
+        ga.status,
+        s.name AS service_name,
+        s.duration,
+        d.name AS dog_name
+      FROM grooming_appointments ga
+      JOIN services s ON ga.service_id = s.id
+      JOIN dogs d ON ga.dog_id = d.id
+      WHERE ga.appointment_date = $1
+      ORDER BY ga.slot_time ASC
+    `;
+
+    const result = await con.query(query, [selectedDate]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching grooming appointments:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
+
 //module.exports = router;
 app.listen(3000, () => {
     console.log("Server running on http://localhost:3000");
