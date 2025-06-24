@@ -13,25 +13,82 @@
 <body>
 
  <div class="container">
-    <aside class="sidebar">
-      <div id="loggedInUserName" class="welcome-message"></div>
-      <img src="res\logo.png" alt="Logo" class="sidebar-logo" style="width: 80px; display: block; margin: 16px auto;" />
-      <div class="sidebar-top">Aloz</div>
-      <ul>
-        <li><a href="#" data-target="boarding">פנסיון</a></li>
-        <li><a href="#" data-target="grooming">טיפוח</a></li>
-        <li><a href="#" data-target="orders">הזמנות</a></li>
-        <li><a href="#" data-target="products">מלאי</a></li>
-        <li><a href="#" data-target="abandoned">פניות נטושים</a></li>
-        <li><a href="#" data-target="delivry">שליחים</a></li>
-        <li><a href="#" data-target="support">גורמי סיוע</a></li>
-        <li><a href="#" data-target="manager-dashboard">לוח בקרה למנהל</a></li>
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <img src="res/logo.png" alt="Logo" class="sidebar-logo" />
+      <div id="loggedInUserName" class="welcome-message">שלום, Aloz</div>
+    </div>
 
-        <li><a href="#" data-target="help">לקוחות</a></li>
-        <li><a href="#" data-target="manager-Report">דוחות</a></li>
+    <nav class="sidebar-nav">
+      <ul>
+        <li>
+          <a href="boarding.html" data-target="boarding">
+            <i class="fa-solid fa-bed"></i>
+            <span>פנסיון</span>
+          </a>
+        </li>
+        <li>
+          <a href="grooming.html" data-target="grooming">
+            <i class="fa-solid fa-scissors"></i>
+            <span>טיפוח</span>
+          </a>
+        </li>
+        <li>
+          <a href="orders.html" data-target="orders">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span>הזמנות</span>
+          </a>
+        </li>
+        <li>
+          <a href="products.html" data-target="products">
+            <i class="fa-solid fa-boxes"></i>
+            <span>מלאי</span>
+          </a>
+        </li>
+        <li>
+          <a href="abandoned.html" data-target="abandoned">
+            <i class="fa-solid fa-dog"></i>
+            <span>פניות נטושים</span>
+          </a>
+        </li>
+        <li>
+          <a href="delivery.html" data-target="delivery">
+            <i class="fa-solid fa-truck"></i>
+            <span>שליחים</span>
+          </a>
+        </li>
+        <li>
+          <a href="support.html" data-target="support">
+            <i class="fa-solid fa-hands-helping"></i>
+            <span>גורמי סיוע</span>
+          </a>
+        </li>
+        <li>
+          <a href="manager-dashboard.html" data-target="manager-dashboard">
+            <i class="fa-solid fa-tachometer-alt"></i>
+            <span>לוח בקרה</span>
+          </a>
+        </li>
+        <li>
+          <a href="clients.html" data-target="clients">
+            <i class="fa-solid fa-users"></i>
+            <span>לקוחות</span>
+          </a>
+        </li>
+        <li>
+          <a href="reports.html" data-target="reports">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>דוחות</span>
+          </a>
+        </li>
       </ul>
-      <button class="sidebar-bottom" onclick="logout()">התנתקות</button>
-    </aside>
+    </nav>
+
+    <button class="sidebar-logout" onclick="logout()">
+      <i class="fa-solid fa-sign-out-alt"></i>
+      <span>התנתקות</span>
+    </button>
+  </aside>
 
     
 
@@ -210,54 +267,7 @@
 
       <!-- דאשבורד טיפוח-->
       <section class="content" id="grooming">
-<div class="search-group">
-  <button class="add-btn" type="button" id="openGroomingBtn">
-    <i class="fas fa-plus"></i>
-  </button>
-
-  <select id="groomingSearchCategory">
-    <option value="">קטגורית חיפוש</option>
-    <option value="id">מס' תור</option>
-    <option value="service_id"> שירות </option>
-    <option value="customer_id">מס' לקוח (ID)</option>
-    <option value="customer_name">שם לקוח</option>
-    <option value="dog_id">מס' כלב (ID)</option>
-    <option value="dog_name">שם כלב</option>
-    <option value="date">תאריך</option>
-    <option value="status">סטטוס</option>
-  </select>
-
-  <input
-    type="text"
-    id="groomingSearchText"
-    placeholder="חפש…"
-    class="search-input"
-  />
-
-  <select class="search-select" id="groomingSearchStatusSelect" style="display:none">
-    <option value="">כל הסטטוסים</option>
-    <option value="scheduled">נקבע</option>
-    <option value="in_treatment">בטיפול</option>
-    <option value="waiting_pick">ממתין לאיסוף</option>
-    <option value="completed">הושלם</option>
-    <option value="cancelled">בוטל</option>
-  </select>
-
-<select class="search-select" id="groomingServiceSelect" style="display:none">
-  <option value="">בחר שירות</option>
-  <option value="1">רחצה וטיפוח מלא</option>
-  <option value="2">תספורת קיץ</option>
-  <option value="3">ניקוי שיניים</option>
-</select>
-
-  <button id="groomingSearchBtn" class="btn-search" title="חפש">
-    🔍
-  </button>
-  <button id="groomingClearBtn" class="btn-clear" type="button" title="נקה">
-    ✖
-  </button>
-</div>
-        <h1>ניהול טיפוח</h1>
+  <h1 class="page-title">לוח התורים לטיפוח כלבים</h1>
 
 <section class="timeline-container">
   <div class="timeline-header">
@@ -308,6 +318,53 @@
 
 </header>
         
+<div class="search-group">
+  <button class="add-btn" type="button" id="openGroomingBtn">
+    <i class="fas fa-plus"></i>
+  </button>
+
+  <select id="groomingSearchCategory">
+    <option value="">קטגורית חיפוש</option>
+    <option value="id">מס' תור</option>
+    <option value="service_id"> שירות </option>
+    <option value="customer_id">מס' לקוח (ID)</option>
+    <option value="customer_name">שם לקוח</option>
+    <option value="dog_id">מס' כלב (ID)</option>
+    <option value="dog_name">שם כלב</option>
+    <option value="date">תאריך</option>
+    <option value="status">סטטוס</option>
+  </select>
+
+  <input
+    type="text"
+    id="groomingSearchText"
+    placeholder="חפש…"
+    class="search-input"
+  />
+
+  <select class="search-select" id="groomingSearchStatusSelect" style="display:none">
+    <option value="">כל הסטטוסים</option>
+    <option value="scheduled">נקבע</option>
+    <option value="in_treatment">בטיפול</option>
+    <option value="waiting_pick">ממתין לאיסוף</option>
+    <option value="completed">הושלם</option>
+    <option value="cancelled">בוטל</option>
+  </select>
+
+<select class="search-select" id="groomingServiceSelect" style="display:none">
+  <option value="">בחר שירות</option>
+  <option value="1">רחצה וטיפוח מלא</option>
+  <option value="2">תספורת קיץ</option>
+  <option value="3">ניקוי שיניים</option>
+</select>
+
+  <button id="groomingSearchBtn" class="btn-search" title="חפש">
+    🔍
+  </button>
+  <button id="groomingClearBtn" class="btn-clear" type="button" title="נקה">
+    ✖
+  </button>
+</div>
 
 
 

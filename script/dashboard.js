@@ -3147,10 +3147,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+// “HH:MM:SS” → decimal hours
 function timeToDecimal(timeStr) {
   const [h, m] = timeStr.split(':').map(Number);
   return h + m/60;
 }
+
+// decimal hours → “HH:MM”
 function formatHour(decimalHour) {
   const hour = Math.floor(decimalHour);
   const minutes = Math.round((decimalHour - hour) * 60);
@@ -3163,44 +3166,36 @@ function renderTimeline(appointments) {
   labels.innerHTML = '';
   grid.innerHTML   = '';
 
-  const startHour  = 9;
-  const endHour    = 16.5;
-  const unitHeight = 30; // 15 דק = 30px
+  const startHour    = 9;
+  const endHour      = 16.5;
+  const unitHeight   = 30;             // px per 15min
+  const pxPerMinute  = unitHeight/15;  // = 2px/min
+  const labelHeight  = unitHeight * 2; // 60px per 30min
 
-  // 1. בונים את תוויות הזמן (כל 15 דק)
-  for (let h = startHour; h <= endHour; h += 0.25) {
+  // 1) build time‐labels every 30min
+  for (let h = startHour; h <= endHour; h += 0.5) {
     const lbl = document.createElement('div');
     lbl.className    = 'time-label';
     lbl.textContent  = formatHour(h);
-    lbl.style.height = `${unitHeight}px`;
+    lbl.style.height = `${labelHeight}px`;
     labels.appendChild(lbl);
   }
 
-  // 2. יישור אוטומטי של גובה ה-grid לפי גובה ה-labels
-  const labelsHeight = labels.getBoundingClientRect().height;
-  grid.style.height  = `${labelsHeight}px`;
+  // 2) match grid height to labels
+  grid.style.height = `${labels.getBoundingClientRect().height}px`;
 
-  // 3. מציבים את התורים
+  // 3) place appointments
   appointments.forEach(app => {
-    const start    = timeToDecimal(app.slot_time);
-    const duration = parseInt(app.duration, 10);
-
-    const minutesFromStart = (start - startHour) * 60;      
-    const top    = (minutesFromStart / 15) * unitHeight;    
-    const height = (duration           / 15) * unitHeight;  
-
-    // Debug־console כדאי להסיר בהמשך
-    console.log(
-      app.service_name,
-      `slot_time=${app.slot_time}`, `→ start=${start}`,
-      `min=${minutesFromStart}`, `top=${top}px`, `h=${height}px`
-    );
+    const [h, m]           = app.slot_time.split(':').map(Number);
+    const minutesFromStart = (h - startHour)*60 + m;
+    const top              = minutesFromStart * pxPerMinute;
+    const height           = parseInt(app.duration, 10) * (pxPerMinute);
 
     const block = document.createElement('div');
-    block.className = `appointment-block status-${app.status}`;
+    block.className    = `appointment-block status-${app.status}`;
     block.style.top    = `${top}px`;
     block.style.height = `${height}px`;
-    block.innerHTML = `
+    block.innerHTML    = `
       <strong>${app.dog_name}</strong><br>
       ${app.service_name}
     `;
@@ -3209,3 +3204,12 @@ function renderTimeline(appointments) {
 }
 
   });
+const labelsCol = document.getElementById('timelineLabels');
+const appsCol   = document.getElementById('timelineGrid');
+
+labelsCol.addEventListener('scroll', () => {
+  appsCol.scrollTop = labelsCol.scrollTop;
+});
+appsCol.addEventListener('scroll', () => {
+  labelsCol.scrollTop = appsCol.scrollTop;
+});

@@ -21,6 +21,22 @@
 
     --acc-grid: 40px 60px 120px 80px 100px 140px 140px 80px;
  
+
+      --color-bg: #f9fafb;
+  --color-label-bg: #fafafa;
+  --color-border: #e2e8f0;
+  --color-accent: #3b82f6;
+  --color-accent-light: #bfdbfe;
+  --color-text: #1e293b;
+  --radius: 0.5rem;
+  --shadow: 0 2px 8px rgba(0,0,0,0.05);
+  --transition: 0.2s ease;
+  --font-base: 'Segoe UI', Tahoma, sans-serif;
+
+  --scroll-thumb: #f97316;       /* orange */
+  --scroll-thumb-hover: #dc6803; /* darker orange on hover */
+  --scroll-track: var(--color-label-bg);
+
 }
 
 
@@ -214,6 +230,19 @@ body, html {
   border-radius: 50%;
 }
 
+.sidebar-nav a i {
+  font-size: 1.1rem;
+  margin-left: 0.75rem;
+  color: var(--sidebar-accent);
+  /* if you need to shift the icon up/down, add: */
+  /* vertical-align: middle; */
+}
+
+.sidebar-nav a span {
+  flex: 1;
+  text-align: right;
+}
+
 /* -------------- תוכן עיקרי -------------- */
 .content {
   display: none;
@@ -229,6 +258,37 @@ body, html {
 .content--active {
   display: block;
 }
+
+/* 1. Page title */
+.page-title {
+  font-family: var(--font-base);
+  font-size: 2.5rem;          /* גדול וברור */
+  font-weight: 700;
+  color: var(--color-accent); /* כחול המותאם */
+  text-align: center;
+  margin-bottom: 1rem;
+  letter-spacing: 0.05em;
+  position: relative;
+}
+
+/* 2. Underline accent */
+.page-title::after {
+  content: "";
+  display: block;
+  width: 4rem;
+  height: 4px;
+  background: var(--color-accent);
+  margin: 0.5rem auto 0;
+  border-radius: 2px;
+}
+
+/* 3. Responsive adjustment */
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 1.75rem;
+  }
+}
+
 
 .content h2 {
   font-size: 1.4rem;
@@ -2135,93 +2195,224 @@ canvas {
     display: flex;
   }
 
-  /*timeline*/
+/* ========================
+   2. Timeline Container
+   ======================== */
 .timeline-container {
-  padding: 1rem;
+  font-family: var(--font-base);
+  color: var(--color-text);
 }
 
+/* ========================
+   3. Header Controls
+   ======================== */
+.timeline-header {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+
+.timeline-header button {
+  background: var(--color-accent);
+  border: none;
+  color: white;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform var(--transition), background var(--transition);
+}
+.timeline-header button:hover {
+  background: var(--color-accent-light);
+  transform: scale(1.1);
+}
+
+.timeline-header input[type="date"],
+.timeline-header select {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: white;
+  box-shadow: var(--shadow);
+  transition: border-color var(--transition);
+}
+.timeline-header input[type="date"]:focus,
+.timeline-header select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+/* ========================
+   4. Timeline Layout
+   ======================== */
 .timeline-content {
   display: flex;
-  align-items: stretch;       /* מקפיץ את שני העמודים (labels + appointments) לגובה זהה */
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+    position: relative;
+      max-height: 50vh;      /* at most half the viewport tall */
+
+
 }
 
+/* ========================
+   5. Time Labels Column
+   ======================== */
 .timeline-labels {
-  width: 65px; /* יישר עם הזמן */
-  background-color: #f1f5f9;
-  font-size: 0.8rem;
-  color: #333;
+  width: 70px;
+  background: var(--color-label-bg);
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  padding-right: 5px;
-  box-shadow: inset -1px 0 0 #ccc;
+  padding: 0.5rem 0.5rem 0.5rem 0;
+  box-shadow: inset -1px 0 0 var(--color-border);
+    overflow-y: auto;
+    direction: ltr;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-accent-light) var(--color-label-bg);
+
 }
 .time-label {
-  height: 30px;
-  line-height: 30px;
-  border-bottom: 1px dashed #ddd;
-  font-size: 0.8rem;
+  width: 100%;
+  height: 60px; /* 30 min slot */
+  line-height: 60px;
+  font-size: 1.5rem;
+  color: var(--color-text);
+  border-bottom: 1px dashed var(--color-border);
+  box-sizing: border-box;
+  padding-right: 0.4rem;
+  transition: background var(--transition);
+}
+.time-label:nth-child(2n) {
+  background: #f1f5f9;
+}
+
+/* -----------------------------------
+   2) WebKit (Chrome, Safari):
+   full control via pseudo-elements
+----------------------------------- */
+.timeline-labels::-webkit-scrollbar {
+  width: 8px;
+}
+
+.timeline-labels::-webkit-scrollbar-track {
+  background: var(--color-label-bg);
+  border-radius: var(--radius);
+}
+
+.timeline-labels::-webkit-scrollbar-thumb {
+  background: var(--color-accent-light);
+  border-radius: var(--radius);
+  border: 2px solid var(--color-label-bg);
+}
+
+.timeline-labels::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
+}
+
+/* Optional: hide scrollbar corner between track & content */
+.timeline-labels::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 
+/* ========================
+   6. Appointments Grid
+   ======================== */
 .timeline-appointments {
   position: relative;
   flex: 1;
-  background-color: #f9fafb;
+  background: var(--color-bg);
+    max-height: calc(50vh - 40px); /* subtract header & label padding */
+  overflow-y: auto;
+  scrollbar-width: none;
+
+
+}
+/* 3. Prevent any horizontal scroll */
+.timeline-content,
+.timeline-labels,
+.timeline-appointments {
+  overflow-x: hidden;
+}
+.timeline-appointments::-webkit-scrollbar {
+  display: none;
 }
 
+/* ========================
+   7. Appointment Blocks
+   ======================== */
 .appointment-block {
   position: absolute;
-  width: 100%;
-  padding: 0.4rem;
-  border-radius: 8px;
-    border-left: 4px solid #fff;
-  z-index: 10;
-
-  color: #fff;
-  font-weight: bold;
-  font-size: 0.85rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  left: 4%;
+  width: 92%;
+  padding: 0.6rem;
+  border-radius: var(--radius);
   box-sizing: border-box;
-  cursor: pointer;
-  transition: transform 0.2s ease;
+  font-size: 0.85rem;
+  color: white;
+  box-shadow: var(--shadow);
+  transition: transform var(--transition);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
-
 .appointment-block:hover {
-  transform: scale(1.02);
-  z-index: 2;
+  transform: translateY(-2px) scale(1.02);
+  z-index: 10;
 }
 
-.status-מלא {
-  background-color: #ef4444;
+/* Info inside the block */
+.appointment-block strong {
+  font-size: 1rem;
+  margin-bottom: 0.2rem;
+}
+.appointment-block span {
+  font-size: 0.75rem;
+  opacity: 0.9;
 }
 
-.status-פנוי {
-  background-color: #22c55e;
+/* ========================
+   8. Status Colors
+   ======================== */
+.status-scheduled     { background: #3b82f6; } /* כחול */
+.status-arrived       { background: #16a34a; } /* ירוק כהה */
+.status-in_treatment  { background: #f97316; } /* כתום */
+.status-waiting_pick  { background: #8b5cf6; } /* סגול */
+.status-completed     { background: #10b981; } /* ירוק בהיר יותר */
+.status-cancelled     { background: #ef4444; } /* אדום */
+
+/* ========================
+   9. Responsive
+   ======================== */
+@media (max-width: 768px) {
+  .timeline-header {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  .timeline-content {
+    flex-direction: column;
+  }
+  .timeline-labels {
+    flex-direction: row;
+    overflow-x: auto;
+    width: auto;
+    padding: 0.5rem;
+  }
+  .time-label {
+    min-width: 60px;
+    height: auto;
+    line-height: 1.4;
+    border-bottom: none;
+    border-right: 1px dashed var(--color-border);
+  }
+  .timeline-appointments {
+    height: 300px; /* scroll for mobile */
+    overflow-y: auto;
+  }
 }
 
-.status-scheduled {
-  background-color: #3b82f6; /* כחול */
-}
-
-.status-arrived {
-  background-color: #16a34a; /* ירוק כהה */
-}
-
-.status-in_treatment {
-  background-color: #f97316; /* כתום */
-}
-
-.status-waiting_pick {
-  background-color: #8b5cf6; /* סגול */
-}
-
-.status-completed {
-  background-color: #22c55e; /* ירוק בהיר */
-}
-
-.status-cancelled {
-  background-color: #ef4444; /* אדום */
-}
