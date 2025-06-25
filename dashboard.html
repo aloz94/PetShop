@@ -127,6 +127,45 @@
     ✖
   </button>
 </div>
+<div class="boarding-header">
+  <button id="prevDay" class="btn-nav">◀</button>
+  <input type="date" id="selectedDate" class="date-input" />
+  <button id="nextDay" class="btn-nav">▶</button>
+</div>
+
+        <!-- Container for the 10‐cell grid -->
+<!-- 10-cell grid -->
+<section id="boardingGrid" class="boarding-grid"></section>
+
+<div id="bookingModal">
+  <div class="modal-backdrop"></div>
+  <div class="modal-content">
+    <button id="modalClose" class="modal-close" aria-label="Close">&times;</button>
+    <header class="modal-header">
+      <h2>פרטי הזמנה</h2>
+    </header>
+    <div class="modal-body" id="modalBody">
+      <div class="detail-row">
+        <span class="icon">🐶</span><span class="label">כלב:</span><span class="value" id="detailDogName">—</span>
+      </div>
+      <div class="detail-row">
+        <span class="icon">👤</span><span class="label">בעלים:</span><span class="value" id="detailCustomer">—</span>
+      </div>
+      <div class="detail-row">
+        <span class="icon">📞</span><span class="label">טלפון:</span><span class="value" id="detailPhone">—</span>
+      </div>
+      <div class="detail-row">
+        <span class="icon">📅</span><span class="label">כניסה:</span><span class="value" id="detailCheckIn">—</span>
+      </div>
+      <div class="detail-row">
+        <span class="icon">🚪</span><span class="label">יציאה:</span><span class="value" id="detailCheckOut">—</span>
+      </div>
+      <div class="detail-row">
+        <span class="icon">📝</span><span class="label">הערות:</span><span class="value" id="detailNotes">—</span>
+      </div>
+    </div>
+  </div>
+</div>
 
         <h1>ניהול פנסיון</h1>
         <header class="kpi-bar">
@@ -271,18 +310,18 @@
 
 <section class="timeline-container">
   <div class="timeline-header">
-    <button id="prevDay">◀</button>
-    <input type="date" id="selectedDate">
-    <button id="nextDay">▶</button>
+    <button id="GprevDay">◀</button>
+    <input type="date" id="GselectedDate">
+    <button id="GnextDay">▶</button>
     <select id="serviceFilter">
       <option value="">כל השירותים</option>
     </select>
   </div>
 
-  <div class="timeline-content">
-    <div class="timeline-labels" id="timelineLabels"></div>
-    <div class="timeline-appointments" id="timelineGrid"></div>
-  </div>
+<div class="timeline-content">
+  <div class="timeline-labels" id="timelineLabels"></div>
+  <div class="timeline-appointments" id="timelineGrid"></div>
+</div>
 </section>
 
 

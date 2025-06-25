@@ -37,6 +37,32 @@
   --scroll-thumb-hover: #dc6803; /* darker orange on hover */
   --scroll-track: var(--color-label-bg);
 
+    --bg-overlay: rgba(0, 0, 0, 0.6);
+  --bg-card:    #ffffff;
+  --bg-header:  #3b82f6;
+  --fg-heading: #ffffff;
+  --fg-label:   #374151;
+  --fg-value:   #111827;
+  --radius-lg:  1rem;
+  --spacing:    1rem;
+  --shadow-lg:  0 10px 30px rgba(0, 0, 0, 0.12);
+  --font-base:  'Inter', sans-serif;
+  /* Color Palette */
+  --color-bg-page:      #f9fafb;
+  --color-bg-card:      #ffffff;
+  --color-bg-accent:    #3b82f6;
+  --color-text-primary: #1f2937;
+  --color-text-secondary: #4b5563;
+  --color-success:      #10b981;
+  --color-danger:       #ef4444;
+  --color-overlay:      rgba(0, 0, 0, 0.6);
+  
+  --radius-lg: 1rem;
+  --spacing:   1rem;
+  --shadow-md: rgba(0, 0, 0, 0.1);
+  
+  --font-sans: 'Segoe UI', Tahoma, sans-serif;
+
 }
 
 
@@ -2251,12 +2277,26 @@ canvas {
   display: flex;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  overflow: hidden;
+  overflow-y: auto;     /* ← single vertical scrollbar here */
   box-shadow: var(--shadow);
     position: relative;
       max-height: 50vh;      /* at most half the viewport tall */
 
 
+}
+.timeline-content::-webkit-scrollbar {
+  width: 8px;
+}
+.timeline-content::-webkit-scrollbar-thumb {
+  background: var(--color-accent-light);
+  border-radius: 4px;
+  border: 2px solid var(--color-label-bg);
+}
+.timeline-content::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
+}
+.timeline-content::-webkit-scrollbar-track {
+  background: var(--color-label-bg);
 }
 
 /* ========================
@@ -2269,11 +2309,15 @@ canvas {
   flex-direction: column;
   align-items: flex-end;
   padding: 0.5rem 0.5rem 0.5rem 0;
-  box-shadow: inset -1px 0 0 var(--color-border);
-    overflow-y: auto;
+  box-shadow: inset -1px 0 0 #ccc;
+  scrollbar-width: thin;    /* or just delete this line entirely */
     direction: ltr;
   scrollbar-width: thin;
   scrollbar-color: var(--color-accent-light) var(--color-label-bg);
+  flex: 0 0 65px;        /* 65px wide */
+  overflow: visible;     /* remove any inner scrollbars */
+  flex-shrink: 0;        /* stay the width/height we give them */
+  height: 100%;          /* fill the .timeline-content’s height */
 
 }
 .time-label {
@@ -2286,6 +2330,10 @@ canvas {
   box-sizing: border-box;
   padding-right: 0.4rem;
   transition: background var(--transition);
+    flex: 0 0 65px;        /* ~65px wide sidebar */
+  background: var(--color-label-bg);
+  box-shadow: inset -1px 0 0 #ccc;
+
 }
 .time-label:nth-child(2n) {
   background: #f1f5f9;
@@ -2325,11 +2373,11 @@ canvas {
    ======================== */
 .timeline-appointments {
   position: relative;
-  flex: 1;
+  flex: 1 1 auto;
   background: var(--color-bg);
     max-height: calc(50vh - 40px); /* subtract header & label padding */
-  overflow-y: auto;
-  scrollbar-width: none;
+  overflow: hidden;   /* no internal scrollbar here */
+  scrollbar-width: thin;    /* or just delete this line entirely */
 
 
 }
@@ -2340,8 +2388,17 @@ canvas {
   overflow-x: hidden;
 }
 .timeline-appointments::-webkit-scrollbar {
-  display: none;
+  width: 8px;
 }
+.timeline-appointments::-webkit-scrollbar-thumb {
+  background: #3b82f6;    /* e.g. your accent color */
+  border-radius: 4px;
+}
+.timeline-appointments::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+
 
 /* ========================
    7. Appointment Blocks
@@ -2415,4 +2472,334 @@ canvas {
     overflow-y: auto;
   }
 }
+
+/*------------------------------------------*/
+/* OVERLAY */
+#bookingModal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-overlay);
+  z-index: 1000;
+}
+
+/* SHOW MODAL */
+#bookingModal.is-open {
+  display: flex;
+  animation: modalFadeIn 0.3s ease-out both;
+}
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* BACKDROP (for click-outside) */
+#bookingModal .modal-backdrop {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+}
+
+/* CARD */
+#bookingModal .modal-content {
+  position: relative;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-base);
+}
+
+/* HEADER */
+#bookingModal .modal-header {
+  background: var(--bg-header);
+  color: var(--fg-heading);
+  padding: calc(var(--spacing) * 1.5);
+  text-align: center;
+}
+#bookingModal .modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* CLOSE BUTTON */
+#bookingModal .modal-close {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--fg-heading);
+  cursor: pointer;
+  transition: transform 0.2s, color 0.2s;
+}
+#bookingModal .modal-close:hover {
+  transform: rotate(90deg);
+  color: #ffecb3;
+}
+
+/* BODY */
+#bookingModal .modal-body {
+  padding: var(--spacing);
+  display: grid;
+  grid-gap: var(--spacing);
+}
+
+/* EACH ROW */
+.detail-row {
+  display: flex;
+  align-items: center;
+}
+.detail-row .icon {
+  font-size: 1.25rem;
+  margin-left: 0.75rem;
+}
+.detail-row .label {
+  flex-shrink: 0;
+  width: 5rem;
+  color: var(--fg-label);
+  font-weight: 600;
+}
+.detail-row .value {
+  color: var(--fg-value);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* RESPONSIVE TWEAKS */
+@media (max-width: 360px) {
+  #bookingModal .modal-content {
+    padding: 0;
+    margin: 0 0.5rem;
+  }
+  .detail-row .label {
+    width: 4rem;
+    font-size: 0.9rem;
+  }
+  .detail-row .value {
+    font-size: 0.9rem;
+  }
+}
+
+/* ───── BOARDING GRID ───── */
+.boarding-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(2, 220px);   /* two rows, each 220px tall */
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: var(--bg-page);
+}
+
+/* ───── CELL BASE ───── */
+.boarding-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  /* force every row to be at least 140px tall (adjust to taste) */
+  grid-auto-rows: 140px;
+  gap: 1rem;
+}
+.boarding-cell {
+  position: relative;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: calc(var(--spacing)/2);
+  box-shadow: 0 2px 6px var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: default;
+  overflow: hidden;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 1rem;
+
+}
+.cell-number {
+  width: 100%;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-secondary);
+  margin-bottom: 0.5rem;
+}
+
+/* 2) Appointment ID — large & centered */
+.appointment-id {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+  width: 100%;
+}
+
+.boarding-cell .cell-number {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.6rem;
+  font-size: 1.1rem;
+  opacity: 0.8;
+}
+.boarding-cell .dog-name {
+  font-weight: bold;
+  margin-bottom: 0.2rem;
+  text-align: center;
+  font-size: 2rem;
+}
+.boarding-cell .date-range {
+  font-size: 0.75rem;
+  text-align: center;
+  opacity: 0.9;
+    font-size: 1.5rem;
+
+}
+/* Color for status */
+.boarding-cell.available {
+  background: linear-gradient(135deg, #d1fae5, var(--color-success));
+}
+.boarding-cell.booked {
+  background: linear-gradient(135deg, #fee2e2, var(--color-danger));
+  cursor: pointer;
+}
+/* Pop on hover */
+.boarding-cell.booked:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 18px var(--shadow-md);
+}
+
+/* Cell number badge */
+.cell-number {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: rgba(255,255,255,0.85);
+  color: var(--fg-primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+}
+
+/* Text inside cell */
+.cell-number {
+  width: 100%;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-secondary);
+  margin-bottom: 0.5rem;
+}
+
+/* 2) Appointment ID — large & centered */
+.appointment-id {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+  width: 100%;
+}
+
+
+#bookingModal.is-open {
+  display: flex;
+  animation: modalFadeIn 0.3s ease-out both;
+}
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── Modal Content ── */
+#bookingModal .modal-content {
+  position: relative;
+  background: var(--color-bg-card);
+  border-radius: var(--radius-lg);
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 8px 24px var(--shadow-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Modal Header ── */
+#bookingModal .modal-header {
+  background: var(--color-bg-accent);
+  color: #fff;
+  padding: 1rem 1.5rem;
+  text-align: center;
+}
+#bookingModal .modal-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* ── Close Button ── */
+#bookingModal .modal-close {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem; /* left for RTL */
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s, color 0.2s;
+}
+#bookingModal .modal-close:hover {
+  transform: rotate(90deg);
+  color: #ffd700;
+}
+
+/* ── Modal Body ── */
+#bookingModal .modal-body {
+  padding: var(--spacing);
+  display: grid;
+  gap: 0.75rem;
+}
+
+/* ── Detail Rows ── */
+.detail-row {
+  display: flex;
+  align-items: center;
+}
+.detail-row .icon {
+  font-size: 1.25rem;
+  margin-left: 0.75rem;
+}
+.detail-row .label {
+  flex-shrink: 0;
+  width: 5rem;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+.detail-row .value {
+  color: var(--color-text-primary);
+  font-weight: 500;
+  word-break: break-word;
+}
+
+/* ── Responsive ── */
+@media (max-width: 360px) {
+  .detail-row .label { width: 4rem; font-size: 0.9rem; }
+  .detail-row .value { font-size: 0.9rem; }
+}
+
+
+
+
+
+
+
 

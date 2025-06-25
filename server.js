@@ -36,6 +36,36 @@ const con=new Client({
 });
 
 con.connect().then(()=> console.log("connected"))
+
+// ─── helper: find a free cell, robust against inverted dates ───
+async function findFreeCell(startDate, endDate) {
+  const sql = `
+    WITH all_cells AS (
+      SELECT generate_series(1,10) AS cell_number
+    ), occupied AS (
+      SELECT cell_number
+      FROM boarding_appointments
+      WHERE tsrange(
+              LEAST(check_in,   check_out),
+              GREATEST(check_in,check_out),
+              '[]'
+            )
+        && tsrange(
+              LEAST($1::timestamp, $2::timestamp),
+              GREATEST($1::timestamp, $2::timestamp),
+              '[]'
+            )
+    )
+    SELECT cell_number
+    FROM all_cells
+    WHERE cell_number NOT IN (SELECT cell_number FROM occupied)
+    ORDER BY cell_number
+    LIMIT 1;
+  `;
+  const { rows } = await con.query(sql, [startDate, endDate]);
+  return rows[0]?.cell_number || null;
+}
+
 // right after your other app.use()/middleware
 const BOARDING_CAPACITY = 10;   // ← adjust to your real kennel capacity
 
@@ -621,14 +651,34 @@ app.post('/report-dog', authenticateToken, upload.single('image'), async (req, r
         .json({ message: 'אין מקום פנוי בפנסיון בתאריכים שנבחרו' });
     }
 
-    // 2) Insert the new booking
-    const insertRes = await con.query(
-      `INSERT INTO boarding_appointments
-         (customer_id, dog_id, check_in, check_out, notes, status)
-       VALUES ($1, $2, $3, $4, $5, 'pending')
-       RETURNING *`,
-      [realCustomerId, dog_id, check_in, check_out, notes]
-    );
+      if (new Date(check_in) > new Date(check_out)) {
+    return res
+      .status(400)
+      .json({ message: 'תאריך התחלה חייב להיות לפני תאריך סיום.' });
+  }
+
+  // 2) pick a free cell
+  let cell;
+  try {
+    cell = await findFreeCell(check_in, check_out);
+  } catch (err) {
+    console.error('findFreeCell error', err);
+    return res.status(500).json({ message: 'שגיאה בבדיקת תאים פנויים' });
+  }
+  if (!cell) {
+    return res
+      .status(409)
+      .json({ message: 'אין תאים פנויים לטווח התאריכים שבחרת' });
+  }
+
+  // 3) insert including the assigned cell_number
+  const insertRes = await con.query(
+    `INSERT INTO boarding_appointments
+       (customer_id, dog_id, check_in, check_out, notes, status, cell_number)
+     VALUES ($1, $2, $3, $4, $5, 'pending', $6)
+     RETURNING *`,
+    [realCustomerId, dog_id, check_in, check_out, notes, cell]
+  );
 
     // 3) Return the newly created booking
     res.status(201).json({
@@ -641,6 +691,106 @@ app.post('/report-dog', authenticateToken, upload.single('image'), async (req, r
     res.status(500).json({ message: 'שגיאה בשמירת התור' });
   }
 });
+
+/**
+ * GET /api/boarding-cells/status?date=YYYY-MM-DD
+ * Returns for each cell 1–10:
+ *   - available: true
+ *   - if booked: available: false and the appointment ID
+ */
+app.get('/api/boarding-cells/status', authenticateToken, async (req, res) => {
+  const { date } = req.query;
+  if (!date) {
+    return res.status(400).json({ error: 'Missing date query parameter' });
+  }
+
+  try {
+    // 1) find any overlapping appointment per cell
+const sql = `
+WITH cells AS (
+  SELECT generate_series(1,10) AS cell_number
+), bookings AS (
+  SELECT
+    cell_number,
+    id             AS appointment_id,
+    dog_id,
+    customer_id,
+    check_in,
+    check_out
+  FROM boarding_appointments
+  WHERE
+    status <> 'cancelled'                          -- ← skip cancelled
+    AND tsrange(
+      check_in,
+      check_out + INTERVAL '1 day',
+      '[)'
+    )
+    &&
+    tsrange(
+      $1::date,
+      ($1::date + INTERVAL '1 day'),
+      '[)'
+    )
+)
+SELECT
+  c.cell_number,
+  b.appointment_id,
+  b.check_in,
+  b.check_out,
+  d.name               AS dog_name,
+  (cu.first_name || ' ' || cu.last_name) AS customer_name,
+  cu.phone             AS customer_phone
+FROM cells c
+LEFT JOIN bookings b
+  ON c.cell_number = b.cell_number
+LEFT JOIN dogs d
+  ON d.id = b.dog_id
+LEFT JOIN customers cu
+  ON cu.id = b.customer_id
+ORDER BY c.cell_number;
+
+`;
+    
+    const { rows } = await con.query(sql, [date]);
+    // Map to our desired shape
+const status = rows.map(r => ({
+  cell_number:    r.cell_number,
+  available:      r.appointment_id == null,
+  appointmentId: r.appointment_id,
+  dog_name:       r.dog_name,
+  check_in:       r.check_in,
+  check_out:      r.check_out,
+  customer_name:  r.customer_name,
+  customer_phone: r.customer_phone
+}));
+res.json(status);
+
+  } catch (err) {
+    console.error('Error fetching cell status', err);
+    res.status(500).json({ error: 'Server error fetching cell status' });
+  }
+});
+
+app.get('/api/boarding-appointments/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const sql = `
+SELECT
+  a.*,
+  d.name  AS dog_name,
+  (cu.first_name || ' ' || cu.last_name) AS customer_name,
+  cu.phone AS customer_phone
+FROM boarding_appointments a
+JOIN dogs d
+  ON d.id = a.dog_id
+JOIN customers cu
+  ON cu.id = a.customer_id
+WHERE a.id = $1;
+  `;
+  const { rows } = await con.query(sql, [id]);
+  if (!rows[0]) return res.status(404).json({ error: 'Not found' });
+  res.json(rows[0]);
+});
+
 
 app.get('/manager/boarding/checkins-today', async (req, res) => {
   try {

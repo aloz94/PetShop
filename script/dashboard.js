@@ -3082,9 +3082,9 @@ document.getElementById('addProductForm').addEventListener('submit', async (e) =
 // grooming-timeline.js
 
 document.addEventListener('DOMContentLoaded', () => {
-  const dateInput = document.getElementById('selectedDate');
-  const prevBtn = document.getElementById('prevDay');
-  const nextBtn = document.getElementById('nextDay');
+  const dateInput = document.getElementById('GselectedDate');
+  const prevBtn = document.getElementById('GprevDay');
+  const nextBtn = document.getElementById('GnextDay');
   const serviceFilter = document.getElementById('serviceFilter');
 
   const today = new Date();
@@ -3168,7 +3168,7 @@ function renderTimeline(appointments) {
 
   const startHour    = 9;
   const endHour      = 16.5;
-  const unitHeight   = 30;             // px per 15min
+  const unitHeight   = 35;             // px per 15min
   const pxPerMinute  = unitHeight/15;  // = 2px/min
   const labelHeight  = unitHeight * 2; // 60px per 30min
 
@@ -3204,12 +3204,161 @@ function renderTimeline(appointments) {
 }
 
   });
-const labelsCol = document.getElementById('timelineLabels');
-const appsCol   = document.getElementById('timelineGrid');
+const labels = document.getElementById('timelineLabels');
+const grid   = document.getElementById('timelineGrid');
 
-labelsCol.addEventListener('scroll', () => {
-  appsCol.scrollTop = labelsCol.scrollTop;
+// Whenever the grid scrolls, adjust the labels to match:
+grid.addEventListener('scroll', () => {
+  labels.scrollTop = grid.scrollTop;
 });
-appsCol.addEventListener('scroll', () => {
-  labelsCol.scrollTop = appsCol.scrollTop;
+
+// helper to format "YYYY-MM-DD" → "DD/MM"
+function formatDate(iso) {
+  const d = new Date(iso);
+  return [
+    String(d.getDate()).padStart(2, '0'),
+    String(d.getMonth()+1).padStart(2, '0'),
+    d.getFullYear()
+  ].join('/');
+}
+
+async function loadBoardingGrid(date) {
+  const res = await fetch(`/api/boarding-cells/status?date=${date}`, {
+    credentials: 'include'
+  });
+  const cells = await res.json();
+  const container = document.getElementById('boardingGrid');
+  container.innerHTML = '';
+
+  cells.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'boarding-cell ' + (c.available ? 'available' : 'booked');
+
+    // show number + details if booked
+      div.innerHTML = `
+  <div class="cell-number">תא ${c.cell_number}</div>
+  ${!c.available ? `
+    <div class="appointment-id">#${c.appointmentId}</div>
+    <div class="dog-name">${c.dog_name}</div>
+    <div class="date-range">
+      ${formatDate(c.check_in)}  ${formatDate(c.check_out)}
+    </div>
+  ` : ''}
+`;
+
+
+    // only add click for booked cells
+  if (!c.available && c.appointmentId) {
+    div.addEventListener('click', () => {
+      console.log('clicked cell', c.cell_number, 'apptId', c.appointmentId);
+      showBookingDetails(c.appointmentId);
+          console.log('BOARDING CELLS:', cells);
+
+    });
+    }
+
+    container.appendChild(div);
+
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // … your existing init code …
+
+  const grid = document.getElementById('boardingGrid');
+  grid.addEventListener('click', e => {
+    const cell = e.target.closest('.boarding-cell.booked');
+    if (!cell) return;                      // clicked outside a booked cell
+    const apptId = cell.dataset.apptId;
+    if (!apptId) return;                    // no booking on that cell
+    console.log('🖱️ delegated click for apptId', apptId);
+    showBookingDetails(apptId);
+  });
+});
+
+
+/**
+ * Fetches full booking info and displays it in the #bookingModal.
+ * @param {number|string} appointmentId
+ */
+async function showBookingDetails(appointmentId) {
+  try {
+    // 1) Fetch the appointment details
+    const res = await fetch(`/api/boarding-appointments/${appointmentId}`, {
+      credentials: 'include'
+    });
+    if (!res.ok) {
+      throw new Error(`Server returned ${res.status}`);
+    }
+    const data = await res.json();
+
+    // 2) Populate the modal content
+    const body = document.getElementById('modalBody');
+    body.innerHTML = `
+      <p><strong>כלב:</strong> ${data.dog_name}</p>
+      <p><strong>בעלים:</strong> ${data.customer_name}</p>
+      <p><strong>טלפון:</strong> ${data.customer_phone}</p>
+      <p><strong>כניסה:</strong> ${new Date(data.check_in).toLocaleDateString()}</p>
+      <p><strong>יציאה:</strong> ${new Date(data.check_out).toLocaleDateString()}</p>
+      <p><strong>הערות:</strong> ${data.notes || '—'}</p>
+    `;
+
+    // 3) Show the modal
+    const modal = document.getElementById('bookingModal');
+    modal.classList.add('is-open');
+
+  } catch (err) {
+    console.error('Failed to load booking details:', err);
+    alert('שגיאה בטעינת פרטי ההזמנה. נסה שנית.');
+  }
+}
+
+// 4) Close button listener (run once on page init)
+document.getElementById('modalClose').addEventListener('click', () => {
+  document.getElementById('bookingModal').classList.remove('is-open');
+});
+
+
+// UTC‐based parse & format
+function parseYMD(str) {
+  const [y, m, d] = str.split('-').map(Number);
+  // construct as UTC midnight
+  return new Date(Date.UTC(y, m - 1, d));
+}
+function formatYMD(date) {
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(date.getUTCDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const dateInput = document.getElementById('selectedDate');
+  const prevDay   = document.getElementById('prevDay');
+  const nextDay   = document.getElementById('nextDay');
+
+  // initialize to today (UTC)
+  const now = new Date();
+  // use today's UTC date components
+  const initDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  dateInput.value = formatYMD(initDate);
+  loadBoardingGrid(dateInput.value);
+
+  dateInput.addEventListener('change', () => {
+    loadBoardingGrid(dateInput.value);
+  });
+
+  prevDay.addEventListener('click', () => {
+    const d = parseYMD(dateInput.value);
+    d.setUTCDate(d.getUTCDate() );
+    dateInput.value = formatYMD(d);
+    loadBoardingGrid(dateInput.value);
+  });
+
+  nextDay.addEventListener('click', () => {
+    const d = parseYMD(dateInput.value);
+    d.setUTCDate(d.getUTCDate() );
+    dateInput.value = formatYMD(d);
+    loadBoardingGrid(dateInput.value);
+  });
 });
