@@ -2045,6 +2045,153 @@ ORDER BY p.name;
   }
 });
 
+app.get(
+  '/api/products/stock-counts',
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const [{ count: low }] = await con.query(
+        `SELECT COUNT(*) AS count
+         FROM products
+         WHERE stock_quantity > 0
+           AND stock_quantity <= min_quantity`,
+      ).then(r => r.rows);
+
+      const [{ count: out }] = await con.query(
+        `SELECT COUNT(*) AS count
+         FROM products
+         WHERE stock_quantity = 0`
+      ).then(r => r.rows);
+
+      res.json({ low: +low, out: +out });
+    } catch (err) {
+      console.error('Error fetching stock counts', err);
+      res.status(500).json({ error: 'Server error' });
+    }
+  }
+);
+
+// 2) list of low-stock products
+app.get(
+  '/api/products/low-stock',
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const result = await con.query(
+        `SELECT id, name, stock_quantity
+         FROM products
+         WHERE stock_quantity > 0
+           AND stock_quantity <= min_quantity
+         ORDER BY stock_quantity ASC`,
+      );
+      res.json(result.rows);
+    } catch (err) {
+      console.error('Error fetching low-stock list', err);
+      res.status(500).json({ error: 'Server error' });
+    }
+  }
+);
+
+// 3) list of out-of-stock products
+app.get(
+  '/api/products/out-of-stock',
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const result = await con.query(
+        `SELECT id, name, stock_quantity
+         FROM products
+         WHERE stock_quantity = 0`
+      );
+      res.json(result.rows);
+    } catch (err) {
+      console.error('Error fetching out-of-stock list', err);
+      res.status(500).json({ error: 'Server error' });
+    }
+  }
+);
+
+// 1 product by ID
+// GET a single product by ID (including its category name)
+app.get(
+  '/api/products/:id',
+  authenticateToken,
+  async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    try {
+      const result = await con.query(
+        `SELECT
+           p.id,
+           p.name,
+           p.price,
+           p.stock_quantity,
+           p.min_quantity,
+           p.description,
+           p.img_path,
+           p.category_id,
+           c.name AS category
+         FROM products p
+         LEFT JOIN categories c
+           ON p.category_id = c.id
+         WHERE p.id = $1`,
+        [id]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+
+      res.json(result.rows[0]);
+    } catch (err) {
+      console.error('Error fetching product by ID', err);
+      res.status(500).json({ error: 'Server error' });
+    }
+  }
+);
+
+// 4) update a product by ID
+app.put(
+  '/api/products/:id',
+  authenticateToken,
+  async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    const {
+      name,
+      category_id,    // make sure your form sends the category’s ID, not its name
+      price,
+      stock_quantity,
+      min_quantity,
+      description
+    } = req.body;
+
+    try {
+      const result = await con.query(
+        `UPDATE products
+         SET name           = $1,
+             category_id    = $2,
+             price          = $3,
+             stock_quantity = $4,
+             min_quantity   = $5,
+             description    = $6
+         WHERE id = $7
+         RETURNING *`,
+        [name, category_id, price, stock_quantity, min_quantity, description, id]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+
+      res.json(result.rows[0]);
+    } catch (err) {
+      console.error('Error updating product', err);
+      res.status(500).json({ error: 'Server error' });
+    }
+  }
+);
+
+
+
 app.get('/products/toys',  async (req, res) => {
   try {
     const query = `
@@ -2328,7 +2475,7 @@ app.get('/manager/stats/low-stock', authenticateToken, async (req, res) => {
       SELECT COUNT(*) AS total
       FROM products
       WHERE stock_quantity > 0
-        AND stock_quantity < min_quantity
+        AND stock_quantity <= min_quantity
     `);
     const lowStockCount = parseInt(rows.rows[0].total, 10);
     res.json({ lowStockCount }); // Ensure this returns an object
@@ -2591,25 +2738,67 @@ app.get('/manager/stats/top-products', authenticateToken, async (req, res) => {
   }
 });
 
-app.get('/manager/stats/top-products', authenticateToken, async (req, res) => {
-  try {
-    const sql = `
-      SELECT p.name, SUM(oi.quantity) AS total_sold, p.price, 
-             SUM(oi.quantity) * p.price AS total_revenue
-      FROM order_items oi
-      JOIN products p ON p.id = oi.product_id
-      GROUP BY p.name, p.price
-      ORDER BY total_sold DESC
-      LIMIT 5
-    `;
+// GET top 5 products sold, filtered by today/week/month
+// GET top 5 products by quantity sold & revenue, filtered by today/week/month
+// GET top 5 products by quantity sold & revenue, filtered by today/week/month (Israel TZ)
+app.get(
+  '/manager/stats/top-products',
+  authenticateToken,
+  async (req, res) => {
+    const range = req.query.range || 'today';
 
-    const result = await con.query(sql);
-    res.json(result.rows); // name, total_sold, price, total_revenue
-  } catch (err) {
-    console.error('Error fetching top products:', err);
-    res.status(500).json({ error: 'DB error' });
+    try {
+      // 1) ensure all date functions use Israel time
+      await con.query(`SET TIME ZONE 'Asia/Jerusalem'`);
+
+      // 2) build a WHERE on the DATE part of created_at
+      let filterSQL;
+      switch (range) {
+        case 'today':
+          // only orders whose local-date = today
+          filterSQL = `o.created_at::date = CURRENT_DATE`;
+          break;
+        case 'week':
+          // last 7 calendar days (including today)
+          filterSQL = `o.created_at::date >= CURRENT_DATE - INTERVAL '6 days'`;
+          break;
+        case 'month':
+          // last 30 calendar days
+          filterSQL = `o.created_at::date >= CURRENT_DATE - INTERVAL '29 days'`;
+          break;
+        default:
+          filterSQL = 'TRUE';
+      }
+
+      console.log(
+        `📊 [route] top-products range="${range}", filter=" ${filterSQL} "`
+      );
+
+      // 3) run the aggregate
+      const { rows } = await con.query(
+        `
+        SELECT
+          p.name,
+          SUM(oi.quantity)                 AS total_sold,
+          SUM(oi.quantity * oi.unit_price) AS total_revenue
+        FROM order_items oi
+        JOIN orders o   ON oi.order_id   = o.id
+        JOIN products p ON p.id          = oi.product_id
+        WHERE ${filterSQL}
+        GROUP BY p.name
+        ORDER BY total_sold DESC
+        LIMIT 5
+        `
+      );
+
+      console.log(`✅ returned ${rows.length} rows`);
+      res.json(rows);
+    } catch (err) {
+      console.error('❗ [route] Error fetching top products', err);
+      res.status(500).json({ error: 'Server error' });
+    }
   }
-});
+);
 
 app.get('/reports/customers-active', async (req, res) => {
   try {
@@ -2963,6 +3152,247 @@ app.get('/grooming-appointments/by-date', authenticateToken, async (req, res) =>
   }
 });
 
+
+//orders 
+/*app.get('/api/orders/by-date', authenticateToken, async (req, res) => {
+  const { date } = req.query;
+  if (!date) {
+    return res.status(400).json({ error: 'Missing date parameter' });
+  }
+
+  try {
+    const sql = `
+      SELECT 
+        o.id,
+        (c.first_name || ' ' || c.last_name) AS customer_name,
+        to_char(o.order_date::date, 'YYYY-MM-DD') AS date,
+        ROUND(SUM(oi.quantity * oi.unit_price)::numeric, 2) AS total
+      FROM orders o
+      JOIN customers c   ON c.id = o.customer_id
+      JOIN order_items oi ON oi.order_id = o.id
+      WHERE o.order_date::date = $1::date
+      GROUP BY o.id, customer_name, o.order_date
+      ORDER BY o.order_date DESC;
+    `;
+    const { rows } = await con.query(sql, [date]);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching orders summary:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// 2) GET /api/orders/:id/items
+//    returns an array of { product_id, product_name, quantity, unit_price }
+app.get('/api/orders/:id/items', authenticateToken, async (req, res) => {
+  const orderId = req.params.id;
+  try {
+    const sql = `
+      SELECT 
+        oi.product_id,
+        p.name       AS product_name,
+        oi.quantity,
+        oi.unit_price
+      FROM order_items oi
+      JOIN products p ON p.id = oi.product_id
+      WHERE oi.order_id = $1
+      ORDER BY oi.id;
+    `;
+    const { rows } = await con.query(sql, [orderId]);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching order items:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// (Optional) 3) GET /api/orders/stats?date=YYYY-MM-DD
+//    returns { total, pending, completed, cancelled, revenue }
+app.get('/api/orders/stats', authenticateToken, async (req, res) => {
+  const { date } = req.query;
+  if (!date) return res.status(400).json({ error: 'Missing date parameter' });
+
+  try {
+    const statsSql = `
+      SELECT
+        COUNT(*) FILTER (WHERE o.status = 'pending')   AS pending,
+        COUNT(*) FILTER (WHERE o.status = 'completed') AS completed,
+        COUNT(*) FILTER (WHERE o.status = 'cancelled') AS cancelled,
+        COUNT(*)                                       AS total,
+        COALESCE(SUM(oi.quantity * oi.unit_price),0)   AS revenue
+      FROM orders o
+      LEFT JOIN order_items oi 
+        ON oi.order_id = o.id
+      WHERE o.order_date::date = $1::date;
+    `;
+    const { rows } = await con.query(statsSql, [date]);
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('Error fetching order stats:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});*/
+// GET /api/orders
+// server.js (or wherever your routes live)
+
+app.get('/api/orders/:id/full', authenticateToken, async (req, res) => {
+  const orderId = req.params.id;
+  try {
+    const sql = `
+      SELECT
+        o.id,
+        to_char(o.created_at,       'YYYY-MM-DD HH24:MI') AS created_at,
+        o.payment_method,
+        o.total,
+        
+        /* customer */
+        c.first_name  || ' ' || c.last_name AS customer_name,
+        c.phone AS customer_phone,
+        c.email AS customer_email,
+        
+        /* shipping address */
+        a.label      AS address_label,
+        a.city,
+        a.street,
+        a.house_number,
+        a.zip,
+        
+        /* line-items as JSON array */
+        json_agg(
+          json_build_object(
+            'product_id',   oi.product_id,
+            'product_name', p.name,
+            'quantity',     oi.quantity,
+            'unit_price',   oi.unit_price,
+            'line_total',   ROUND(oi.quantity * oi.unit_price::numeric, 2)
+          )
+        ) FILTER (WHERE oi.id IS NOT NULL) AS items
+
+      FROM orders o
+      JOIN customers c   ON c.id = o.customer_id
+      JOIN addresses a   ON a.id = o.address_id
+      LEFT JOIN order_items oi
+        ON oi.order_id = o.id
+      LEFT JOIN products p
+        ON p.id = oi.product_id
+
+      WHERE o.id = $1
+      GROUP BY
+        o.id, o.created_at, o.payment_method, o.total,
+        c.first_name, c.last_name, c.phone, c.email,
+        a.label, a.city, a.street, a.house_number, a.zip;
+    `;
+    const { rows } = await con.query(sql, [orderId]);
+    if (!rows[0]) return res.status(404).json({ error: 'Order not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('Error fetching full order:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// GET /api/orders
+// — returns [{ id, date, status, customer_name, total }, …]
+app.get('/api/orders', authenticateToken, async (req, res) => {
+  try {
+    const sql = `
+      SELECT
+        o.id,
+        to_char(o.created_at::date, 'YYYY-MM-DD') AS date,
+        o.status,
+        (c.first_name || ' ' || c.last_name) AS customer_name,
+        ROUND(SUM(oi.quantity * oi.unit_price)::numeric, 2) AS total
+      FROM orders o
+      JOIN customers c     ON c.id = o.customer_id
+      LEFT JOIN order_items oi
+        ON oi.order_id = o.id
+      GROUP BY o.id, o.created_at, o.status, c.first_name, c.last_name
+      ORDER BY o.created_at DESC, o.id;
+    `;
+    const { rows } = await con.query(sql);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching orders:', err);
+    res.status(500).json({ error: 'Server error fetching orders' });
+  }
+});
+
+// PATCH /api/orders/:id/status
+// Body JSON: { status: "pending" }
+app.patch('/api/orders/:id/status', authenticateToken, async (req, res) => {
+  const orderId = req.params.id;
+  const { status } = req.body;
+  const allowed = ['new','pending','on_the_way','cancelled','completed'];
+  if (!allowed.includes(status)) {
+    return res.status(400).json({ error: 'Invalid status' });
+  }
+  try {
+    await con.query(
+      'UPDATE orders SET status = $1 WHERE id = $2',
+      [status, orderId]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Failed to update status:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// in server.js, alongside your other /api/orders routes:
+app.get('/api/orders/status-counts', authenticateToken, async (req, res) => {
+  try {
+    const sql = `
+      SELECT
+        COALESCE(SUM(CASE WHEN status = 'new'         THEN 1 ELSE 0 END), 0)::int AS new_count,
+        COALESCE(SUM(CASE WHEN status = 'pending'     THEN 1 ELSE 0 END), 0)::int AS pending_count,
+        COALESCE(SUM(CASE WHEN status = 'on_the_way'  THEN 1 ELSE 0 END), 0)::int AS on_the_way_count,
+        COALESCE(SUM(CASE WHEN status = 'cancelled'   THEN 1 ELSE 0 END), 0)::int AS cancelled_count
+      FROM orders;
+    `;
+    const { rows } = await con.query(sql);
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('Error fetching status counts:', err);
+    res.status(500).json({ error: 'Server error fetching counts' });
+  }
+});
+
+// GET /api/orders/by-status?status=...
+app.get('/api/orders/by-status', authenticateToken, async (req, res) => {
+  const { status } = req.query;
+  if (!status) {
+    return res.status(400).json({ error: 'Missing status query parameter' });
+  }
+
+  // Only allow your five statuses
+  const allowed = ['new','pending','on_the_way','cancelled','completed'];
+  if (!allowed.includes(status)) {
+    return res.status(400).json({ error: 'Invalid status value' });
+  }
+
+  try {
+    const sql = `
+      SELECT
+        o.id,
+        to_char(o.created_at::date, 'YYYY-MM-DD') AS date,
+        o.status,
+        (c.first_name || ' ' || c.last_name) AS customer_name,
+        ROUND(SUM(oi.quantity * oi.unit_price)::numeric, 2) AS total
+      FROM orders o
+      JOIN customers c     ON c.id = o.customer_id
+      LEFT JOIN order_items oi
+        ON oi.order_id = o.id
+      WHERE o.status = $1
+      GROUP BY o.id, o.created_at, o.status, c.first_name, c.last_name
+      ORDER BY o.created_at DESC, o.id;
+    `;
+    const { rows } = await con.query(sql, [status]);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching orders by status:', err);
+    res.status(500).json({ error: 'Server error fetching filtered orders' });
+  }
+});
 
 
 //module.exports = router;

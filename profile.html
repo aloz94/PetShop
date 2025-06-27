@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>פרופיל משתמש</title>
+      <script src="https://cdn.tailwindcss.com"></script>
+
     <link rel="stylesheet" href="styles/profile.css">
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
 
@@ -14,6 +16,54 @@
           <h2 id="username">ברוך הבא, עדן!</h2>
           <button class="logout-btn" onclick="logout()">התנתקות</button>
         </div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+  <!-- תור טיפוח הבא/נוכחי -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="px-4 py-2 border-b font-semibold">
+      התור הבא לטיפוח
+    </div>
+    <div class="p-4">
+      <p id="grooming-date">תאריך: –</p>
+      <p id="grooming-time">שעה: –</p>
+      <p id="grooming-service">שירות: –</p>
+      <p id="grooming-dog">כלב: –</p>
+      <p id="grooming-status">סטטוס: –</p>
+      <button id="grooming-cancel" class="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+        בטל תור
+      </button>
+    </div>
+  </div>
+
+  <!-- דיווחי נטושים -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="px-4 py-2 border-b font-semibold">
+      דיווחי נטושים
+    </div>
+    <div class="p-4">
+      <ul id="report-list" class="list-disc list-inside space-y-1">
+        <!-- JS יוסיף כאן <li> לכל דיווח -->
+      </ul>
+      <p id="no-reports" class="text-gray-500">אין דיווחים</p>
+    </div>
+  </div>
+
+  <!-- תור פנסיון הבא -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="px-4 py-2 border-b font-semibold">
+      התור הבא לפנסיון
+    </div>
+    <div class="p-4">
+      <p id="boarding-start">מתחיל: –</p>
+      <p id="boarding-duration">למשך: – ימים</p>
+      <p id="boarding-dog">כלב: –</p>
+      <p id="boarding-status">סטטוס: –</p>
+            <button id="boarding-cancel" class="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+        בטל תור
+      </button>
+
+    </div>
+  </div>
+</div>
 
         <div class="profile-section">
             <h3>הפרטים האישיים שלי</h3>

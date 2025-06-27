@@ -52,7 +52,7 @@
           </a>
         </li>
         <li>
-          <a href="delivery.html" data-target="delivery">
+          <a href="delivery.html" data-target="delivry">
             <i class="fa-solid fa-truck"></i>
             <span>שליחים</span>
           </a>
@@ -70,13 +70,13 @@
           </a>
         </li>
         <li>
-          <a href="clients.html" data-target="clients">
+          <a href="clients.html" data-target="customers">
             <i class="fa-solid fa-users"></i>
             <span>לקוחות</span>
           </a>
         </li>
         <li>
-          <a href="reports.html" data-target="reports">
+          <a href="reports.html" data-target="manager-Report">
             <i class="fa-solid fa-chart-line"></i>
             <span>דוחות</span>
           </a>
@@ -95,42 +95,12 @@
     <main class="main">
 <!-- דאשבורד פנסיון-->
       <section class="content content--active" id="boarding">
-        <div class="search-group">
-          <button class="add-btn" type="button" id="openBoardingBtn">
-         <i class="fas fa-plus"></i>
-          </button>
-          <select id="boardingSearchCategory">
-            <option value="">קטגורית חיפוש</option>
-            <option value="id">מס' תור</option>
-            <option value="customer_id">מס' לקוח (ID)</option>
-            <option value="customer_name">שם לקוח</option>
-            <option value="dog_id">מס' כלב (ID)</option>
-            <option value="dog_name">שם כלב</option>
-            <option value="check_in">תאריך כניסה</option>
-            <option value="check_out">תאריך יציאה</option>
-            <option value="status">סטטוס</option>
-          </select>
-        
-  <input   id="boardingSearchText" type="text"  placeholder="חפש…"  class="search-input"  />
-          <select id="boardingSearchStatusSelect" style="display:none">
-            <option value="">כל הסטטוסים</option>
-            <option value="pending">ממתין</option>
-            <option value="inprogress">בתהליך</option>
-            <option value="completed">הושלם</option>
-            <option value="cancelled">בוטל</option>
-          </select>
-        
-  <button id="boardingSearchBtn" class="btn-search" title="חפש">
-    🔍
-  </button>
-  <button id="boardingClearBtn" class="btn-clear" type="button" title="נקה">
-    ✖
-  </button>
-</div>
+                <h1>ניהול פנסיון</h1>
+
 <div class="boarding-header">
-  <button id="prevDay" class="btn-nav">◀</button>
+  <button id="prevDay" class="btn-nav">▶</button>
   <input type="date" id="selectedDate" class="date-input" />
-  <button id="nextDay" class="btn-nav">▶</button>
+  <button id="nextDay" class="btn-nav">◀</button>
 </div>
 
         <!-- Container for the 10‐cell grid -->
@@ -167,7 +137,6 @@
   </div>
 </div>
 
-        <h1>ניהול פנסיון</h1>
         <header class="kpi-bar">
           <div class="kpi-card green" id="checkin_today">
             <div class="icon"><i class="fas fa-sign-in-alt"></i>
@@ -192,6 +161,38 @@
       
           
         </header>
+        <div class="search-group">
+          <button class="add-btn" type="button" id="openBoardingBtn">
+         <i class="fas fa-plus"></i>
+          </button>
+          <select id="boardingSearchCategory">
+            <option value="">קטגורית חיפוש</option>
+            <option value="id">מס' תור</option>
+            <option value="customer_id">מס' לקוח (ID)</option>
+            <option value="customer_name">שם לקוח</option>
+            <option value="dog_id">מס' כלב (ID)</option>
+            <option value="dog_name">שם כלב</option>
+            <option value="check_in">תאריך כניסה</option>
+            <option value="check_out">תאריך יציאה</option>
+            <option value="status">סטטוס</option>
+          </select>
+        
+  <input   id="boardingSearchText" type="text"  placeholder="חפש…"  class="search-input"  />
+          <select id="boardingSearchStatusSelect" style="display:none">
+            <option value="">כל הסטטוסים</option>
+            <option value="pending">ממתין</option>
+            <option value="inprogress">בתהליך</option>
+            <option value="completed">הושלם</option>
+            <option value="cancelled">בוטל</option>
+          </select>
+        
+  <button id="boardingSearchBtn" class="btn-search" title="חפש">
+    🔍
+  </button>
+  <button id="boardingClearBtn" class="btn-clear" type="button" title="נקה">
+    ✖
+  </button>
+</div>
 
         <table class="dashboard-table" id="boarding-posts">
           <thead>
@@ -310,9 +311,9 @@
 
 <section class="timeline-container">
   <div class="timeline-header">
-    <button id="GprevDay">◀</button>
+    <button id="GprevDay">▶</button>
     <input type="date" id="GselectedDate">
-    <button id="GnextDay">▶</button>
+    <button id="GnextDay">◀</button>
     <select id="serviceFilter">
       <option value="">כל השירותים</option>
     </select>
@@ -471,9 +472,62 @@
 
 
     <section class="content" id="orders">
+<header class="kpi-bar">
 
-      <h2>הכנסות</h2>
-      <p>כאן יופיעו נתוני הכנסות</p>
+  <!-- new orders: green + shopping-cart icon -->
+  <div class="kpi-card green" id="new_orders">
+    <div class="icon">
+      <i class="fas fa-cart-plus"></i>
+    </div>
+    <div class="value" id="new_orders_count">12</div>
+    <div class="label">הזמנות חדשות</div>
+  </div>
+
+  <!-- pending / in-treatment: yellow + spinner icon -->
+  <div class="kpi-card yellow" id="pending_orders">
+    <div class="icon">
+      <i class="fas fa-spinner fa-spin"></i>
+    </div>
+    <div class="value" id="pending_orders_count">6</div>
+    <div class="label">הזמנות בטיפול</div>
+  </div>
+
+  <!-- on the way: blue + truck icon -->
+  <div class="kpi-card blue" id="ontheway_orders">
+    <div class="icon">
+      <i class="fas fa-truck"></i>
+    </div>
+    <div class="value" id="ontheway_orders_count">0</div>
+    <div class="label">הזמנות בדרך</div>
+  </div>
+
+  <!-- cancelled: red + times-circle icon -->
+  <div class="kpi-card red" id="cancelled_orders">
+    <div class="icon">
+      <i class="fas fa-times-circle"></i>
+    </div>
+    <div class="value" id="cancelled_orders_count">1</div>
+    <div class="label">הזמנות מבוטלות</div>
+  </div>
+
+</header>
+      <h2>הזמנות</h2>
+<div id="ordersAccordion"></div>
+
+<!-- Orders Status Modal -->
+<div id="ordersStatusModal" class="orders-modal hidden">
+  <div class="orders-modal-backdrop"></div>
+  <div class="orders-modal-content">
+    <button id="ordersStatusModalClose" class="orders-modal-close">&times;</button>
+    <header class="orders-modal-header">
+      <h2 id="ordersStatusModalTitle">הזמנות</h2>
+    </header>
+    <div class="orders-modal-body" id="ordersStatusModalBody">
+      <!-- filled dynamically -->
+    </div>
+  </div>
+</div>
+
     </section>
   
 <section class="content" id="products">
@@ -500,8 +554,95 @@
     </button>
   </div>
     <h2>מלאי מוצרים</h2>
+<header class="kpi-bar">
+
+  <!-- Low stock: orange + warning triangle -->
+  <div class="kpi-card orange" id="low_stock">
+    <div class="icon">
+      <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    <div class="value" id="low_stock_pro">12</div>
+    <div class="label">מלאי נמוך</div>
+  </div>
+
+  <!-- Out of stock: red + empty box -->
+  <div class="kpi-card red" id="out_stock">
+    <div class="icon">
+      <i class="fas fa-box-open"></i>
+    </div>
+    <div class="value" id="out_stock_pro">12</div>
+    <div class="label">אזל מהמלאי</div>
+  </div>
+
+</header>
+
+<div id="lowStockModal" class="modal">
+  <div class="modal-content">
+    <span class="modal-close" data-target="lowStockModal">&times;</span>
+    <h2>מלאי נמוך</h2>
+    <div id="lowStockModalBody"></div>
+  </div>
+</div>
+
+<!-- Out-Of-Stock Modal -->
+<div id="outOfStockModal" class="modal">
+  <div class="modal-content">
+    <span class="modal-close" data-target="outOfStockModal">&times;</span>
+    <h2>אזל מהמלאי</h2>
+    <div id="outOfStockModalBody"></div>
+  </div>
+</div>
+
+
+
 
   <div id="products-accordion"></div>
+
+<!-- Edit Product Modal -->
+<div id="editProductModal" class="modal">
+  <div class="modal-content">
+    <span class="modal-close" data-target="editProductModal">&times;</span>
+    <h2>ערוך מוצר</h2>
+    <form id="editProductForm">
+      <input type="hidden" id="edit-id" name="id">
+
+      <div class="form-group">
+        <label for="edit-name">שם מוצר</label>
+        <input type="text" id="edit-name" name="name" required>
+      </div>
+
+      <div class="form-group">
+        <label for="edit-category">קטגוריה</label>
+        <select id="edit-category" name="category_id" required>
+          <option value="">טוען קטגוריות…</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="edit-price">מחיר</label>
+        <input type="number" id="edit-price" name="price" step="0.01" required>
+      </div>
+
+      <div class="form-group">
+        <label for="edit-stock">כמות במלאי</label>
+        <input type="number" id="edit-stock" name="stock_quantity" required>
+      </div>
+
+      <div class="form-group">
+        <label for="edit-min">מינימום מלאי</label>
+        <input type="number" id="edit-min" name="min_quantity" required>
+      </div>
+
+      <div class="form-group">
+        <label for="edit-desc">תיאור</label>
+        <textarea id="edit-desc" name="description"></textarea>
+      </div>
+
+      <button type="submit" class="save-btn">שמור</button>
+    </form>
+  </div>
+</div>
+
 </section>
 
     <section class="content" id="abandoned">
@@ -830,7 +971,7 @@
       
         <div id="accordion-support"></div>
       </section>
-    <section class="content" id="help">
+    <section class="content" id="customers">
               <div class="search-group">
           <button class="add-btn" type="button" id="openBoardingBtn">
          <i class="fas fa-plus"></i>
@@ -919,7 +1060,7 @@
       <div class="value" id="total-dogs">--</div>
       <div class="label">סה"כ כלבים בפנסיון</div>
     </div>
-<div class="kpi-card orange">
+<div class="kpi-card orange" id="low-stock">
   <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
   <div class="value" id="low-stock-count">--</div>
   <div class="label">מוצרים במלאי נמוך</div>
@@ -957,11 +1098,32 @@
       <label><input type="radio" name="piePeriod" value="month"> חודש</label>
     </div>
   </div>
+<div>
+      <canvas id="TopProductsChart"></canvas>
 
-  <div id="TopProductsChartContainer"  dir="rtl">
+<div class="chart-controls" style="margin-bottom:1rem;">
+  <span>טווח זמן:</span>
+  <label style="margin-left:1rem;">
+    <input type="radio" name="timeRange" value="today" checked>
+    היום
+  </label>
+  <label style="margin-left:1rem;">
+    <input type="radio" name="timeRange" value="week">
+    השבוע
+  </label>
+  <label style="margin-left:1rem;">
+    <input type="radio" name="timeRange" value="month">
+    החודש
+  </label>
+</div>
+</div>
+
+
+
+  <!--<div id="TopProductsChartContainer"  dir="rtl">
   <h2>5 המוצרים הנמכרים ביותר</h2>
   <canvas id="TopProductsChart"></canvas>
-</div>
+</div>-->
 
 </section>
 <!--<div id="incomeChartContainer" style="display: none;">
@@ -1089,7 +1251,7 @@
 </main>
 
 <!--****************************************Dashboard PopUps******************************************-->
-<div id="lowStockModal" class="modal">
+<div id="lowStockModal" class="modal" style="display: none;">
   <div class="modal-content">
     <span class="close-btn">&times;</span>
     <h2>מוצרים במלאי נמוך</h2>

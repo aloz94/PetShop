@@ -93,7 +93,6 @@ await loadHandlersAccordion();
 await loadCareProvidersAccordion();
 await loadCustomersAccordion();
 await loadKpiData();
- 
 
   // טען את כלבים של לקוח לפי ת"ז
   /*
@@ -2985,17 +2984,20 @@ function renderProducts(products) {
       ? `<img src="/uploads/${prod.img_path}" alt="${prod.name}" style="max-width:70px;max-height:70px;border-radius:6px;">`
       : '',
     stock_badge: prod.stock_quantity === 0
-      ? '<span class="status-badge status-cancelled">אזל מהמלאי</span>'
-      : prod.low_stock
-        ? '<span class="status-badge status-alert">מלאי נמוך</span>'
-        : '',
+      ? '<span class="status-badge status-out">אזל מהמלאי</span>'
+      : (prod.stock_quantity <= prod.min_quantity
+        ? '<span class="status-badge status-low">מלאי נמוך</span>'
+        : ''),
     price: `₪${prod.price}`,
+    // ← new actions column
+    actions: `<button class="edit-btn" data-id="${prod.id}">ערוך</button>`
   }));
 
   buildAccordionFromData(
     formatted,
     'products-accordion',
-    ['image', 'name', 'category', 'price', 'stock_quantity', 'stock_badge'],
+    // ← include 'actions' as the last column
+    ['image', 'name', 'category', 'price', 'stock_quantity', 'stock_badge', 'actions'],
     ['description', 'min_quantity'],
     {
       image: 'תמונה',
@@ -3005,11 +3007,157 @@ function renderProducts(products) {
       stock_quantity: 'כמות במלאי',
       min_quantity: 'מינימום מלאי',
       description: 'תיאור',
-      stock_badge: ''
+      stock_badge: '',
+      actions: ''        // header for the Edit button column (can leave empty or put 'פעולות')
     }
   );
 }
+// 1) After building the accordion, attach listeners
 
+// 2) Placeholder for your edit‐modal logic
+function openEditModal(productId) {
+  // TODO: fetch product data by ID and populate your edit form/modal
+  console.log('Opening edit modal for product ID:', productId);
+  // e.g. 
+  // fetch(`/api/products/${productId}`)
+  //   .then(res => res.json())
+  //   .then(data => populateForm(data));
+}
+
+// 3) Integrate into renderProducts
+function renderProducts(products) {
+  const container = document.getElementById('products-accordion');
+  container.innerHTML = '';
+
+  const formatted = products.map(prod => ({
+    ...prod,
+    image: prod.img_path
+      ? `<img src="/uploads/${prod.img_path}" alt="${prod.name}" style="max-width:70px;max-height:70px;border-radius:6px;">`
+      : '',
+    stock_badge: prod.stock_quantity === 0
+      ? '<span class="status-badge status-out">אזל מהמלאי</span>'
+      : (prod.stock_quantity <= prod.min_quantity
+        ? '<span class="status-badge status-low">מלאי נמוך</span>'
+        : ''),
+    price: `₪${prod.price}`,
+    actions: `<button class="edit-btn" data-id="${prod.id}">  <i class="fa fa-edit"></i>
+</button>`
+  }));
+
+  buildAccordionFromData(
+    formatted,
+    'products-accordion',
+    ['image', 'name', 'category', 'price', 'stock_quantity', 'stock_badge', 'actions'],
+    ['description', 'min_quantity'],
+    {
+      image: 'תמונה',
+      name: 'שם מוצר',
+      category: 'קטגוריה',
+      price: 'מחיר',
+      stock_quantity: 'כמות במלאי',
+      min_quantity: 'מינימום מלאי',
+      description: 'תיאור',
+      stock_badge: '',
+      actions: 'פעולות'
+    }
+  );
+
+  // Call this after the accordion is rendered
+  attachEditListeners();
+  
+}
+
+// 1) Fetch categories for the <select>
+async function fetchCategories() {
+  try {
+    const res = await fetch('categories', { credentials: 'include' });
+    if (!res.ok) throw new Error(res.status);
+    return await res.json();             // [{id, name},…]
+  } catch (err) {
+    console.error('Error fetching categories:', err);
+    return [];
+  }
+}
+
+// 2) Open & populate Edit modal
+async function openEditModal(productId) {
+  openModal('editProductModal');
+
+  // populate category <select>
+  const select = document.getElementById('edit-category');
+  const cats   = await fetchCategories();
+  select.innerHTML = '<option value="">בחר קטגוריה…</option>' +
+    cats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+  // fetch the product itself
+  try {
+    const res  = await fetch(`/api/products/${productId}`, { credentials: 'include' });
+    if (!res.ok) throw new Error(res.status);
+    const prod = await res.json();
+
+    // fill inputs
+    document.getElementById('edit-id').value       = prod.id;
+    document.getElementById('edit-name').value     = prod.name;
+    select.value                                  = prod.category_id;
+    document.getElementById('edit-price').value    = prod.price;
+    document.getElementById('edit-stock').value    = prod.stock_quantity;
+    document.getElementById('edit-min').value      = prod.min_quantity;
+    document.getElementById('edit-desc').value     = prod.description || '';
+  } catch (err) {
+    console.error('Error loading product:', err);
+  }
+}
+
+// 3) Handle the form submission
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('editProductForm');
+  console.log('⚙️ edit form found?', form);
+
+  if (!form) return console.error('❌ editProductForm not in DOM!');
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    console.log('✉️ editProductForm submit fired');
+
+    const id = document.getElementById('edit-id').value;
+    const payload = {
+      name:           document.getElementById('edit-name').value,
+      category_id:    parseInt(document.getElementById('edit-category').value, 10),
+      price:          parseFloat(document.getElementById('edit-price').value),
+      stock_quantity: parseInt(document.getElementById('edit-stock').value, 10),
+      min_quantity:   parseInt(document.getElementById('edit-min').value, 10),
+      description:    document.getElementById('edit-desc').value
+    };
+    console.log('📤 payload:', payload);
+
+    try {
+      const res = await fetch(`/api/products/${id}`, {
+        method:      'PUT',
+        credentials: 'include',
+        headers:     { 'Content-Type': 'application/json' },
+        body:        JSON.stringify(payload)
+      });
+      console.log('🔄 PUT response:', res.status);
+      if (!res.ok) throw new Error(res.status);
+
+      closeModal('editProductModal');
+      const products = await fetchAllProducts();
+      renderProducts(products);
+    } catch (err) {
+      console.error('❗Error saving product:', err);
+    }
+  });
+});
+
+// 4) Ensure your attachEditListeners calls openEditModal
+function attachEditListeners() {
+  document.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      openEditModal(btn.dataset.id);
+    });
+  });
+}
 // Function to apply search filters
 function applyProductSearch() {
   const category = document.getElementById('productSearchCategory').value;
@@ -3037,6 +3185,126 @@ document.getElementById('productClearBtn').addEventListener('click', () => {
 // Load products on page load
 document.addEventListener('DOMContentLoaded', loadProducts);
 // קרא לפונקציה אחרי טעינת הדף
+  async function loadStockKPIs() {
+    try {
+      const res = await fetch('/api/products/stock-counts', {
+        credentials: 'include'
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const { low, out } = await res.json();
+
+      document.getElementById('low_stock_pro').textContent = low;
+      document.getElementById('out_stock_pro').textContent = out;
+    } catch (err) {
+      console.error('Failed to load stock KPIs:', err);
+    }
+  }
+
+  // when the page is ready
+  document.addEventListener('DOMContentLoaded', loadStockKPIs);
+  // 2) fetch & render full product list under the cards
+  // helper to open/close modal
+// Grab elements
+async function fetchLowStockProducts() {
+  try {
+    const res = await fetch('/api/products/low-stock', {
+      credentials: 'include'
+    });
+    if (!res.ok) {
+      throw new Error(`Server responded with ${res.status}`);
+    }
+    return await res.json();
+  } catch (err) {
+    console.error('Error fetching low-stock products:', err);
+    return [];
+  }
+}
+
+async function fetchOutOfStockProducts() {
+  try {
+    const res = await fetch('/api/products/out-of-stock', {
+      credentials: 'include'
+    });
+    if (!res.ok) {
+      throw new Error(`Server responded with ${res.status}`);
+    }
+    return await res.json();
+  } catch (err) {
+    console.error('Error fetching out-of-stock products:', err);
+    return [];
+  }
+}
+
+// --- Helpers to open/close any modal by ID ---
+function openModal(id) {
+  document.getElementById(id).style.display = 'flex';
+}
+function closeModal(id) {
+  document.getElementById(id).style.display = 'none';
+}
+
+// Attach close handlers to × spans
+document.querySelectorAll('.modal-close').forEach(el => {
+  el.addEventListener('click', _=> closeModal(el.dataset.target));
+});
+
+// Also close when clicking outside content
+document.querySelectorAll('.modal').forEach(modal => {
+  modal.addEventListener('click', e => {
+    if (e.target === modal) closeModal(modal.id);
+  });
+});
+
+// --- Button listeners ---
+document.getElementById('low_stock')
+  .addEventListener('click', showLowStockModal);
+
+document.getElementById('out_stock')
+  .addEventListener('click', showOutOfStockModal);
+
+// --- Render table helper ---
+function renderTable(bodyEl, products) {
+  if (!products.length) {
+    bodyEl.innerHTML = '<p>אין מוצרים להצגה.</p>';
+    return;
+  }
+  let html = `
+    <table>
+      <thead>
+        <tr><th>ID</th><th>שם</th><th>כמות במלאי</th></tr>
+      </thead>
+      <tbody>
+  `;
+  products.forEach(p => {
+    html += `
+      <tr>
+        <td>${p.id}</td>
+        <td>${p.name}</td>
+        <td>${p.stock_quantity}</td>
+      </tr>
+    `;
+  });
+  html += `</tbody></table>`;
+  bodyEl.innerHTML = html;
+}
+
+// --- Modal functions ---
+async function showLowStockModal() {
+  openModal('lowStockModal');
+  const body = document.getElementById('lowStockModalBody');
+  body.innerHTML = '<p>טוען…</p>';
+  const products = await fetchLowStockProducts();
+  renderTable(body, products);
+}
+
+async function showOutOfStockModal() {
+  openModal('outOfStockModal');
+  const body = document.getElementById('outOfStockModalBody');
+  body.innerHTML = '<p>טוען…</p>';
+  const products = await fetchOutOfStockProducts();
+  renderTable(body, products);
+}
 
 // =================== ADD PRODUCT FORM SUBMISSION ===================
 async function loadCategories() {
@@ -3348,17 +3616,373 @@ document.addEventListener('DOMContentLoaded', () => {
     loadBoardingGrid(dateInput.value);
   });
 
-  prevDay.addEventListener('click', () => {
-    const d = parseYMD(dateInput.value);
-    d.setUTCDate(d.getUTCDate() );
-    dateInput.value = formatYMD(d);
-    loadBoardingGrid(dateInput.value);
+prevDay.addEventListener('click', () => {
+  const d = parseYMD(dateInput.value);
+  d.setUTCDate(d.getUTCDate() - 1);     // ← go back one day
+  dateInput.value = formatYMD(d);
+  loadBoardingGrid(dateInput.value);
+});
+
+nextDay.addEventListener('click', () => {
+  const d = parseYMD(dateInput.value);
+  d.setUTCDate(d.getUTCDate() + 1);     // ← advance one day
+  dateInput.value = formatYMD(d);
+  loadBoardingGrid(dateInput.value);
+});
+});
+
+
+//orders 
+/**
+ * Fetch all orders and render them as an accordion using your
+ * buildAccordionFromData utility.
+ */
+async function loadOrdersAccordion() {
+  try {
+    const res = await fetch('/api/orders', { credentials: 'include' });
+    if (!res.ok) throw new Error(`Server returned ${res.status}`);
+    const data = await res.json();
+
+    // Hide any existing table
+    const tbl = document.getElementById('ordersTable');
+    if (tbl) tbl.style.display = 'none';
+
+    // Build the accordion
+    buildAccordionFromData(
+      data,
+      'ordersAccordion',                    // container ID
+      ['id','customer_name','date','total'],// header fields
+      ['status'],                           // body fields
+      {                                     // labels for each field
+        id:             'מספר הזמנה',
+        customer_name:  'לקוח',
+        date:           'תאריך',
+        total:          'סה״כ',
+        status:         'סטטוס'
+      }
+    );
+  } catch (err) {
+    console.error('Error loading orders:', err);
+    alert('שגיאה בטעינת ההזמנות');
+  }
+}
+
+/**
+ * Fetch all orders (summary) and render them as an accordion.
+ * When the user expands a panel, fetch full details and render them.
+ */
+document.addEventListener('DOMContentLoaded', () => {
+  loadOrdersAccordion();
+});
+
+async function loadOrdersAccordion() {
+  try {
+    // 1) Fetch the order summaries
+    const res = await fetch('/api/orders', { credentials: 'include' });
+    if (!res.ok) throw new Error(`Server error: ${res.status}`);
+    const orders = await res.json();
+
+    // 2) Grab (or create) the container
+    const containerId = 'ordersAccordion';
+    let container = document.getElementById(containerId);
+    if (!container) {
+      container = document.createElement('div');
+      container.id = containerId;
+      document.body.appendChild(container);
+    }
+    container.innerHTML = '';
+
+    // 2a) Render the fixed header row
+    renderAccordionHeaderRow(
+      container,                                          // pass the element itself
+      ['id','customer_name','date','total','status'],     // keys, in display order
+      {                                                   // your Hebrew labels
+        id:             'מס׳ הזמנה',
+        customer_name:  'לקוח',
+        date:           'תאריך',
+        total:          'סה״כ',
+        status:         'סטטוס'
+      }
+    );
+
+    // 3) Map status→Hebrew for badges
+    const statusLabels = {
+      new:        'חדש',
+      pending:    'בהמתנה',
+      on_the_way: 'בדרך',
+      cancelled:  'מבוטל',
+      completed:  'הושלם'
+    };
+
+    // 4) Build an accordion‐panel per order
+    orders.forEach(order => {
+      const panel = document.createElement('div');
+      panel.className = 'accordion';
+
+      // -- HEADER
+      const hdr = document.createElement('div');
+      hdr.className = 'accordion-header';
+      hdr.innerHTML = `
+        <span>#${order.id}</span>
+        <span>${order.customer_name}</span>
+        <span>${order.date}</span>
+        <span>₪${Number(order.total).toFixed(2)}</span>
+        <span class="status-badge status-${order.status}">
+          ${statusLabels[order.status] || order.status}
+        </span>
+      `;
+      panel.appendChild(hdr);
+
+      // -- BODY placeholder
+      const body = document.createElement('div');
+      body.className = 'accordion-body';
+      body.style.display = 'none';
+      body.innerHTML = `<div class="spinner">טוען פרטים…</div>`;
+      panel.appendChild(body);
+
+      // -- TOGGLE & LAZY LOAD
+      hdr.addEventListener('click', async () => {
+        const open = hdr.classList.toggle('open');
+        body.style.display = open ? 'block' : 'none';
+
+        if (open && !panel.dataset.loaded) {
+          try {
+            const detailsRes = await fetch(
+              `/api/orders/${order.id}/full`,
+              { credentials: 'include' }
+            );
+            if (!detailsRes.ok) throw new Error(detailsRes.status);
+            const detail = await detailsRes.json();
+            renderOrderDetails(body, detail);
+            panel.dataset.loaded = 'true';
+          } catch (err) {
+            body.innerHTML = `<div class="error">שגיאה בטעינת הפרטים</div>`;
+            console.error(err);
+          }
+        }
+      });
+
+      container.appendChild(panel);
+    });
+
+  } catch (err) {
+    console.error('Error loading orders:', err);
+    alert('שגיאה בטעינת ההזמנות');
+  }
+}
+
+/**
+ * Given a container <div> and a full order object (from /api/orders/:id/full),
+ * injects all the detail HTML and hooks up status‐change logic.
+ */
+function renderOrderDetails(container, order) {
+  // 1️⃣ Build the status dropdown
+   
+// 1️⃣ Build the status dropdown
+
+const statusLabels = {
+  new:        'חדש',
+  pending:    'בהמתנה',
+  on_the_way: 'בדרך',
+  cancelled:  'מבוטל',
+  completed:  'הושלם'
+};
+
+let statuses = [
+  { val: 'new',         label: 'חדש'     },
+  { val: 'pending',     label: 'בהמתנה'  },
+  { val: 'on_the_way',  label: 'בדרך'    },
+  { val: 'cancelled',   label: 'מבוטל'   },
+  { val: 'completed',   label: 'הושלם'   },
+];
+
+// Add current status if not in the list
+if (!statuses.some(s => s.val === order.status)) {
+  let label = statusLabels[order.status];
+  if (!label) {
+    label = order.status && typeof order.status === 'string'
+      ? order.status
+      : 'עדכן סטטוס ';
+  }
+  statuses.unshift({ val: order.status || '', label });
+}
+
+const optionsHtml = statuses.map(s => `
+  <option value="${s.val}" ${order.status === s.val ? 'selected' : ''}>
+    ${s.label}
+  </option>
+`).join('');
+  // 2️⃣ Inject the full details layout
+  container.innerHTML = `
+    <div class="order-info">
+      <p><strong>סטטוס:</strong>
+        <select id="statusSelect-${order.id}" class="status-select">
+          ${optionsHtml}
+        </select>
+      </p>
+      <p><strong>נוצר ב:</strong> ${order.created_at}</p>
+      <p><strong>שיטת תשלום:</strong> ${order.payment_method}</p>
+    </div>
+
+    <div class="order-customer">
+      <h4>פרטי לקוח</h4>
+      <p><strong>שם:</strong> ${order.customer_name}</p>
+      <p><strong>טלפון:</strong> ${order.customer_phone}</p>
+      <p><strong>אימייל:</strong> ${order.customer_email}</p>
+    </div>
+
+    <div class="order-address">
+      <h4>כתובת למשלוח</h4>
+      <p>
+        ${order.street} ${order.house_number}, 
+        ${order.city} 
+      </p>
+    </div>
+
+    <table class="order-items">
+      <thead>
+        <tr>
+          <th>מוצר</th>
+          <th>כמות</th>
+          <th>יחידה</th>
+          <th>סה"כ</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${order.items.map(item => `
+          <tr>
+            <td>${item.product_name}</td>
+            <td>${item.quantity}</td>
+            <td>₪${item.unit_price.toFixed(2)}</td>
+            <td>₪${item.line_total.toFixed(2)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+
+  // 3️⃣ Wire up the status‐change handler
+  const select = document.getElementById(`statusSelect-${order.id}`);
+  select.addEventListener('change', async () => {
+    const newStatus = select.value;
+    try {
+      const resp = await fetch(`/api/orders/${order.id}/status`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (!resp.ok) throw new Error(`Status ${resp.status}`);
+      // quick UI feedback
+      select.disabled = true;
+      setTimeout(() => select.disabled = false, 600);
+          order.status = newStatus;
+
+    } 
+    catch (err) {
+      console.error('Failed to update status:', err);
+      alert('שגיאה בעדכון סטטוס ההזמנה');
+      // revert selection
+      select.value = order.status;
+    }
+          loadOrdersAccordion(); // Refresh the accordion to reflect changes
+
   });
 
-  nextDay.addEventListener('click', () => {
-    const d = parseYMD(dateInput.value);
-    d.setUTCDate(d.getUTCDate() );
-    dateInput.value = formatYMD(d);
-    loadBoardingGrid(dateInput.value);
-  });
+}
+
+async function refreshStatusCards() {
+  try {
+    const res = await fetch('/api/orders/status-counts', {
+      credentials: 'include'
+    });
+    if (!res.ok) throw new Error(res.status);
+    const { new_count, pending_count, on_the_way_count,cancelled_count } = await res.json();
+
+    document.getElementById('new_orders_count').textContent            = new_count;
+    document.getElementById('pending_orders_count').textContent = pending_count;
+    document.getElementById('ontheway_orders_count').textContent = on_the_way_count;
+    document.getElementById('cancelled_orders_count').textContent = cancelled_count;
+  } catch (err) {
+    console.error('Failed to load status counts:', err);
+  }
+}
+
+// call it on page load (and whenever you need to refresh)
+document.addEventListener('DOMContentLoaded', () => {
+  refreshStatusCards();
 });
+
+const statusLabels = {
+  new:        'הזמנות חדשות',
+  pending:    'הזמנות בטיפול',
+  on_the_way: 'הזמנות בדרך',
+  cancelled:  'הזמנות בוטלו',
+  completed:  'הזמנות הושלמו'
+};
+
+async function showStatusOrders(status) {
+  try {
+    const res = await fetch(`/api/orders/by-status?status=${status}`, { credentials:'include' });
+    if (!res.ok) throw new Error(res.status);
+    const orders = await res.json();
+
+    document.getElementById('ordersStatusModalTitle').textContent =
+      statusLabels[status] || 'הזמנות';
+
+    const body = document.getElementById('ordersStatusModalBody');
+    if (orders.length === 0) {
+      body.innerHTML = `<p>אין הזמנות במצב "${statusLabels[status]}"</p>`;
+    } else {
+      let html = `
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th>מס׳ הזמנה</th>
+              <th>לקוח</th>
+              <th>תאריך</th>
+              <th>סה״כ</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+      orders.forEach(o => {
+        html += `
+          <tr>
+            <td>#${o.id}</td>
+            <td>${o.customer_name}</td>
+            <td>${o.date}</td>
+            <td>₪${Number(o.total).toFixed(2)}</td>
+          </tr>
+        `;
+      });
+      html += `</tbody></table>`;
+      body.innerHTML = html;
+    }
+
+    const modal = document.getElementById('ordersStatusModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('is-open');
+  } catch (err) {
+    console.error('Failed to load orders for status', status, err);
+    alert('שגיאה בטעינת ההזמנות');
+  }
+}
+
+// Close button
+document.getElementById('ordersStatusModalClose')
+  .addEventListener('click', () => {
+    const modal = document.getElementById('ordersStatusModal');
+    modal.classList.remove('is-open');
+    modal.classList.add('hidden');
+  });
+
+// KPI clicks
+document.getElementById('new_orders')
+  .addEventListener('click', () => showStatusOrders('new'));
+document.getElementById('pending_orders')
+  .addEventListener('click', () => showStatusOrders('pending'));
+document.getElementById('ontheway_orders')
+  .addEventListener('click', () => showStatusOrders('on_the_way'));
+document.getElementById('cancelled_orders')
+  .addEventListener('click', () => showStatusOrders('cancelled'));

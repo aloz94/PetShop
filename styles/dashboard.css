@@ -1183,13 +1183,17 @@ padding: 0;
 }
 
 .status-badge {
-  display:inline-block;
-  padding:0.2em 0.4em;
-  border-radius:0.2em;
-  color:#fff;
-    font-weight: bold;
-
-  font-size:0.85em;
+  display: inline-block;
+  padding: 0.25em 0.75em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  border-radius: 9999px;   /* pill shape */
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 .status-pending    { background:#5bc0de; }
 .status-inprogress { background:#f0ca21; }
@@ -1282,6 +1286,9 @@ padding: 0;
   border-radius: 4px;
   cursor: pointer;
   margin-left: 4px;
+}
+.btn-edit:hover {
+  background-color: #e0a800;
 }
 
 #accordion-boarding {
@@ -1874,6 +1881,19 @@ padding: 0;
   background: #fde2e1;        /* red-ish badge */
   color: #b91c1c;
 }
+.stock-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.stock-table th,
+.stock-table td {
+  border: 1px solid #ddd;
+  padding: .5rem;
+  text-align: left;
+}
+.stock-table th {
+  background: #f5f5f5;
+}
 
 .prod-id {
   display: inline-block;
@@ -1922,6 +1942,64 @@ padding: 0;
     color: #4CAF50; /* Change text color on hover */
     font-size: 1.1rem; /* Slightly increase font size on hover */
 }
+/* Out-of-Stock */
+.status-badge.status-out {
+  background-color: #dc2626;    /* deep red */
+  color: #fff;
+}
+.status-badge.status-out:hover {
+  background-color: #b91c1c;    /* darker on hover */
+}
+
+/* Low-Stock */
+.status-badge.status-low {
+  background-color: #f59e0b;    /* amber */
+  color: #1f2937;               /* dark gray text */
+}
+.status-badge.status-low:hover {
+  background-color: #d97706;    /* darker amber */
+}
+/* Add this to your CSS */
+.edit-btn {
+  padding: 0.4rem 0.8rem;
+  background-color: #ffc107;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.edit-btn:hover {
+  background-color: #e0a800;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: bold;
+}
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+.save-btn {
+  padding: 0.5rem 1rem;
+  background-color: #2196F3;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.save-btn:hover {
+  background-color: #1976D2;
+}
+
 
 #incomeChartContainer {
   display: flex;
@@ -2308,18 +2386,16 @@ canvas {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  padding: 0.5rem 0.5rem 0.5rem 0;
+  padding: 0; /* No padding */
   box-shadow: inset -1px 0 0 #ccc;
-  scrollbar-width: thin;    /* or just delete this line entirely */
-    direction: ltr;
   scrollbar-width: thin;
-  scrollbar-color: var(--color-accent-light) var(--color-label-bg);
-  flex: 0 0 65px;        /* 65px wide */
-  overflow: visible;     /* remove any inner scrollbars */
-  flex-shrink: 0;        /* stay the width/height we give them */
-  height: 100%;          /* fill the .timeline-content’s height */
-
+  direction: ltr;
+  flex: 0 0 65px;
+  overflow: visible;
+  flex-shrink: 0;
+  height: 100%;
 }
+
 .time-label {
   width: 100%;
   height: 60px; /* 30 min slot */
@@ -2328,12 +2404,11 @@ canvas {
   color: var(--color-text);
   border-bottom: 1px dashed var(--color-border);
   box-sizing: border-box;
-  padding-right: 0.4rem;
+  padding-right: 0; /* No padding */
   transition: background var(--transition);
-    flex: 0 0 65px;        /* ~65px wide sidebar */
+  flex: 0 0 65px;
   background: var(--color-label-bg);
   box-shadow: inset -1px 0 0 #ccc;
-
 }
 .time-label:nth-child(2n) {
   background: #f1f5f9;
@@ -2375,7 +2450,6 @@ canvas {
   position: relative;
   flex: 1 1 auto;
   background: var(--color-bg);
-    max-height: calc(50vh - 40px); /* subtract header & label padding */
   overflow: hidden;   /* no internal scrollbar here */
   scrollbar-width: thin;    /* or just delete this line entirely */
 
@@ -2474,6 +2548,75 @@ canvas {
 }
 
 /*------------------------------------------*/
+/* Header container */
+.boarding-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Prev/Next buttons */
+.btn-nav {
+  width: 40px;
+  height: 40px;
+  background-color: #3b82f6;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.btn-nav:hover {
+  background-color: #2563eb;
+  transform: scale(1.1);
+}
+
+.btn-nav:active {
+  transform: scale(0.95);
+}
+
+/* Date picker input */
+.date-input {
+  width: 120px;
+  padding: 6px 10px;
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1rem;
+  color: #1f2937;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.25);
+}
+
+/* Remove default calendar icon styling if you want a custom icon */
+.date-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.date-input::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
 /* OVERLAY */
 #bookingModal {
   position: fixed;
@@ -2796,9 +2939,252 @@ canvas {
   .detail-row .value { font-size: 0.9rem; }
 }
 
+.status-new        { background-color: #3b82f6;  }  /* blue   */
+.status-pending    { background-color: #fbbf24;  }  /* yellow */
+.status-on_the_way { background-color: #2563eb;  }  /* darker blue */
+.status-cancelled  { background-color: #ef4444;  }  /* red    */
+.status-completed  { background-color: #10b981;  }  /* green  */
 
 
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+.orders-table th,
+.orders-table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: right;
+}
+.orders-table th {
+  background: #f3f4f6;
+}
 
+/* hide by default */
+.orders-modal.hidden {
+  display: none;
+}
+
+/* show when open */
+.orders-modal.is-open {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.4);
+  z-index: 1000;
+}
+
+/* backdrop layer */
+.orders-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+}
+
+/* content box */
+.orders-modal-content {
+  position: relative;
+  background: #fff;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80%;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+/* header */
+.orders-modal-header {
+  padding: 1rem;
+  background: #3b82f6;
+  color: #fff;
+  text-align: center;
+}
+.orders-modal-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+/* close button */
+.orders-modal-close {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* body */
+.orders-modal-body {
+  padding: 1rem;
+}
+.orders-modal-body p {
+  margin: 0.5rem 0;
+}
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+.orders-table th,
+.orders-table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: right;
+}
+.orders-table th {
+  background: #f3f4f6;
+}
+
+.order-items {
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  font-family: sans-serif;
+}
+
+.order-items thead {
+  background-color: #10B981; /* emerald-500 from Tailwind palette */
+  color: #fff;
+}
+
+.order-items thead th {
+  padding: 0.75rem;
+  text-align: right;  /* RTL tables often right-align */
+  font-weight: 600;
+  font-size: 0.95rem;
+    background-color: #10B981; /* emerald-500 from Tailwind palette */
+
+  
+}
+
+.order-items {
+  width: 100%;
+  table-layout: fixed;
+}
+.order-items th,
+.order-items td {
+  width: 25%; /* 4 columns, each 25% */
+  text-align: right;
+  padding: 0.75rem;
+  box-sizing: border-box;
+}
+
+.order-items tbody tr {
+  transition: background-color 0.2s;
+}
+
+.order-items tbody tr:nth-child(even) {
+  background-color: #ECFDF5; /* slate-50 / very light green */
+}
+
+.order-items tbody tr:hover {
+  background-color: #D1FAE5; /* green-100 */
+}
+
+.order-items tbody td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.order-items tbody td:first-child {
+  font-weight: 500;
+}
+
+.order-items tbody td:last-child {
+  white-space: nowrap;
+}
+.order-items th:last-child,
+.order-items td:last-child {
+  text-align: right; /* or center if you prefer */
+}
+/* Responsive on narrow screens */
+@media (max-width: 480px) {
+  .order-items thead {
+    display: none;
+  }
+  .order-items, .order-items tbody, .order-items tr, .order-items td {
+    display: block;
+    width: 100%;
+  }
+  .order-items tr {
+    margin-bottom: 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .order-items td {
+    padding: 0.5rem;
+    text-align: right;
+    position: relative;
+  }
+  .order-items td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+  }
+  .order-items td:last-child {
+    border-bottom: none;
+  }
+}
+
+/* backdrop */
+.modal {
+  display: none;               /* hidden by default */
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* the white box */
+.modal-content {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: .5rem;
+  max-width: 600px;
+  width: 90%;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  position: relative;
+}
+
+/* close button */
+.modal-close {
+  position: absolute;
+  top: .5rem; right: .75rem;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* optional: table styling */
+.modal-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+.modal-content th,
+.modal-content td {
+  border: 1px solid #ddd;
+  padding: .5rem;
+  text-align: left;
+}
+.modal-content th {
+  background: #f5f5f5;
+}
 
 
 

@@ -423,3 +423,64 @@
     border-top: 1px solid #ffe0c4;
   }
 }
+
+/* Container grid */
+.profile-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+@media (min-width: 768px) {
+  .profile-cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Card base */
+.card {
+  background-color: #ffffff;
+  border-radius: 0.5rem; /* 8px */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Card header */
+.card-header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e5e7eb; /* light gray */
+  font-size: 1rem;
+  font-weight: 600;
+  background-color: #f9fafb; /* very light gray */
+}
+
+/* Card content */
+.card-content {
+  padding: 1rem;
+  font-size: 0.94rem;
+  color: #374151; /* gray-700 */
+  flex: 1;
+}
+
+/* No-reports placeholder */
+.hidden {
+  display: none;
+}
+
+/* Reports list */
+#reports-list {
+  list-style-type: disc;
+  padding-left: 1.25rem;
+}
+
+#reports-list li {
+  margin-bottom: 0.5rem;
+}
+
+/* Utility text color */
+.text-gray {
+  color: #6b7280; /* gray-500 */
+}

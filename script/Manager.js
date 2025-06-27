@@ -58,7 +58,7 @@ async function loadLowStockCount() {
 }
 
 // 2. عند الكليك نعرض اللستة بالـ Modal
-async function openLowStockModal() {
+/*async function openLowStockModal() {
   try {
     const res   = await fetch('/manager/stats/low-stock/list', { credentials: 'include' });
     const items = await res.json();
@@ -67,7 +67,7 @@ async function openLowStockModal() {
     list.innerHTML = '';
 
     /* 👇 כותרת */
-    const header = document.createElement('li');
+   /* const header = document.createElement('li');
     header.className = 'list-header';
     header.innerHTML = `
   <span class="sku-head">מק״ט</span>
@@ -77,7 +77,7 @@ async function openLowStockModal() {
     list.appendChild(header);
 
     /* 👇 המוצרים */
-    items.forEach(p => {
+   /* items.forEach(p => {
       const li = document.createElement('li');
       if (p.stock_quantity <= 3) li.classList.add('crit');
 
@@ -91,7 +91,7 @@ async function openLowStockModal() {
       `;
 
       /* תוספת צבע לגרדיאנט לפי ספרה אחרונה */
-      li.querySelector('.prod-id')
+    /*  li.querySelector('.prod-id')
         .setAttribute('data-id-last', p.id.toString().slice(-1));
 
       list.appendChild(li);
@@ -107,16 +107,18 @@ async function openLowStockModal() {
 document.addEventListener('DOMContentLoaded', () => {
   loadLowStockCount();
 
-  // البطاقة البرتقالية
-  document.querySelector('.kpi-card.orange')
-          .addEventListener('click', openLowStockModal);
+  // Use the specific ID for the low stock card
+  const lowStockCard = document.getElementById('low-stock');
+  if (lowStockCard) {
+    lowStockCard.addEventListener('click', openLowStockModal);
+  }
 
   // زر الإغلاق
   document.querySelector('#lowStockModal .close-btn')
           .addEventListener('click', () =>
              document.getElementById('lowStockModal').style.display = 'none'
           );
-});
+});*/
 
 async function loadOpenAbnd() {
       try {
@@ -202,7 +204,7 @@ async function loadRevenueChart(period = 'today') {
   });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+/*document.addEventListener('DOMContentLoaded', () => {
   const card      = document.querySelector('.kpi-card.purple');
   const container = document.getElementById('incomeChartContainer');
   const Scontainer = document.getElementById('DailyGroomingPieChart')
@@ -216,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /* הצגה מיידית כשעוברים עם העכבר */
-    card.addEventListener('mouseenter', () => {
+  /*  card.addEventListener('mouseenter', () => {
       clearTimeout(hideTimer);                         // מבטל טיימר קודם
       container.style.display = 'block';
             Scontainer.style.display = 'block';
@@ -224,13 +226,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /* הסתרה – 5 שניות אחרי שהעכבר יוצא */
-    card.addEventListener('mouseleave', () => {
+   /* card.addEventListener('mouseleave', () => {
       hideTimer = setTimeout(() => {
         container.style.display = 'none';
       }, 5000);                                        // 5000 ms = 5 שניות
     });
   }
-});
+});*/ 
+
 
 
 async function loadPieChartForServices(period = 'today') {
@@ -288,23 +291,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
 let topProductsChart;
 
-async function loadTopProductsChart() {
+/**
+ * Fetches and renders the top-products chart for the given time range.
+ * @param {'today'|'week'|'month'} range
+ */
+async function loadTopProductsChart(range = 'today') {
   try {
-    const res = await fetch('/manager/stats/top-products');
+    console.log('🔄 [Chart] Loading top products for range:', range);
+    const url = `/manager/stats/top-products?range=${range}`;
+    console.log('📤 [Chart] Fetch URL:', url);
+
+    const res  = await fetch(url, { credentials: 'include' });
+    console.log('⬅️ [Chart] Response status:', res.status);
     const data = await res.json();
+    console.log('📊 [Chart] Data received:', data);
 
-    const labels = data.map(p => p.name);
-    const values = data.map(p => p.total_sold);
-    const revenues = data.map(p => p.total_revenue);
+    // --- convert strings to numbers ---
+    const labels   = data.map(p => p.name);
+    const values   = data.map(p => Number(p.total_sold)   || 0);
+    const revenues = data.map(p => Number(p.total_revenue)|| 0);
 
-    const ctx = document.getElementById('TopProductsChart').getContext('2d');
+    const ctx = document
+      .getElementById('TopProductsChart')
+      .getContext('2d');
 
-    if (topProductsChart) topProductsChart.destroy();
+    if (topProductsChart) {
+      console.log('🗑️ [Chart] Destroying previous chart instance');
+      topProductsChart.destroy();
+    }
 
     topProductsChart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: labels,
+        labels,
         datasets: [{
           label: 'כמות שנמכרה',
           data: values,
@@ -314,9 +333,7 @@ async function loadTopProductsChart() {
       options: {
         indexAxis: 'y',
         responsive: true,
-        layout: {
-          padding: { right: 20 }
-        },
+        layout: { padding: { right: 20 } },
         plugins: {
           legend: { display: false },
           title: {
@@ -327,23 +344,19 @@ async function loadTopProductsChart() {
           tooltip: {
             rtl: true,
             callbacks: {
-              label: (ctx) => {
+              label: ctx => {
                 const i = ctx.dataIndex;
                 return `כמות: ${values[i]} | הכנסה: ₪${revenues[i].toFixed(2)}`;
               }
             }
           },
           datalabels: {
-            
             anchor: 'end',
             align: 'center',
-            
-            font: {
-              weight: 'bold',
-              size: 12
-            },
+            font: { weight: 'bold', size: 12 },
             color: '#333',
-            formatter: (value, context) => context.chart.data.labels[context.dataIndex]
+            formatter: (_, context) =>
+              context.chart.data.labels[context.dataIndex]
           }
         },
         scales: {
@@ -357,27 +370,53 @@ async function loadTopProductsChart() {
           y: {
             position: 'right',
             ticks: {
-                    display: false,// << הסתרת שמות המוצרים בציר
-
+              display: false,
               font: { size: 14 },
               align: 'start',
               padding: 10
             }
-          } 
+          }
         }
       },
-          grid: {
-      display: false
-          },
       plugins: [ChartDataLabels]
     });
 
+    console.log('✅ [Chart] Rendered chart for range:', range);
   } catch (err) {
-    console.error('Error loading top products chart:', err);
+    console.error('❗ [Chart] Error loading top products chart:', err);
   }
 }
 
-document.addEventListener('DOMContentLoaded', loadTopProductsChart);
+
+
+
+
+
+
+
+// When the page loads, draw the chart and wire up the radio buttons
+document.addEventListener('DOMContentLoaded', () => {
+  // 1) Initial draw using the checked radio
+  const initialRange = document.querySelector('input[name="timeRange"]:checked').value;
+  loadTopProductsChart(initialRange);
+
+  // 2) Re-draw when the user changes the time range
+  document.querySelectorAll('input[name="timeRange"]').forEach(radio => {
+    radio.addEventListener('change', e => {
+      if (e.target.checked) {
+        loadTopProductsChart(e.target.value);
+      }
+    });
+  });
+});
+
+
+
+
+
+
+
+
 
 //reports 
 

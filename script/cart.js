@@ -373,18 +373,36 @@ location.href = `/thanks.html?id=${orderId}`;
   }
 };
 /* ---------- add-to-cart buttons (delegated) ---------- */
-document.addEventListener('click', (e) => {
+document.addEventListener('click', e => {
   if (!e.target.classList.contains('add-to-cart-btn')) return;
 
-  const { id, name, price, img } = e.target.dataset;
-  const cart = loadCart();
-  const item = cart.find(it => it.id === id);
+  const id    = e.target.dataset.id;
+  const stock = parseInt(e.target.dataset.stock, 10);   // ← מלאי נוכחי
+  const cart  = loadCart();
+  const existing = cart.find(item => item.id === id);
 
-  if (item) item.quantity += 1;
-  else cart.push({ id, name, price: +price, quantity: 1, image: img });
+  // אם כבר בעגלה: לוודא שלא עברנו את המלאי
+  if (existing) {
+    if (existing.quantity + 1 > stock) {
+      alert('לא ניתן להזמין יותר מהמלאי הקיים');
+      return;
+    }
+    existing.quantity += 1;
+  } else {
+    if (stock < 1) {
+      alert('אין מלאי זמין למוצר זה');
+      return;
+    }
+    cart.push({ id, 
+                name: e.target.dataset.name, 
+                price: +e.target.dataset.price, 
+                quantity: 1, 
+                image: e.target.dataset.img 
+              });
+  }
 
   saveCart(cart);
-  showCustomAlert(`✔️ "${name}" נוסף לעגלה`);
+  showCustomAlert(`✔️ המוצר "${e.target.dataset.name}" נוסף לעגלה`);
   updateCartCount();
   updateCartDropdown();
 });
