@@ -1,159 +1,933 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Small Online Store</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f9f9f9;
-        }
-        .store-container {
-            display: flex;
-            gap: 20px;
-        }
-        .products {
-            width: 100%;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .product {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #ddd;
-            padding: 10px 0;
-        }
-        button {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        button:hover {
-            background-color: #218838;
-        }
-        .remove-btn {
-            background-color: #dc3545;
-        }
-        .remove-btn:hover {
-            background-color: #c82333;
-        }
-        /* Cart styles */
-        .cart-container {
-            position: fixed;
-            top: 0;
-            right: -350px; /* Hidden initially */
-            width: 300px;
-            height: 100%;
-            background: white;
-            box-shadow: -4px 0 6px rgba(0, 0, 0, 0.2);
-            padding: 20px;
-            transition: right 0.3s ease-in-out;
-        }
-        .cart-container.open {
-            right: 0; /* Show cart when open */
-        }
-        .cart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .cart-items {
-            margin-top: 10px;
-            max-height: 60vh;
-            overflow-y: auto;
-        }
-    </style>
+    <title>פרופיל משתמש</title>
+
+    <link rel="stylesheet" href="styles/profile.css">
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
+
 </head>
 <body>
+    <div class="profile-container">
+        <div class="profile-card">
+          <img class="profile-avatar" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="avatar" />
+          <h2 id="username">ברוך הבא, עדן!</h2>
+          <button class="logout-btn" onclick="logout()">התנתקות</button>
+        </div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+  <!-- תור טיפוח הבא/נוכחי -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="px-4 py-2 border-b font-semibold">
+      התור הבא לטיפוח
+    </div>
+    <div class="p-4">
+      <p id="grooming-date">תאריך: –</p>
+      <p id="grooming-time">שעה: –</p>
+      <p id="grooming-service">שירות: –</p>
+      <p id="grooming-dog">כלב: –</p>
+      <p id="grooming-status">סטטוס: –</p>
+      <button id="grooming-cancel" class="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+        בטל תור
+      </button>
+    </div>
+  </div>
 
-    <h1>🛍️ Small Online Store</h1>
+  <!-- דיווחי נטושים -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-4 py-2 border-b font-semibold">
+        דיווחי נטושים
+      </div>
+      <div class="p-4">
+        <ul id="report-list" class="list-disc list-inside space-y-1">
+          <!-- JS יוסיף כאן <li> לכל דיווח -->
+        </ul>
+        <p id="no-reports" class="text-gray-500">אין דיווחים</p>
+      </div>
+    </div>
+
+    <!-- תור פנסיון הבא -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-4 py-2 border-b font-semibold">
+        התור הבא לפנסיון
+      </div>
+      <div class="p-4">
+        <p id="boarding-start">מתחיל: –</p>
+        <p id="boarding-duration">למשך: – ימים</p>
+        <p id="boarding-dog">כלב: –</p>
+        <p id="boarding-status">סטטוס: –</p>
+              <button id="boarding-cancel" class="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+          בטל תור
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+        <div class="profile-section">
+            <h3>הפרטים האישיים שלי</h3>
+            <ul>
+                <li><strong>תעודת זהות:</strong> <span id="info-id"></span></li>
+                <li><strong>שם:</strong> <span id="info-name"></span></li>
+                <li><strong>מייל:</strong> <span id="info-email"></span></li>
+                <li><strong>טלפון:</strong> <span id="info-phone"></span></li>
+                <li><strong>כתובת:</strong> <span id="info-address"></span></li>
+            </ul>
+        </div>
+
+        <div class="profile-section dog-cards">
+            <h3>הכלבים שלי</h3>
+          
+            <div class="dog-cards-container" id="dog-list">
+                
+              <!-- הכרטיסים ייווצרו כאן דינמית -->
+              <!-- Example static card:
+              <div class="dog-card">
+                <div class="dog-name">שוקו</div>
+                <ul class="dog-info">
+                  <li><span>גזע:</span><span>לברדור</span></li>
+                  <li><span>גודל:</span><span>בינוני</span></li>
+                  <li><span>מין:</span><span>זכר</span></li>
+                </ul>
+                <button class="add-dog-btn" onclick="openPopup('AddDog_popup')">הוסף כלב</button>
+              </div>
+              -->
+            </div>
+          
+            <!-- לחצן כללי להוספת כלב -->
+            <button class="add-dog-btn" onclick="openPopup('AddDog_popup')">הוסף כלב</button>
+          </div>
+
+          
+          <div class="profile-select">
+            <h3>היסטוריית תורים</h3>
+            <ul id="appointments-list" class="appointment-list"></ul>
+          </div>
+          
+         
+          
+          
+          
+
+        <div class="profile-section">
+            <h3>תורים עתידים</h3>
+            <ul id="past-appointments"></ul>
+        </div>
+
+        <section class="profile-section">
+          <h3>הפניות על כלבים נטושים שלי</h3>
+          <div class="reports-container" id="reports-list">
+            <!-- כרטיסי הפניות ייווצרו כאן דינמית -->
+            <!-- 
+            <div class="report-card">
+              <div class="report-image">
+                <img src="uploads/165789123-dog.png" alt="Dog report image" />
+              </div>
+              <div class="report-info">
+                <p><strong>גודל כלב:</strong> קטן</p>
+                <p><strong>מצב בריאותי:</strong> פצוע</p>
+                <p><strong>כתובת זיהוי:</strong> רח' החופש 10, נצרת</p>
+                <p><strong>הערות:</strong> נראה נחוש אך פצוע ברגל אחורית</p>
+                <p><strong>סטטוס:</strong> לטיפול</p>
+              </div>
+              <div class="report-actions">
+                <button class="btn-edit" onclick="openEditReport(${report.id})">ערוך</button>
+                <button class="btn-delete" onclick="deleteReport(${report.id})">מחק</button>
+              </div>
+            </div>
+            -->
+          </div>
+        </section>
     
-    <button onclick="toggleCart()">🛒 View Cart</button>
 
-    <div class="store-container">
-        <!-- Store Products -->
-        <div class="products">
-            <h2>🛒 Products</h2>
-            <div class="product">
-                <span>🐶 Dog Food - $10.99</span>
-                <button onclick="addToCart(1, 'Dog Food', 10.99)">Add to Cart</button>
-            </div>
-            <div class="product">
-                <span>🐱 Cat Toy - $5.49</span>
-                <button onclick="addToCart(2, 'Cat Toy', 5.49)">Add to Cart</button>
-            </div>
-            <div class="product">
-                <span>🐾 Pet Shampoo - $7.99</span>
-                <button onclick="addToCart(3, 'Pet Shampoo', 7.99)">Add to Cart</button>
-            </div>
+
+
+<!-- add dog form -->
+<!-- 1. הוספה ל־index.html מתחת לשאר הפופ-אפים -->
+<form id="AddDog_form">
+    <div id="AddDog_popup" class="popup-container">
+      <div class="popup-content">
+        <span class="close-btn" onclick="closeAddDogPopup(event)">&times;</span>
+        <img src="./res/logo.png" alt="Logo">
+  
+        <h2>פרטי הכלב</h2>
+        <div class="input-group">
+          <div class="input-field">
+            <input type="text" id="dogName" placeholder="שם הכלב *" required>
+          </div>
+          <div class="input-field">
+            <input type="text" id="dogBreed" placeholder="גזע" required>
+          </div>
         </div>
-    </div>
-
-    <!-- Cart (Hidden Initially) -->
-    <div id="cart" class="cart-container">
-        <div class="cart-header">
-            <h2>🛒 Your Cart</h2>
-            <button onclick="toggleCart()">❌</button>
+        <div class="input-group">
+          <div class="input-field">
+            <input type="number" id="dogAge" placeholder="גיל *" min="0" required>
+          </div>
+          <div class="input-field">
+            <select id="dogSize" required>
+              <option value="">בחר גודל *</option>
+              <option>קטן</option>
+              <option>בינוני</option>
+              <option>גדול</option>
+            </select>
+          </div>
         </div>
-        <div id="cart-items" class="cart-items"></div>
-        <h3>Total: $<span id="total-price">0.00</span></h3>
+        <div class="input-group">
+          <label>מין *</label>
+          <div class="input-field">
+            <label><input type="radio" name="dogGender" value="male" required> זכר</label>
+            <label><input type="radio" name="dogGender" value="female"> נקבה</label>
+          </div>
+        </div>
+  
+        <button class="popup-button" type="submit">הוסף כלב</button>
+      </div>
     </div>
-
-    <script>
-        let cart = new Map(); // Using a Map to store cart items
-
-        // Toggle cart visibility
-        function toggleCart() {
-            document.getElementById("cart").classList.toggle("open");
-        }
-
-        // Add item to cart
-        function addToCart(id, name, price) {
-            if (cart.has(id)) {
-                cart.get(id).quantity += 1;
-            } else {
-                cart.set(id, { name, price, quantity: 1 });
-            }
-            updateCart();
-        }
-
-        // Remove item from cart
-        function removeFromCart(id) {
-            cart.delete(id);
-            updateCart();
-        }
-
-        // Update cart display
-        function updateCart() {
-            let cartItemsDiv = document.getElementById("cart-items");
-            let totalPriceSpan = document.getElementById("total-price");
-            cartItemsDiv.innerHTML = ""; // Clear cart before updating
-
-            let total = 0;
-            cart.forEach((item, id) => {
-                total += item.price * item.quantity;
-
-                // Create cart item element
-                let cartItem = document.createElement("div");
-                cartItem.className = "cart-item";
-                cartItem.innerHTML = `
-                    <span>${item.name} (x${item.quantity}) - $${(item.price * item.quantity).toFixed(2)}</span>
-                    <button class="remove-btn" onclick="removeFromCart(${id})">❌</button>
-                `;
-                cartItemsDiv.appendChild(cartItem);
-            });
-
-            totalPriceSpan.textContent = total.toFixed(2);
-        }
-    </script>
+  </form>
+  
+    <!-- edit dog form (add under the existing AddDog_form) -->
+    <form id="EditDog_form">
+        <div id="EditDog_popup" class="popup-container">
+          <div class="popup-content">
+            <span class="close-btn" onclick="closePopup('EditDog_popup')">&times;</span>
+            <h2>עריכת פרטי הכלב</h2>
+      
+            <!-- id נסתר -->
+            <input type="hidden" id="editDogId">
+      
+            <!-- שדות עריכה -->
+            <div class="input-group">
+              <div class="input-field">
+                <input type="text" id="editDogName" placeholder="שם הכלב *" required>
+              </div>
+              <div class="input-field">
+                <input type="text" id="editDogBreed" placeholder="גזע *" required>
+              </div>
+            </div>
+            <div class="input-group">
+              <div class="input-field">
+                <input type="number" id="editDogAge" placeholder="גיל *" min="0" required>
+              </div>
+              <div class="input-field">
+                <select id="editDogSize" required>
+                  <option value="">בחר גודל *</option>
+                  <option value="קטן">קטן</option>
+                  <option value="בינוני">בינוני</option>
+                  <option value="גדול">גדול</option>
+                </select>
+              </div>
+            </div>
+            <div class="input-group">
+              <label>מין *</label>
+              <div class="input-field">
+                <label>
+                  <input type="radio" name="editDogGender" value="male" required> זכר
+                </label>
+                <label>
+                  <input type="radio" name="editDogGender" value="female"> נקבה
+                </label>
+              </div>
+            </div>
+      
+            <button class="popup-button" type="button" onclick="submitEditDog()">
+              שמור שינויים
+            </button>
+          </div>
+        </div>
+      </form>
+      
+    
+    <script src="script/profile.js"></script>
+          <script src="https://cdn.tailwindcss.com"></script>
 
 </body>
 </html>
+
+
+/* ==============================
+   Reset ו-Global Styles
+   ============================== */
+   body {
+    margin: 0;
+    font-family: "Heebo", sans-serif;
+    background-color: #fef9f4;
+    direction: rtl;
+  }
+  
+  /* ==============================
+     Profile Container & Card
+     ============================== */
+  .profile-container {
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 30px;
+    background-color: #fffdf9;
+    border-radius: 20px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    text-align: center;
+  }
+  
+  .profile-card {
+    margin-bottom: 30px;
+  }
+  
+  .profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid #ffe0c4;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  #username {
+    margin-top: 10px;
+    color: #5a4a42;
+  }
+  
+  .logout-btn {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background-color: #f3af89;
+    border: none;
+    border-radius: 25px;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  .logout-btn:hover {
+    background-color: #f19c6f;
+  }
+  
+  /* ==============================
+     Profile Section (Details, Dogs, Past Appointments, Reports)
+     ============================== */
+  .profile-section {
+    background-color: #fffaf5;
+    border: 1px solid #ffe0c4;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.04);
+    text-align: right;
+  }
+  
+  .profile-section h3 {
+    margin: 0 0 16px;
+    font-size: 20px;
+    color: #5a4a42;
+    border-bottom: 2px solid #f3af89;
+    padding-bottom: 8px;
+  }
+  
+  .profile-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .profile-section li {
+    margin-bottom: 12px;
+    font-size: 16px;
+    color: #333;
+    line-height: 1.6;
+  }
+  .profile-section li strong {
+    color: #805947;
+    display: inline-block;
+    width: 120px;
+  }
+  .profile-section li span {
+    color: #555;
+  }
+  
+  /* ==============================
+     Appointments List
+     ============================== */
+  .profile-selec {
+    background-color: #ffffff;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  
+  .profile-selec h3 {
+    margin: 0 0 16px;
+    font-size: 20px;
+    color: #5a4a42;
+    border-bottom: 2px solid #f3af89;
+    padding-bottom: 8px;
+  }
+  
+  .appointment-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .appointment-list li {
+    background-color: #fffaf5;
+    border: 1px solid #ffe0c4;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    font-size: 16px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.2s;
+  }
+  .appointment-list li:hover {
+    background-color: #fff3e6;
+  }
+  .appointment-list li::before {
+    content: "📅 ";
+    margin-right: 8px;
+  }
+  .appointment-list li strong {
+    color: #805947;
+    margin-right: 6px;
+  }
+  
+  /* ==============================
+     Popup (Reuse for All Forms)
+     ============================== */
+  .popup-container {
+    display: none;            /* Hide by default */
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .popup-content {
+    background: #fff;
+    border-radius: 20px;
+    padding: 20px;
+    width: 300px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    position: relative;
+  }
+  
+  .popup-content img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+  }
+  
+  .popup-content h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+  
+  .input-field {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #000;
+    border-radius: 10px;
+    padding: 5px 10px;
+    margin-bottom: 10px;
+  }
+  
+  .input-field input,
+  .input-field select,
+  .textarea-field {
+    border: none;
+    outline: none;
+    flex: 1;
+    padding: 5px;
+    font-size: 14px;
+    text-align: right;
+  }
+  
+  .textarea-field {
+    height: 80px;
+    resize: none;
+  }
+  
+  .popup-button {
+    background: #c49b6c;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    width: 100%;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  
+  .close-btn {
+    position: absolute;
+    top: 15px; right: 15px;
+    font-size: 20px;
+    cursor: pointer;
+  }
+  
+  /* ==============================
+     Dogs Grid & Cards
+     ============================== */
+  .profile-section.dog-cards {
+    margin-bottom: 30px;
+  }
+  
+  .profile-section.dog-cards h3 {
+    font-size: 22px;
+    color: #5a4a42;
+    border-bottom: 2px solid #f3af89;
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+  }
+  
+  .dog-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+    gap: 20px;
+  }
+  
+  .dog-card {
+    background-color: #fffaf5;
+    border: 1px solid #ffe0c4;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .dog-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  
+  .dog-card .dog-name {
+    font-size: 18px;
+    font-weight: bold;
+    color: #5a4a42;
+    margin-bottom: 10px;
+  }
+  
+  .dog-card .dog-info {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 12px 0;
+    width: 100%;
+  }
+  
+  .dog-card .dog-info li {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #444;
+    padding: 4px 0;
+    border-bottom: 1px dashed #eee;
+  }
+  .dog-card .dog-info li:last-child {
+    border-bottom: none;
+  }
+  
+  .add-dog-btn {
+    margin-top: 10px;
+    padding: 8px 16px;
+    background-color: #f3af89;
+    border: none;
+    border-radius: 20px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+  }
+  .add-dog-btn:hover {
+    background-color: #e7976e;
+  }
+  .report-image img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover; /* Ensures the image fills the box without distortion */
+    border-radius: 8px; /* Optional: rounded corners */
+  }
+  
+  /* מכולה כוללת לדיווחים */
+#reports-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: 30px auto;
+  max-width: 800px;
+  padding: 0 10px;
+}
+
+/* כרטיס דיווח */
+.report-card {
+  display: flex;
+  background-color: #fffaf5;
+  border: 1px solid #ffe0c4;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* אפקט ריחוף על כל הכרטיס */
+.report-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* חלק תמונה */
+.report-image {
+  flex: 0 0 180px;
+  height: 140px;
+  overflow: hidden;
+}
+
+.report-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* חלק המידע */
+.report-info {
+  flex: 1;
+  padding: 12px 16px;
+  text-align: right;
+}
+
+.report-info p {
+  margin: 6px 0;
+  font-size: 14px;
+  color: #4a3b2a;
+  line-height: 1.4;
+}
+
+.report-info p strong {
+  display: inline-block;
+  width: 90px;
+  color: #805947;
+}
+
+/* חלק הכפתורים */
+.report-actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background-color: #fff4e8;
+  border-left: 1px solid #ffe0c4;
+}
+
+.btn {
+  padding: 6px 12px;
+  font-size: 13px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-edit {
+  background-color: #f3af89;
+  color: #fff;
+}
+
+.btn-edit:hover {
+  background-color: #e7976e;
+}
+
+.btn-delete {
+  background-color: #d9534f;
+  color: #fff;
+}
+
+.btn-delete:hover {
+  background-color: #c9302c;
+}
+
+/* רספונסיביות */
+@media (max-width: 600px) {
+  .report-card {
+    flex-direction: column;
+  }
+
+  .report-image {
+    width: 100%;
+    height: 180px;
+  }
+
+  .report-actions {
+    flex-direction: row;
+    justify-content: space-between;
+    border-left: none;
+    border-top: 1px solid #ffe0c4;
+  }
+}
+
+/* Container grid */
+.profile-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+@media (min-width: 768px) {
+  .profile-cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Card base */
+.card {
+  background-color: #ffffff;
+  border-radius: 0.5rem; /* 8px */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Card header */
+.card-header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e5e7eb; /* light gray */
+  font-size: 1rem;
+  font-weight: 600;
+  background-color: #f9fafb; /* very light gray */
+}
+
+/* Card content */
+.card-content {
+  padding: 1rem;
+  font-size: 0.94rem;
+  color: #374151; /* gray-700 */
+  flex: 1;
+}
+
+/* No-reports placeholder */
+.hidden {
+  display: none;
+}
+
+/* Reports list */
+#reports-list {
+  list-style-type: disc;
+  padding-left: 1.25rem;
+}
+
+#reports-list li {
+  margin-bottom: 0.5rem;
+}
+
+/* Utility text color */
+.text-gray {
+  color: #6b7280; /* gray-500 */
+}
+
+/* Next Grooming Appointment Card */
+.next-appointment-card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  max-width: 360px;
+  margin: 1rem auto;
+  overflow: hidden;
+  font-family: system-ui, sans-serif;
+}
+
+/* Header */
+.next-appointment-card .card-header {
+  background-color: #f3f4f6;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 1.125rem;
+  font-weight: 600;
+  text-align: center;
+  color: #1f2937;
+}
+
+/* Content area */
+.next-appointment-card .card-content {
+  padding: 1rem;
+  color: #374151;
+}
+
+/* Individual fields */
+.next-appointment-card .card-content p {
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+.next-appointment-card .card-content p span.label {
+  font-weight: 500;
+  color: #111827;
+}
+
+/* Cancel button */
+.next-appointment-card .cancel-button {
+  display: block;
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.6rem 0;
+  background-color: #ef4444;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.next-appointment-card .cancel-button:hover {
+  background-color: #dc2626;
+}
+
+/* Responsive tweaks */
+@media (max-width: 480px) {
+  .next-appointment-card {
+    margin: 0.5rem;
+  }
+  .next-appointment-card .card-header {
+    font-size: 1rem;
+    padding: 0.6rem;
+  }
+  .next-appointment-card .card-content p {
+    font-size: 0.9rem;
+  }
+  .next-appointment-card .cancel-button {
+    font-size: 0.9rem;
+  }
+}
+/* Base styling for both cards */
+.bg-white.rounded-lg.shadow {
+  background-color: #fff;
+  border-radius: 0.5rem;       /* 8px */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+/* Card header (the first inner div) */
+.bg-white.rounded-lg.shadow > div:first-child {
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.75rem 1rem;        /* px-4 py-2 */
+  font-size: 1.125rem;          /* 18px */
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Card content area */
+.bg-white.rounded-lg.shadow .p-4 {
+  padding: 1rem;                /* p-4 */
+  color: #374151;
+  line-height: 1.4;
+}
+
+/* Abandoned‐reports list styling */
+#report-list {
+  padding-left: 1rem;
+  margin: 0;
+}
+#report-list li {
+  position: relative;
+  margin: 0.5rem 0;
+  padding-left: 1.25rem;
+}
+#report-list li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: #6b7280;
+  font-size: 1rem;
+  line-height: 1;
+}
+#no-reports {
+  color: #6b7280;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+/* Boarding card button */
+#boarding-cancel {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.6rem 1rem;
+  background-color: #ef4444;
+  color: #fff;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+#boarding-cancel:hover {
+  background-color: #dc2626;
+}
+
+/* Responsive tweak (optional) */
+@media (max-width: 480px) {
+  .bg-white.rounded-lg.shadow {
+    margin: 1rem 0;
+  }
+  #boarding-cancel {
+    width: 100%;
+    text-align: center;
+  }
+}
+/* Style each data line (paragraphs and list items) */
+.bg-white.rounded-lg.shadow .p-4 p,
+.bg-white.rounded-lg.shadow .p-4 ul li {
+  position: relative;
+  background-color: #f3f4f6;    /* light gray background */
+  padding: 0.5rem 0.75rem;      /* vertical & horizontal padding */
+  border-left: 4px solid #2563eb; /* blue accent on the left */
+  border-radius: 4px;           /* rounded corners */
+  margin: 0.5rem 0;             /* spacing between lines */
+  font-size: 0.95rem;           /* slightly smaller text */
+  color: #1f2937;               /* dark gray text */
+}
+
+/* Hide the default bullets and reset list padding */
+.bg-white.rounded-lg.shadow .p-4 ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Custom bullet for list items */
+.bg-white.rounded-lg.shadow .p-4 ul li::before {
+  content: '';
+  position: absolute;
+  left: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  background-color: #2563eb;
+  border-radius: 50%;
+}
+
+/* Ensure list items have left padding for the custom bullet */
+.bg-white.rounded-lg.shadow .p-4 ul li {
+  padding-left: 1.5rem;
+}
+
+/* Example: make labels bold by wrapping them in a span.label (optional) */
+.bg-white.rounded-lg.shadow .p-4 p span.label {
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Example: style values by wrapping them in a span.value (optional) */
+.bg-white.rounded-lg.shadow .p-4 p span.value {
+  font-weight: 400;
+  color: #374151;
+}

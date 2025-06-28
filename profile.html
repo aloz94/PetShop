@@ -1,21 +1,34 @@
 <!DOCTYPE html>
 <html lang="he">
 <head>
-    <meta charset="UTF-8">
-    <title>פרופיל משתמש</title>
-      <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <title>פרופיל משתמש</title>
 
-    <link rel="stylesheet" href="styles/profile.css">
-    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
-
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="styles/profile.css">
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
+  <!-- Tailwind for utility classes -->
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
-    <div class="profile-container">
-        <div class="profile-card">
-          <img class="profile-avatar" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="avatar" />
-          <h2 id="username">ברוך הבא, עדן!</h2>
-          <button class="logout-btn" onclick="logout()">התנתקות</button>
-        </div>
+  <div class="profile-page container mx-auto p-4 font-['Varela_Round',sans-serif] text-gray-800">
+
+    <!-- 1) Header -->
+    <header class="profile-header text-center mb-8">
+      <div class="profile-card inline-block bg-white rounded-lg shadow p-6">
+        <img class="profile-avatar w-20 h-20 rounded-full mb-2 mx-auto"
+             src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+             alt="avatar">
+        <h2 id="username" class="text-xl font-semibold">ברוך הבא, עדן!</h2>
+        <button class="logout-btn mt-2 px-4 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                onclick="logout()">
+          התנתקות
+        </button>
+      </div>
+    </header>
+
+    <!-- 2) Quick stats (3 cards) -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
   <!-- תור טיפוח הבא/נוכחי -->
   <div class="bg-white rounded-lg shadow">
@@ -35,209 +48,165 @@
   </div>
 
   <!-- דיווחי נטושים -->
-  <div class="bg-white rounded-lg shadow">
-    <div class="px-4 py-2 border-b font-semibold">
-      דיווחי נטושים
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-4 py-2 border-b font-semibold">
+        דיווחי נטושים
+      </div>
+      <div class="p-4">
+        <ul id="report-list" class="list-disc list-inside space-y-1">
+          <!-- JS יוסיף כאן <li> לכל דיווח -->
+        </ul>
+        <p id="no-reports" class="text-gray-500">אין דיווחים</p>
+      </div>
     </div>
-    <div class="p-4">
-      <ul id="report-list" class="list-disc list-inside space-y-1">
-        <!-- JS יוסיף כאן <li> לכל דיווח -->
+
+    <!-- תור פנסיון הבא -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-4 py-2 border-b font-semibold">
+        התור הבא לפנסיון
+      </div>
+      <div class="p-4">
+        <p id="boarding-start">מתחיל: –</p>
+        <p id="boarding-duration">למשך: – ימים</p>
+        <p id="boarding-dog">כלב: –</p>
+        <p id="boarding-status">סטטוס: –</p>
+              <button id="boarding-cancel" class="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+          בטל תור
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+    <!-- 3) Personal Info & My Dogs -->
+    <section class="details-dogs grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+      <!-- Personal Info -->
+      <div class="card bg-white rounded-lg shadow">
+        <h3 class="p-4 border-b font-semibold">הפרטים האישיים שלי</h3>
+        <ul class="info-list p-4 space-y-2">
+          <li><strong>תעודת זהות:</strong> <span id="info-id"></span></li>
+          <li><strong>שם:</strong> <span id="info-name"></span></li>
+          <li><strong>מייל:</strong> <span id="info-email"></span></li>
+          <li><strong>טלפון:</strong> <span id="info-phone"></span></li>
+          <li><strong>כתובת:</strong> <span id="info-address"></span></li>
+        </ul>
+      </div>
+
+      <!-- My Dogs -->
+      <div class="card bg-white rounded-lg shadow">
+        <h3 class="p-4 border-b font-semibold">הכלבים שלי</h3>
+        <div id="dog-list" class="dog-cards p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- JS will inject dog cards here -->
+        </div>
+        <button class="add-dog-btn block mx-auto mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                onclick="openPopup('AddDog_popup')">
+          הוסף כלב
+        </button>
+      </div>
+    </section>
+
+    <!-- 4) Future Appointments -->
+    <section class="card bg-white rounded-lg shadow mb-8">
+      <h3 class="p-4 border-b font-semibold">היסטוריית תורים</h3>
+      <ul id="appointments-list" class="appointments-list p-4 space-y-2">
+        <!-- JS will inject future appointments here -->
       </ul>
-      <p id="no-reports" class="text-gray-500">אין דיווחים</p>
-    </div>
-  </div>
+    </section>
 
-  <!-- תור פנסיון הבא -->
-  <div class="bg-white rounded-lg shadow">
-    <div class="px-4 py-2 border-b font-semibold">
-      התור הבא לפנסיון
-    </div>
-    <div class="p-4">
-      <p id="boarding-start">מתחיל: –</p>
-      <p id="boarding-duration">למשך: – ימים</p>
-      <p id="boarding-dog">כלב: –</p>
-      <p id="boarding-status">סטטוס: –</p>
-            <button id="boarding-cancel" class="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
-        בטל תור
-      </button>
+    <!-- 5) Past Appointments -->
+    <section class="card bg-white rounded-lg shadow mb-8">
+      <h3 class="p-4 border-b font-semibold">תורים עתידיים</h3>
+      <ul id="Upcoming-appointments" class="appointments-list p-4 space-y-2">
+        <!-- JS will inject past appointments here -->
+      </ul>
+    </section>
 
-    </div>
-  </div>
-</div>
+    <!-- 6) All Abandoned Reports -->
+    <section class="card bg-white rounded-lg shadow mb-8">
+      <h3 class="p-4 border-b font-semibold">כל דיווחי הנטושים שלי</h3>
+      <div id="reports-list" class="reports-container p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- JS will inject report cards here -->
+      </div>
+    </section>
 
-        <div class="profile-section">
-            <h3>הפרטים האישיים שלי</h3>
-            <ul>
-                <li><strong>תעודת זהות:</strong> <span id="info-id"></span></li>
-                <li><strong>שם:</strong> <span id="info-name"></span></li>
-                <li><strong>מייל:</strong> <span id="info-email"></span></li>
-                <li><strong>טלפון:</strong> <span id="info-phone"></span></li>
-                <li><strong>כתובת:</strong> <span id="info-address"></span></li>
-            </ul>
+  </div><!-- /.container -->
+
+  <!-- Add Dog Form -->
+  <form id="AddDog_form">
+    <div id="AddDog_popup" class="popup-container hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+      <div class="popup-content bg-white rounded-lg p-6 w-full max-w-md">
+        <span class="close-btn float-right text-xl cursor-pointer" onclick="closeAddDogPopup(event)">&times;</span>
+        <h2 class="text-lg font-semibold mb-4">פרטי הכלב</h2>
+        <div class="input-group grid grid-cols-2 gap-4 mb-4">
+          <input type="text" id="dogName" placeholder="שם הכלב *" required class="border rounded p-2">
+          <input type="text" id="dogBreed" placeholder="גזע" required class="border rounded p-2">
         </div>
-
-        <div class="profile-section dog-cards">
-            <h3>הכלבים שלי</h3>
-          
-            <div class="dog-cards-container" id="dog-list">
-                
-              <!-- הכרטיסים ייווצרו כאן דינמית -->
-              <!-- Example static card:
-              <div class="dog-card">
-                <div class="dog-name">שוקו</div>
-                <ul class="dog-info">
-                  <li><span>גזע:</span><span>לברדור</span></li>
-                  <li><span>גודל:</span><span>בינוני</span></li>
-                  <li><span>מין:</span><span>זכר</span></li>
-                </ul>
-                <button class="add-dog-btn" onclick="openPopup('AddDog_popup')">הוסף כלב</button>
-              </div>
-              -->
-            </div>
-          
-            <!-- לחצן כללי להוספת כלב -->
-            <button class="add-dog-btn" onclick="openPopup('AddDog_popup')">הוסף כלב</button>
-          </div>
-
-          
-          <div class="profile-select">
-            <h3>היסטוריית תורים</h3>
-            <ul id="appointments-list" class="appointment-list"></ul>
-          </div>
-          
-         
-          
-          
-          
-
-        <div class="profile-section">
-            <h3>תורים עתידים</h3>
-            <ul id="past-appointments"></ul>
+        <div class="input-group grid grid-cols-2 gap-4 mb-4">
+          <input type="number" id="dogAge" placeholder="גיל *" min="0" required class="border rounded p-2">
+          <select id="dogSize" required class="border rounded p-2">
+            <option value="">בחר גודל *</option>
+            <option>קטן</option>
+            <option>בינוני</option>
+            <option>גדול</option>
+          </select>
         </div>
-
-        <section class="profile-section">
-          <h3>הפניות על כלבים נטושים שלי</h3>
-          <div class="reports-container" id="reports-list">
-            <!-- כרטיסי הפניות ייווצרו כאן דינמית -->
-            <!-- 
-            <div class="report-card">
-              <div class="report-image">
-                <img src="uploads/165789123-dog.png" alt="Dog report image" />
-              </div>
-              <div class="report-info">
-                <p><strong>גודל כלב:</strong> קטן</p>
-                <p><strong>מצב בריאותי:</strong> פצוע</p>
-                <p><strong>כתובת זיהוי:</strong> רח' החופש 10, נצרת</p>
-                <p><strong>הערות:</strong> נראה נחוש אך פצוע ברגל אחורית</p>
-                <p><strong>סטטוס:</strong> לטיפול</p>
-              </div>
-              <div class="report-actions">
-                <button class="btn-edit" onclick="openEditReport(${report.id})">ערוך</button>
-                <button class="btn-delete" onclick="deleteReport(${report.id})">מחק</button>
-              </div>
-            </div>
-            -->
-          </div>
-        </section>
-    
-
-
-
-<!-- add dog form -->
-<!-- 1. הוספה ל־index.html מתחת לשאר הפופ-אפים -->
-<form id="AddDog_form">
-    <div id="AddDog_popup" class="popup-container">
-      <div class="popup-content">
-        <span class="close-btn" onclick="closeAddDogPopup(event)">&times;</span>
-        <img src="./res/logo.png" alt="Logo">
-  
-        <h2>פרטי הכלב</h2>
-        <div class="input-group">
-          <div class="input-field">
-            <input type="text" id="dogName" placeholder="שם הכלב *" required>
-          </div>
-          <div class="input-field">
-            <input type="text" id="dogBreed" placeholder="גזע" required>
-          </div>
+        <div class="input-group mb-4">
+          <label class="block mb-1">מין *</label>
+          <label class="inline-flex items-center mr-4">
+            <input type="radio" name="dogGender" value="male" required class="mr-1"> זכר
+          </label>
+          <label class="inline-flex items-center">
+            <input type="radio" name="dogGender" value="female" class="mr-1"> נקבה
+          </label>
         </div>
-        <div class="input-group">
-          <div class="input-field">
-            <input type="number" id="dogAge" placeholder="גיל *" min="0" required>
-          </div>
-          <div class="input-field">
-            <select id="dogSize" required>
-              <option value="">בחר גודל *</option>
-              <option>קטן</option>
-              <option>בינוני</option>
-              <option>גדול</option>
-            </select>
-          </div>
-        </div>
-        <div class="input-group">
-          <label>מין *</label>
-          <div class="input-field">
-            <label><input type="radio" name="dogGender" value="male" required> זכר</label>
-            <label><input type="radio" name="dogGender" value="female"> נקבה</label>
-          </div>
-        </div>
-  
-        <button class="popup-button" type="submit">הוסף כלב</button>
+        <button type="submit"
+                class="popup-button w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
+          הוסף כלב
+        </button>
       </div>
     </div>
   </form>
-  
-    <!-- edit dog form (add under the existing AddDog_form) -->
-    <form id="EditDog_form">
-        <div id="EditDog_popup" class="popup-container">
-          <div class="popup-content">
-            <span class="close-btn" onclick="closePopup('EditDog_popup')">&times;</span>
-            <h2>עריכת פרטי הכלב</h2>
-      
-            <!-- id נסתר -->
-            <input type="hidden" id="editDogId">
-      
-            <!-- שדות עריכה -->
-            <div class="input-group">
-              <div class="input-field">
-                <input type="text" id="editDogName" placeholder="שם הכלב *" required>
-              </div>
-              <div class="input-field">
-                <input type="text" id="editDogBreed" placeholder="גזע *" required>
-              </div>
-            </div>
-            <div class="input-group">
-              <div class="input-field">
-                <input type="number" id="editDogAge" placeholder="גיל *" min="0" required>
-              </div>
-              <div class="input-field">
-                <select id="editDogSize" required>
-                  <option value="">בחר גודל *</option>
-                  <option value="קטן">קטן</option>
-                  <option value="בינוני">בינוני</option>
-                  <option value="גדול">גדול</option>
-                </select>
-              </div>
-            </div>
-            <div class="input-group">
-              <label>מין *</label>
-              <div class="input-field">
-                <label>
-                  <input type="radio" name="editDogGender" value="male" required> זכר
-                </label>
-                <label>
-                  <input type="radio" name="editDogGender" value="female"> נקבה
-                </label>
-              </div>
-            </div>
-      
-            <button class="popup-button" type="button" onclick="submitEditDog()">
-              שמור שינויים
-            </button>
-          </div>
+
+  <!-- Edit Dog Form -->
+  <form id="EditDog_form">
+    <div id="EditDog_popup" class="popup-container hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+      <div class="popup-content bg-white rounded-lg p-6 w-full max-w-md">
+        <span class="close-btn float-right text-xl cursor-pointer" onclick="closePopup('EditDog_popup')">&times;</span>
+        <h2 class="text-lg font-semibold mb-4">עריכת פרטי הכלב</h2>
+        <input type="hidden" id="editDogId">
+        <div class="input-group grid grid-cols-2 gap-4 mb-4">
+          <input type="text" id="editDogName" placeholder="שם הכלב *" required class="border rounded p-2">
+          <input type="text" id="editDogBreed" placeholder="גזע *" required class="border rounded p-2">
         </div>
-      </form>
-      
-    
-    <script src="script/profile.js"></script>
+        <div class="input-group grid grid-cols-2 gap-4 mb-4">
+          <input type="number" id="editDogAge" placeholder="גיל *" min="0" required class="border rounded p-2">
+          <select id="editDogSize" required class="border rounded p-2">
+            <option value="">בחר גודל *</option>
+            <option value="קטן">קטן</option>
+            <option value="בינוני">בינוני</option>
+            <option value="גדול">גדול</option>
+          </select>
+        </div>
+        <div class="input-group mb-4">
+          <label class="block mb-1">מין *</label>
+          <label class="inline-flex items-center mr-4">
+            <input type="radio" name="editDogGender" value="male" required class="mr-1"> זכר
+          </label>
+          <label class="inline-flex items-center">
+            <input type="radio" name="editDogGender" value="female" class="mr-1"> נקבה
+          </label>
+        </div>
+        <button type="button"
+                class="popup-button w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+                onclick="submitEditDog()">
+          שמור שינויים
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <!-- Main Script -->
+  <script src="script/profile.js"></script>
+
 </body>
 </html>

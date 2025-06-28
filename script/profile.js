@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
     //loadGroomingAppointments();
     loadAllAppointments(); // load all appointments on page load
     loadReports();
+    loadFutureAppointments(); // load future appointments on page load
 
 })
 
@@ -393,12 +394,88 @@ function openEditDog(id, name, breed, age, size, gender) {
       }
     }
         
+    async function loadFutureAppointments() {
+      const container = document.getElementById('Upcoming-appointments');
+      container.innerHTML = '';
     
+      try {
+        // 1. load grooming
+        const groomRes = await fetch('http://localhost:3000/profile/Upcoming/grooming', {
+          credentials: 'include'
+        });
+        const grooming = await groomRes.json();
+    
+        // 2. load boarding
+        const boardRes = await fetch('http://localhost:3000/profile/Upcoming/boarding', {
+          credentials: 'include'
+        });
+        const boarding = await boardRes.json();
+    
+        // 3. merge
+        const all = [];
+    
+        grooming.forEach(app => {
+          // נניח שיש גם app.service_name, app.dog_name, app.slot_time
+          const timeParts = app.slot_time.split(':');                  // ["11","30","00"]
+        const formattedTime = `${timeParts[0].padStart(2,'0')}:${timeParts[1].padStart(2,'0')}`;
+          const formattedDate = formatHebrewDate(app.appointment_date);
+          const li = document.createElement('li');
+          li.textContent = 
+          `${app.service_name} לכלב ${app.dog_name} בתאריך ${formattedDate} בשעה ${formattedTime}`;
+          container.appendChild(li);
+        });
+        boarding.forEach(b => {
+          all.push({
+            type:       'boarding',
+            start:      b.check_in,
+            end:        b.check_out,
+            dog:        b.dog_name
+          });
+        });
+    
+        // 4. sort by date
+        all.sort((a, b) => {
+          const dateA = new Date(a.type==='grooming' ? a.datetime : a.start);
+          const dateB = new Date(b.type==='grooming' ? b.datetime : b.start);
+          return dateA - dateB;
+        });
+    
+        // 5. display
+        all.forEach(item => {
+          let html;
+          if (item.type === 'grooming') {
+            html = `
+              <li>
+                ${formatHebDate(item.datetime)} – ${item.service} לכלב ${item.dog} בשעה ${formatHebTime(item.datetime)}
+              </li>`;
+          } else {
+            html = `
+              <li>
+                פנסיון לכלב ${item.dog} מ־${formatHebDate(item.start)} עד־${formatHebDate(item.end)}
+              </li>`;
+          }
+          container.insertAdjacentHTML('beforeend', html);
+        });
+      }
+      catch (err) {
+        console.error('Failed to load appointments:', err);
+        container.innerHTML = '<li class="error">שגיאה בטעינת היסטוריית תורים</li>';
+      }
+    }
 
 
 
-      /*async function loadReports() {
-        const res = await fetch('http://localhost:3000/profile/reports', { credentials: 'include' });
+    async function loadReports() {
+      const abandonedStatusLabels = {
+  open:       'חדש',
+  inprogress: 'בטיפול',
+accepted: '  בטיפול - נקבע שליח ',
+rejected: 'בטיפול - מתאם שליח אחר',
+  ontheway:   'בדרך',
+  completed:  'הושלם',
+  cancelled:  'בוטל'
+};
+      const res = await fetch('http://localhost:3000/profile/reports', { credentials: 'include' });
         console.log('Loading reports...');
 
         const reports = await res.json();
@@ -406,6 +483,8 @@ function openEditDog(id, name, breed, age, size, gender) {
         const container = document.getElementById('reports-list');
         container.innerHTML = '';
         reports.forEach(r => {
+            console.log('Abandoned report status:', r.status); // Debug line
+
           const html = `
             <div class="report-card">
               <div class="report-image">
@@ -416,8 +495,9 @@ function openEditDog(id, name, breed, age, size, gender) {
                 <p><strong>מצב בריאותי:</strong> ${r.health_status}</p>
                 <p><strong>כתובת:</strong> ${r.address}</p>
                 <p><strong>הערות:</strong> ${r.notes}</p>
-                <p><strong>סטטוס:</strong> ${r.status}</p>
-              </div>
+                <p><strong>שליח:</strong> ${r.handler_name ? r.handler_name : 'לא נקבע'}</p>
+                <p><strong>גורם סיוע:</strong> ${r.care_provider_name ? r.care_provider_name : 'לא נקבע'}</p>
+                <p><strong>סטטוס:</strong> <span class="status-badge status-${r.status}">${abandonedStatusLabels[r.status] || r.status}</span></p>              </div>
               <div class="report-actions">
                 <button class="btn-edit" onclick="openEditReport(${r.id})">ערוך</button>
                 <button class="btn-delete" onclick="deleteReport(${r.id})">מחק</button>
@@ -425,7 +505,17 @@ function openEditDog(id, name, breed, age, size, gender) {
             </div>`;
           container.insertAdjacentHTML('beforeend', html);
         });
-      }*/
+      }
+
+  /*      const abandonedStatusLabels = {
+  open:       'חדש',
+  inprogress: 'בטיפול',
+  accepted:   'נקבע שליח',
+  rejected:   'בטיפול',
+  ontheway:   'בדרך',
+  completed:  'הושלם',
+  cancelled:  'בוטל'
+};
 
         async function loadReports() {
           const response = await fetch('http://localhost:3000/profile/reports', {
@@ -453,8 +543,7 @@ function openEditDog(id, name, breed, age, size, gender) {
                 <p><strong>מצב בריאותי:</strong> ${r.health_status}</p>
                 <p><strong>כתובת:</strong> ${r.address}</p>
                 <p><strong>הערות:</strong> ${r.notes}</p>
-                <p><strong>סטטוס:</strong> ${r.status}</p>
-              </div>
+<p><strong>סטטוס:</strong> <span class="status-badge status-${r.status}">${abandonedStatusLabels[r.status] || r.status}</span></p>              </div>
               <div class="report-actions">
                 <button class="btn-edit" onclick="openEditReport(${r.id})">ערוך</button>
                 <button class="btn-delete" onclick="deleteReport(${r.id})">מחק</button>
@@ -463,12 +552,179 @@ function openEditDog(id, name, breed, age, size, gender) {
           container.insertAdjacentHTML('beforeend', html);
         });
 
-        }
+        }*/
       
-      
+      // next appoitment grooming
+        document.addEventListener('DOMContentLoaded', loadNextGrooming);
+
+  async function loadNextGrooming() {
+    const statusLabels = {
+  scheduled:    'נקבע',
+  arrived:      'הגיע',
+  in_treatment: 'בטיפול',
+  waiting_pick: 'ממתין לאיסוף',
+  completed:    'הושלם',
+  cancelled:    'בוטל'
+};
+    try {
+      // לקרוא ל־endpoint שמחזיר את התור הבא של הלקוח המחובר
+      const res = await fetch('/api/customers/me/grooming/next', {
+        credentials: 'include'
+      });
+      if (!res.ok) throw new Error(`Error: ${res.status}`);
+      const appt = await res.json();
+    if (!res.ok) throw new Error(data.error || res.message || res.statusText);
+
+      // השדות שצריך למלא
+      const dateEl    = document.getElementById('grooming-date');
+      const timeEl    = document.getElementById('grooming-time');
+      const servEl    = document.getElementById('grooming-service');
+      const dogEl     = document.getElementById('grooming-dog');
+      const statusEl  = document.getElementById('grooming-status');
+      const cancelBtn = document.getElementById('grooming-cancel');
+
+      if (appt) {
+        dateEl.innerText   = `תאריך: ${new Date(appt.date).toLocaleDateString('he-IL')}`;
+        timeEl.innerText   = `שעה: ${appt.time}`;
+        servEl.innerText   = `שירות: ${appt.service_type}`;
+        dogEl.innerText    = `כלב: ${appt.dog_name}`;
+statusEl.innerHTML = `סטטוס: <span class="status-badge status-${appt.status}">${statusLabels[appt.status] || appt.status}</span>`;
+        // אופציונלי: טיפול בביטול תור
+        cancelBtn.addEventListener('click', async () => {
+          await fetch(`/api/customers/me/grooming/${appt.id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+          });
+          // אחרי ביטול רענן את הכרטיס
+          loadNextGrooming();
+        });
+
+      } else {
+        // אין תור מתוזמן
+        dateEl.innerText = 'אין תורים מתוזמנים';
+        timeEl.style.display =
+        servEl.style.display =
+        dogEl.style.display =
+        statusEl.style.display =
+        cancelBtn.style.display = 'none';
+      }
+
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+    //abandoned latest 
+  document.addEventListener('DOMContentLoaded', loadAbandonedReports);
+
+  async function loadAbandonedReports() {
+    const url  = '/api/customers/me/abandoned-reports';
+    const list = document.getElementById('report-list');
+    const none = document.getElementById('no-reports');
+
+const abandonedStatusLabels = {
+open: 'חדש',
+inprogress: 'בטיפול',
+accepted: '  בטיפול - נקבע שליח ',
+rejected: 'בטיפול - מתאם שליח אחר',
+ontheway: 'בדרך',
+completed: 'הושלם',
+cancelled: 'בוטל'
+};
+    try {
+      const res     = await fetch(url, { credentials: 'include' });
+      const reports = await res.json();
+      if (!res.ok) throw new Error(reports.error || res.statusText);
+
+      list.innerHTML = '';
+
+      if (reports.length) {
+        none.style.display = 'none';
+reports.forEach(r => {
+  const date = new Date(r.report_date)
+                 .toLocaleDateString('he-IL', {
+                   day:   '2-digit',
+                   month: '2-digit',
+                   year:  'numeric'
+                 });
+
+  // Build an array of each line you want to show
+  const lines = [
+    `תאריך: ${date}`,
+    `גודל כלב: ${r.dog_size}`,
+    `מצב בריאות: ${r.health_status}`,
+    'שליח :' + (r.handler_name ? r.handler_name : 'לא נקבע'),
+    'גורם סיוע: ' + (r.care_provider_name ? r.care_provider_name : 'לא נקבע'),
+    `סטטוס: <span class="status-badge status-${r.status}">${abandonedStatusLabels[r.status] || r.status}</span>`
+
+  ];
+
+  // For each line, create its own <li>
+  lines.forEach(text => {
+    const li = document.createElement('li');
+  li.innerHTML = text; // Use innerHTML to render the badge
+    list.appendChild(li);
+  });
+});
+      } else {
+        none.style.display = '';
+      }
+    } catch (err) {
+      console.error('Failed to load abandoned reports:', err);
+    }
+  }
+
     
-    
-  
+// Call this once after your DOM has loaded (or put it in a <script defer> at the bottom)
+document.addEventListener('DOMContentLoaded', loadNextBoarding);
+
+async function loadNextBoarding() {
+  const boardingStatusLabels = {
+  pending:    'נקבע',
+  inprogress: 'בתהליך',
+  completed:  'הושלם',
+  cancelled:  'בוטל'
+};
+
+  const url = '/api/customers/me/boarding/next';
+  try {
+    const res  = await fetch(url, { credentials: 'include' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.statusText);
+
+    const startEl   = document.getElementById('boarding-start');
+    const durEl     = document.getElementById('boarding-duration');
+    const dogEl     = document.getElementById('boarding-dog');
+    const statusEl  = document.getElementById('boarding-status');
+    const cancelBtn = document.getElementById('boarding-cancel');
+
+    if (data) {
+      // Parse & format start date
+      const sd = new Date(data.startdate);
+startEl.innerText  = `מתחיל: ${sd.toLocaleDateString('he-IL')}`;
+durEl.innerText    = `למשך: ${data.durationdays} ימים`;
+dogEl.innerText    = `כלב: ${data.dogname}`;
+      // Status
+statusEl.innerHTML = `סטטוס: <span class="status-badge status-${data.status}">${boardingStatusLabels[data.status] || data.status}</span>`;
+      // Show cancel button if hidden
+      cancelBtn.style.display = 'inline-block';
+      cancelBtn.onclick = async () => {
+        await fetch(`/api/customers/me/boarding/${data.id}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+        loadNextBoarding();  // refresh
+      };
+    } else {
+      // No upcoming booking
+      startEl.innerText = 'אין הזמנות מתוזמנות';
+      [durEl, dogEl, statusEl, cancelBtn].forEach(el => el.style.display = 'none');
+    }
+
+  } catch (err) {
+    console.error('loadNextBoarding error:', err);
+  }
+}
   
   
 

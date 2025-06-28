@@ -360,6 +360,77 @@ app.post('/add-dog', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'שגיאה בהוספת כלב' });
   }
 });
+// GET /api/customers/me/grooming/next
+app.get('/api/customers/me/grooming/next', authenticateToken, async (req, res) => {
+  const customerId = req.user.userId;          // ← use userId
+  try {
+    const { rows } = await con.query(`
+      SELECT
+        ga.id,
+        ga.appointment_date   AS date,
+        ga.slot_time          AS time,
+        s.name                AS service_type,
+        d.name                AS dog_name,
+        ga.status
+      FROM grooming_appointments ga
+      LEFT JOIN services s ON ga.service_id = s.id
+      LEFT JOIN dogs     d ON ga.dog_id     = d.id
+      WHERE ga.customer_id = $1
+        AND ga.appointment_date >= CURRENT_DATE
+      ORDER BY ga.appointment_date, ga.slot_time
+      LIMIT 1
+    `, [customerId]);
+
+    return res.json(rows[0] || null);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/customers/me/abandoned-reports
+app.get('/api/customers/me/abandoned-reports', authenticateToken, async (req, res) => {
+  const customerId = req.user.userId;  // use userId from your JWT
+  try {
+    const { rows } = await con.query(
+      `
+SELECT
+  adr.id,
+  adr.report_date         AS report_date,
+  adr.status              AS status,
+
+  -- handler info
+  adr.handler_id          AS handler_id,
+  h.name                  AS handler_name,
+
+  -- care-provider info
+  adr.care_provider       AS care_provider_id,
+  cp.name                 AS care_provider_name,
+
+  adr.dog_size            AS dog_size,
+  adr.health_status       AS health_status,
+  adr.address             AS address,
+  adr.notes               AS notes,
+  adr.image_path          AS image_path,
+  adr.status_updated_at   AS status_updated_at
+FROM abandoned_dog_reports adr
+LEFT JOIN handlers h
+  ON adr.handler_id = h.id
+LEFT JOIN care_provider cp
+  ON adr.care_provider = cp.id
+WHERE adr.customer_id = $1
+ORDER BY adr.report_date DESC
+LIMIT 1;
+      `,
+      [customerId]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching abandoned reports:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 // ------------------ מסלול להוספת תור לטיפוח-------------------?????
 app.get('/appointments', authenticateToken, async (req, res) => {
@@ -959,6 +1030,8 @@ app.get('/profile/grooming', authenticateToken, async (req, res) => {
       JOIN dogs    d ON ga.dog_id     = d.id
       JOIN services s ON ga.service_id = s.id
       WHERE ga.customer_id = $1
+      AND ga.status <> 'cancelled'  -- exclude cancelled appointments
+      AND ga.appointment_date < CURRENT_DATE  -- only past appointments
       ORDER BY ga.appointment_date, ga.slot_time;
     `;
     const { rows } = await con.query(query, [customerId]);
@@ -968,6 +1041,35 @@ app.get('/profile/grooming', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'שגיאה בשליפת תורי טיפוח' });
   }
 });
+
+app.get('/profile/Upcoming/grooming', authenticateToken, async (req, res) => {
+  const customerId = req.user.userId;
+
+  try {
+    const query = `
+      SELECT 
+        ga.id,
+        d.name           AS dog_name,
+        s.name           AS service_name,
+        ga.appointment_date,
+        ga.slot_time
+      FROM grooming_appointments ga
+      JOIN dogs    d ON ga.dog_id     = d.id
+      JOIN services s ON ga.service_id = s.id
+      WHERE ga.customer_id = $1
+      AND ga.status <> 'cancelled'  -- exclude cancelled appointments
+      AND ga.appointment_date >= CURRENT_DATE  -- only Upcoming appointments
+      ORDER BY ga.appointment_date, ga.slot_time;
+    `;
+    const { rows } = await con.query(query, [customerId]);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching grooming appointments:', err);
+    res.status(500).json({ message: 'שגיאה בשליפת תורי טיפוח' });
+  }
+});
+
+
 // GET boarding appointments for current user
 app.get('/profile/boarding', authenticateToken, async (req, res) => {
   const customerId = req.user.userId;
@@ -981,6 +1083,8 @@ app.get('/profile/boarding', authenticateToken, async (req, res) => {
       FROM boarding_appointments ba
       JOIN dogs d ON ba.dog_id = d.id
       WHERE ba.customer_id = $1
+      AND ba.status <> 'cancelled'  -- exclude cancelled appointments
+      AND ba.check_in < CURRENT_DATE  -- only past appointments
       ORDER BY ba.check_in;
     `;
     const result = await con.query(query, [customerId]);
@@ -990,6 +1094,31 @@ app.get('/profile/boarding', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'שגיאה בשליפת תורי פנסיון' });
   }
 });
+
+app.get('/profile/Upcoming/boarding', authenticateToken, async (req, res) => {
+  const customerId = req.user.userId;
+  try {
+    const query = `
+      SELECT
+        ba.id,
+        d.name       AS dog_name,
+        ba.check_in  AS check_in,
+        ba.check_out AS check_out
+      FROM boarding_appointments ba
+      JOIN dogs d ON ba.dog_id = d.id
+      WHERE ba.customer_id = $1
+      AND ba.status <> 'cancelled'  -- exclude cancelled appointments
+      AND ba.check_in >= CURRENT_DATE  -- only Upcoming appointments
+      ORDER BY ba.check_in;
+    `;
+    const result = await con.query(query, [customerId]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching boarding appointments:', err);
+    res.status(500).json({ message: 'שגיאה בשליפת תורי פנסיון' });
+  }
+});
+
 // GET abandent dog reports for current user
 app.get('/profile/reports', authenticateToken, async (req, res) => {
   const userId = req.user.userId;
@@ -997,16 +1126,25 @@ app.get('/profile/reports', authenticateToken, async (req, res) => {
   try {
     const query = `
       SELECT 
-        r.id,
-        r.dog_size,
-        r.health_status,
-        r.address,
-        r.notes,
-        r.status,
-        r.image_path
-      FROM abandoned_dog_reports r
-      WHERE r.customer_id = $1
-      ORDER BY r.id DESC;
+  r.id,
+  r.dog_size,
+  r.health_status,
+  r.address,
+  r.notes,
+  r.status,
+  r.image_path,
+  r.care_provider       AS care_provider_id,
+  cp.name               AS care_provider_name,
+  r.handler_id          AS handler_id,
+  h.name                AS handler_name
+FROM abandoned_dog_reports r
+LEFT JOIN care_provider cp
+  ON r.care_provider = cp.id
+LEFT JOIN handlers h
+  ON r.handler_id = h.id
+WHERE r.customer_id = $1
+ORDER BY r.id DESC;
+
     `;
     const { rows } = await con.query(query, [userId]);
     // console.log(rows);  // DEBUG: בדוק שהשורות מגיעות עם כל השדות
@@ -3391,6 +3529,33 @@ app.get('/api/orders/by-status', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error('Error fetching orders by status:', err);
     res.status(500).json({ error: 'Server error fetching filtered orders' });
+  }
+});
+
+// GET /api/customers/me/boarding/next
+app.get('/api/customers/me/boarding/next', authenticateToken, async (req, res) => {
+  const customerId = req.user.userId;     
+  try {
+    const { rows } = await con.query(`
+      SELECT
+        br.id,
+        br.check_in       AS startDate,
+        (br.check_out - br.check_in) AS durationDays,
+        d.name              AS dogName,
+        br.status
+      FROM boarding_appointments br
+      LEFT JOIN dogs d ON br.dog_id = d.id
+      WHERE br.customer_id = $1
+        AND br.check_in >= CURRENT_DATE
+        AND br.status != 'cancelled'
+      ORDER BY br.check_in
+      LIMIT 1
+    `, [customerId]);
+
+    res.json(rows[0] || null);
+  } catch (err) {
+    console.error('Error fetching next boarding:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 
