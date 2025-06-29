@@ -45,9 +45,9 @@ document.addEventListener('DOMContentLoaded', function() {
     loadUserDogs();  // call on page load
     document.getElementById('AddDog_form').addEventListener('submit', handleAddDogForm);
     //loadGroomingAppointments();
-    loadAllAppointments(); // load all appointments on page load
+    //loadAllAppointments(); // load all appointments on page load
     loadReports();
-    loadFutureAppointments(); // load future appointments on page load
+   // loadFutureAppointments(); // load future appointments on page load
 
 })
 
@@ -325,143 +325,149 @@ function openEditDog(id, name, breed, age, size, gender) {
     
    
     
-    async function loadAllAppointments() {
-      const container = document.getElementById('appointments-list');
-      container.innerHTML = '';
-    
-      try {
-        // 1. load grooming
-        const groomRes = await fetch('http://localhost:3000/profile/grooming', {
-          credentials: 'include'
-        });
-        const grooming = await groomRes.json();
-    
-        // 2. load boarding
-        const boardRes = await fetch('http://localhost:3000/profile/boarding', {
-          credentials: 'include'
-        });
-        const boarding = await boardRes.json();
-    
-        // 3. merge
-        const all = [];
-    
-        grooming.forEach(app => {
-          // נניח שיש גם app.service_name, app.dog_name, app.slot_time
-          const timeParts = app.slot_time.split(':');                  // ["11","30","00"]
-        const formattedTime = `${timeParts[0].padStart(2,'0')}:${timeParts[1].padStart(2,'0')}`;
-          const formattedDate = formatHebrewDate(app.appointment_date);
-          const li = document.createElement('li');
-          li.textContent = 
-          `${app.service_name} לכלב ${app.dog_name} בתאריך ${formattedDate} בשעה ${formattedTime}`;
-          container.appendChild(li);
-        });
-        boarding.forEach(b => {
-          all.push({
-            type:       'boarding',
-            start:      b.check_in,
-            end:        b.check_out,
-            dog:        b.dog_name
-          });
-        });
-    
-        // 4. sort by date
-        all.sort((a, b) => {
-          const dateA = new Date(a.type==='grooming' ? a.datetime : a.start);
-          const dateB = new Date(b.type==='grooming' ? b.datetime : b.start);
-          return dateA - dateB;
-        });
-    
-        // 5. display
-        all.forEach(item => {
-          let html;
-          if (item.type === 'grooming') {
-            html = `
-              <li>
-                ${formatHebDate(item.datetime)} – ${item.service} לכלב ${item.dog} בשעה ${formatHebTime(item.datetime)}
-              </li>`;
-          } else {
-            html = `
-              <li>
-                פנסיון לכלב ${item.dog} מ־${formatHebDate(item.start)} עד־${formatHebDate(item.end)}
-              </li>`;
-          }
-          container.insertAdjacentHTML('beforeend', html);
-        });
-      }
-      catch (err) {
-        console.error('Failed to load appointments:', err);
-        container.innerHTML = '<li class="error">שגיאה בטעינת היסטוריית תורים</li>';
-      }
+async function loadAllAppointments() {
+  const container = document.getElementById('appointments-list');
+  container.innerHTML = '';
+
+  try {
+    // 1) Fetch both endpoints
+    const [groomRes, boardRes] = await Promise.all([
+      fetch('http://localhost:3000/profile/grooming', { credentials: 'include' }),
+      fetch('http://localhost:3000/profile/boarding', { credentials: 'include' }),
+    ]);
+    if (!groomRes.ok || !boardRes.ok) throw new Error('Fetch failed');
+
+    const [grooming, boarding] = await Promise.all([
+      groomRes.json(),
+      boardRes.json(),
+    ]);
+
+    // 2) Build unified list
+    const all = [];
+
+    // Grooming: appointment_date + slot_time
+    grooming.forEach(app => {
+      if (!app.appointment_date || !app.slot_time) return;
+      const dt = new Date(app.appointment_date);
+      const [h, m] = app.slot_time.split(':').map(Number);
+      dt.setHours(h, m, 0, 0);
+      if (isNaN(dt)) return;
+      all.push({
+        datetime: dt,
+        type:     'grooming',
+        text:     `${app.service_name} לכלב ${app.dog_name} בתאריך ` +
+                  `${dt.toLocaleDateString('he-IL')} בשעה ${app.slot_time}`
+      });
+    });
+
+    // Boarding: use startdate directly (already ISO)
+    boarding.forEach(b => {
+      if (!b.startdate) return;
+      const dt = new Date(b.startdate);
+      if (isNaN(dt)) return;
+      all.push({
+        datetime: dt,
+        type:     'boarding',
+        text:     `פנסיון לכלב ${b.dogname} בתאריך ` +
+                  `${dt.toLocaleDateString('he-IL')} ל־${b.durationdays} ימים בשעה ` +
+                  `${dt.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})}`
+      });
+    });
+
+    // 3) Sort newest-first
+    all.sort((a, b) => b.datetime - a.datetime);
+
+      const maxToShow = 20;
+  const toRender  = all.slice(0, maxToShow);
+
+  // 5) Render those
+toRender.forEach((item, index) => {
+    const li = document.createElement('li');
+    li.textContent = item.text;
+      if (index === 0) {
+    li.classList.add('latest');
+  }
+
+    container.appendChild(li);
+  });
+
+
+
+  } catch (err) {
+    console.error('Failed to load appointments:', err);
+    container.innerHTML = '<li class="error">שגיאה בטעינת תורים</li>';
+  }
+}
+//-------------------------------------------------------------------------------------------------------------
+
+
+// invoke on load
+document.addEventListener('DOMContentLoaded', loadAllAppointments);
+        // griding appointments
+document.addEventListener('DOMContentLoaded', loadFutureAppointments);
+
+async function loadFutureAppointments() {
+  const container = document.getElementById('Upcoming-appointments');
+  container.innerHTML = '';
+
+  try {
+    // 1) Fetch grooming & boarding in parallel
+    const [groomRes, boardRes] = await Promise.all([
+      fetch('http://localhost:3000/profile/Upcoming/grooming', { credentials: 'include' }),
+      fetch('http://localhost:3000/profile/Upcoming/boarding', { credentials: 'include' }),
+    ]);
+    if (!groomRes.ok || !boardRes.ok) {
+      throw new Error('Failed to fetch upcoming appointments');
     }
-        
-    async function loadFutureAppointments() {
-      const container = document.getElementById('Upcoming-appointments');
-      container.innerHTML = '';
-    
-      try {
-        // 1. load grooming
-        const groomRes = await fetch('http://localhost:3000/profile/Upcoming/grooming', {
-          credentials: 'include'
-        });
-        const grooming = await groomRes.json();
-    
-        // 2. load boarding
-        const boardRes = await fetch('http://localhost:3000/profile/Upcoming/boarding', {
-          credentials: 'include'
-        });
-        const boarding = await boardRes.json();
-    
-        // 3. merge
-        const all = [];
-    
-        grooming.forEach(app => {
-          // נניח שיש גם app.service_name, app.dog_name, app.slot_time
-          const timeParts = app.slot_time.split(':');                  // ["11","30","00"]
-        const formattedTime = `${timeParts[0].padStart(2,'0')}:${timeParts[1].padStart(2,'0')}`;
-          const formattedDate = formatHebrewDate(app.appointment_date);
-          const li = document.createElement('li');
-          li.textContent = 
-          `${app.service_name} לכלב ${app.dog_name} בתאריך ${formattedDate} בשעה ${formattedTime}`;
-          container.appendChild(li);
-        });
-        boarding.forEach(b => {
-          all.push({
-            type:       'boarding',
-            start:      b.check_in,
-            end:        b.check_out,
-            dog:        b.dog_name
-          });
-        });
-    
-        // 4. sort by date
-        all.sort((a, b) => {
-          const dateA = new Date(a.type==='grooming' ? a.datetime : a.start);
-          const dateB = new Date(b.type==='grooming' ? b.datetime : b.start);
-          return dateA - dateB;
-        });
-    
-        // 5. display
-        all.forEach(item => {
-          let html;
-          if (item.type === 'grooming') {
-            html = `
-              <li>
-                ${formatHebDate(item.datetime)} – ${item.service} לכלב ${item.dog} בשעה ${formatHebTime(item.datetime)}
-              </li>`;
-          } else {
-            html = `
-              <li>
-                פנסיון לכלב ${item.dog} מ־${formatHebDate(item.start)} עד־${formatHebDate(item.end)}
-              </li>`;
-          }
-          container.insertAdjacentHTML('beforeend', html);
-        });
-      }
-      catch (err) {
-        console.error('Failed to load appointments:', err);
-        container.innerHTML = '<li class="error">שגיאה בטעינת היסטוריית תורים</li>';
-      }
-    }
+    const [grooming, boarding] = await Promise.all([ groomRes.json(), boardRes.json() ]);
+
+    // 2) Build unified array
+    const all = [];
+    const now = new Date();
+
+    // 2a) Grooming: combine date + slot_time
+    grooming.forEach(app => {
+      if (!app.appointment_date || !app.slot_time) return;
+      const dt = new Date(app.appointment_date);
+      const [h, m] = app.slot_time.split(':').map(Number);
+      dt.setHours(h, m, 0, 0);
+      if (isNaN(dt) || dt < now) return;
+      all.push({
+        datetime: dt,
+        text:     `${app.service_name} לכלב ${app.dog_name} בתאריך ` +
+                  `${dt.toLocaleDateString('he-IL')} בשעה ${app.slot_time}`
+      });
+    });
+
+    // 2b) Boarding: use check_in
+    boarding.forEach(b => {
+      if (!b.check_in) return;
+      const dt = new Date(b.check_in);
+      if (isNaN(dt) || dt < now) return;
+      all.push({
+        datetime: dt,
+        text:     `פנסיון לכלב ${b.dog_name} בתאריך ` +
+                  `${dt.toLocaleDateString('he-IL')} ל־${b.duration_days} ימים בשעה ` +
+                  `${dt.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})}`
+      });
+    });
+
+    // 3) Sort ascending (soonest first)
+    all.sort((a, b) => a.datetime - b.datetime);
+
+    // 4) Render into grid, tagging the very first as “next-up”
+    all.forEach((item, idx) => {
+      const li = document.createElement('li');
+      li.textContent = item.text;
+      if (idx === 0) li.classList.add('next-up');
+      container.appendChild(li);
+    });
+
+  } catch (err) {
+    console.error('Failed to load upcoming appointments:', err);
+    container.innerHTML = '<li class="error">שגיאה בטעינת תורים עתידיים</li>';
+  }
+}
 
 
 

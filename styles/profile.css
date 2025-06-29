@@ -103,6 +103,12 @@
   background: #1e40af;
 }
 
+.appointments-scroll {
+  max-height: 400px;     /* or whatever height works for you */
+  overflow-y: auto;
+}
+
+
 /* Appointments Lists */
 /* 1) Make the UL a grid container */
 #appointments-list {
@@ -119,27 +125,71 @@
   background: #f3f4f6;
   padding: 1rem;
   border-radius: 6px;
-  border-left: none;           /* remove that vertical line */
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  display: flex;               /* so you can align content as needed */
-  align-items: center;
-  font-size: 0.95rem;
+  position: relative;
 }
-
 /* 3) (Optional) If you want an accent stripe on the left */
 #appointments-list li::before {
   content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
   width: 4px;
+  height: 100%;
   background: #2563eb;
   border-radius: 2px;
-  margin-right: 0.75rem;
-  flex-shrink: 0;
-  height: 100%;
 }
 
 /* 4) Ensure the card text wraps nicely */
 #appointments-list li {
   word-break: break-word;
+}
+
+/* Upcoming Appointments Grid */
+#Upcoming-appointments {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px,1fr));
+  gap: 1rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#Upcoming-appointments li {
+  position: relative;
+  background: #f3f4f6;
+  padding: 1rem;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  word-break: break-word;
+}
+
+#Upcoming-appointments li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  height: 100%;
+  background: #2563eb;
+  border-radius: 2px;
+}
+
+/* Highlight the newest appointment */
+#appointments-list li.latest {
+  background-color: #fffbeb;   /* soft yellow background */
+  border-left-color: #f59e0b;  /* amber accent stripe */
+}
+
+/* (Optional) make the text stand out */
+#appointments-list li.latest {
+  font-weight: 600;
+}
+/* highlight the very next appointment */
+#Upcoming-appointments li.next-up {
+  background-color: #e0f2fe;     /* light-blue background */
+  border-left-color: #0284c7;    /* darker-blue accent */
+  font-weight: 600;
 }
 
 /* 5) Responsive tweak for very narrow screens */

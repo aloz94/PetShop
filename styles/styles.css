@@ -134,75 +134,72 @@ body {
     margin-left: auto; /* Push these elements to the right */
 }
 
+/* 1. Main navbar container */
 .left-navbar {
-    display: flex; /* Use flexbox for layout */
-    align-items: center; /* Align items vertically */
-    justify-content: space-between; /* Space out elements horizontally */
-    padding: 10px 20px; /* Add padding for spacing */
-    background-color: #f8f9fa; /* Light background color */
-    border-bottom: 1px solid #ddd; /* Optional border for separation */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  display: flex;
+  align-items: center;
+  gap: 10px;            /* space between each block */
+  padding: 10px 20px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #ddd;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
+/* 2. Profile icon + name: make it row instead of column */
 .left-navbar .profile-icon {
-    display: flex;
-    flex-direction: column; /* Stack icon and username vertically */
-    align-items: center; /* Center-align icon and username */
-    margin-right: 20px; /* Space between profile icon and other elements */
+  display: flex;
+  flex-direction: row;   /* <-- was column */
+  align-items: center;   /* vertically center icon + text */
+  gap: 5px;              /* space between image and name */
 }
 
-.left-navbar .profile-icon img {
-    width: 40px; /* Adjust icon size */
-    height: 40px;
-    margin-bottom: 5px; /* Space between icon and username */
+/* 3. All buttons in the navbar: ensure icon + text sit side by side */
+.left-navbar button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  
+  width: 150px;       /* pick a width wide enough for “עגלה (0)” */
+  height: 40px;       /* same height as your other buttons */
+  
+  white-space: nowrap;     /* force one-liner */
+  box-sizing: border-box;  /* include padding in that width */
 }
 
-.left-navbar .profile-icon .profile-name {
-    font-size: 1rem; /* Adjust font size */
-    font-weight: bold; /* Make the text bold */
-    color: #333; /* Text color */
-    text-align: center; /* Center-align text */
+/* 4. Individual button colors */
+.left-navbar .cart-container > button {
+  background-color: #4CAF50;
+  color: #fff;
 }
-
-.left-navbar .cart-button {
-    padding: 10px 15px; /* Add padding for button */
-    font-size: 1rem; /* Adjust font size */
-    background-color: #4CAF50; /* Green background */
-    color: #fff; /* White text */
-    border: none; /* Remove border */
-    border-radius: 5px; /* Rounded corners */
-    cursor: pointer; /* Pointer cursor on hover */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-    transition: background-color 0.3s ease; /* Smooth hover effect */
-}
-
-.left-navbar .cart-button:hover {
-    background-color: #45a049; /* Darker green on hover */
+.left-navbar .cart-container > button:hover {
+  background-color: #45a049;
 }
 
 .left-navbar .logout-button {
-    display: flex;
-    align-items: center;
-    padding: 10px 15px;
-    font-size: 1rem;
-    font-weight: bold;
-    color: #fff;
-    background-color: #dc3545; /* Red background for logout */
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease;
+  background-color: #dc3545;
+  color: #fff;
+  font-weight: bold;
 }
-
-.left-navbar .logout-button i {
-    margin-right: 8px; /* Space between icon and text */
-}
-
 .left-navbar .logout-button:hover {
-    background-color: #c82333; /* Darker red on hover */
+  background-color: #c82333;
 }
 
+.left-navbar .login-button {
+  background-color: #007bff;
+  color: #fff;
+}
+.left-navbar .login-button:hover {
+  background-color: #0069d9;
+}
+
+.left-navbar .register-button {
+  background-color: #17a2b8;
+  color: #fff;
+}
+.left-navbar .register-button:hover {
+  background-color: #138496;
+}
 
 
 .cart-sidebar {
