@@ -32,24 +32,34 @@
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
   <!-- תור טיפוח הבא/נוכחי -->
   <div class="bg-white rounded-lg shadow">
-    <div class="px-4 py-2 border-b font-semibold">
+    <div class="px-4 py-2 border-b font-semibold text-center">
       התור הבא לטיפוח
     </div>
-    <div class="p-4">
+    <div class="p-4" text-center>
       <p id="grooming-date">תאריך: –</p>
       <p id="grooming-time">שעה: –</p>
       <p id="grooming-service">שירות: –</p>
       <p id="grooming-dog">כלב: –</p>
       <p id="grooming-status">סטטוס: –</p>
-      <button id="grooming-cancel" class="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+          <div class="mt-4 flex justify-center gap-1">
+      <button
+        id="grooming-edit"
+        class="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 block mx-auto"
+      >
+        ערוך תור
+      </button>
+
+      <button id="grooming-cancel" class="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 block mx-auto"
+              onclick="cancelGrooming()">
         בטל תור
       </button>
     </div>
   </div>
+  </div>
 
   <!-- דיווחי נטושים -->
     <div class="bg-white rounded-lg shadow">
-      <div class="px-4 py-2 border-b font-semibold">
+      <div class="px-4 py-2 border-b font-semibold text-center">
         דיווחי נטושים
       </div>
       <div class="p-4">
@@ -62,27 +72,34 @@
 
     <!-- תור פנסיון הבא -->
     <div class="bg-white rounded-lg shadow">
-      <div class="px-4 py-2 border-b font-semibold">
+      <div class="px-4 py-2 border-b font-semibold text-center">
         התור הבא לפנסיון
       </div>
-      <div class="p-4">
+      <div class="p-4" text-center>
         <p id="boarding-start">מתחיל: –</p>
         <p id="boarding-duration">למשך: – ימים</p>
         <p id="boarding-dog">כלב: –</p>
         <p id="boarding-status">סטטוס: –</p>
-              <button id="boarding-cancel" class="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+            <div class="mt-4 flex justify-center">
+<button
+                id="boarding-edit"
+                class="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mx-auto"
+                onclick="openPopup('EditBoarding_popup')">
+              ערוך תור
+            </button>
+            <button id="boarding-cancel"  class="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600  mx-auto"
+                onclick="cancelBoarding()">
           בטל תור
         </button>
 
       </div>
     </div>
   </div>
-
     <!-- 3) Personal Info & My Dogs -->
-    <section class="details-dogs grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+      <section class="details-dogs  ">
       <!-- Personal Info -->
-      <div class="card bg-white rounded-lg shadow">
-        <h3 class="p-4 border-b font-semibold">הפרטים האישיים שלי</h3>
+      <div class="card bg-white rounded-lg shadow ">
+        <h3 class="p-4 border-b font-semibold ">הפרטים האישיים שלי</h3>
         <ul class="info-list p-4 space-y-2">
           <li><strong>תעודת זהות:</strong> <span id="info-id"></span></li>
           <li><strong>שם:</strong> <span id="info-name"></span></li>
@@ -90,50 +107,62 @@
           <li><strong>טלפון:</strong> <span id="info-phone"></span></li>
           <li><strong>כתובת:</strong> <span id="info-address"></span></li>
         </ul>
-      </div>
-
-      <!-- My Dogs -->
-      <div class="card bg-white rounded-lg shadow">
-        <h3 class="p-4 border-b font-semibold">הכלבים שלי</h3>
-        <div id="dog-list" class="dog-cards p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <!-- JS will inject dog cards here -->
-        </div>
-        <button class="add-dog-btn block mx-auto mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                onclick="openPopup('AddDog_popup')">
-          הוסף כלב
+        <button class="edit-info-btn block mx-auto mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                onclick="openPopup('EditInfo_popup')">
+          ערוך פרטים
         </button>
       </div>
-    </section>
+</section>
+      <!-- My Dogs -->
+  <div class="card dogs ">
+    <h3 class="text" style="text-align: center;">הכלבים שלי</h3>
+
+    <div
+      id="dog-list"
+      class="dog-cards grid"
+    >
+      <!-- JS injects cards here -->
+    </div>
+
+    <button
+      class="add-dog-btn "
+      onclick="openPopup('AddDog_popup')"
+    >
+      + הוסף כלב
+    </button>
+  </div>
+
 
     <!-- 4) Future Appointments -->
-    <section class="card bg-white rounded-lg shadow mb-8">
-      <h3 class="p-4 border-b font-semibold">היסטוריית תורים</h3>
-        <div class="appointments-scroll p-4">
-
-      <ul id="appointments-list" class="appointments-list p-4 space-y-2">
-        <!-- JS will inject future appointments here -->
-      </ul>
-        </div>
-    </section>
-
-    <!-- 5) Past Appointments -->
-    <section class="card bg-white rounded-lg shadow mb-8">
-      <h3 class="p-4 border-b font-semibold">תורים עתידיים</h3>
-      <ul id="Upcoming-appointments" class="appointments-list p-4 space-y-2">
-        <!-- JS will inject past appointments here -->
-      </ul>
-    </section>
-
-    <!-- 6) All Abandoned Reports -->
-    <section class="card bg-white rounded-lg shadow mb-8">
-      <h3 class="p-4 border-b font-semibold">כל דיווחי הנטושים שלי</h3>
-      <div id="reports-list" class="reports-container p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <!-- JS will inject report cards here -->
-      </div>
-    </section>
 
   </div><!-- /.container -->
+<div class="card-grid">
+  <section class="history">
+    <h3>היסטוריית תורים</h3>
+    <div>
+      <ul id="appointments-list">
+        <!-- JS will inject future appointments here -->
+      </ul>
+    </div>
+  </section>
 
+  <section class="future">
+    <h3>תורים עתידיים</h3>
+    <ul id="Upcoming-appointments">
+      <!-- JS will inject past appointments here -->
+    </ul>
+  </section>
+
+  <section>
+    <h3>כל דיווחי הנטושים שלי</h3>
+    <div id="reports-list">
+      <!-- JS will inject report cards here -->
+    </div>
+  </section>
+</div>
+
+
+  <!-- forms -->
   <!-- Add Dog Form -->
   <form id="AddDog_form">
     <div id="AddDog_popup" class="popup-container hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">

@@ -28,41 +28,50 @@
               <!--  <button onclick="openPopup('loginpopup')"><img src="res/Login-icon.png" alt="*">כניסה</button>-->
                 
             </div>
+<!-- בתוך קובץ ה־HTML שלך -->
 <div class="left-navbar">
-        <div class="cart-container" >
-    <button id="cartToggle">🛒 עגלה (<span id="cartCount">0</span>)</button>
-<div id="cartSidebar" class="cart-sidebar" style="display: none;">
-    <button class="close-sidebar" onclick="closeCartSidebar()">×</button>
-    <h3>🛒 עגלת הקניות</h3>
-    <div id="cartItems">
-        <!-- Cart items will be dynamically added here -->
+  <!-- מיכל חדש: עגלה מעל כפתור התנתקות -->
+  <div class="cart-logout-group">
+    <!-- כפתור עגלה -->
+    <div class="cart-container">
+      <button id="cartToggle">  <i class="fas fa-shopping-cart"></i>
+ עגלה (<span id="cartCount">0</span>)</button>
+      <div id="cartSidebar" class="cart-sidebar" style="display: none;">
+        <button class="close-sidebar" onclick="closeCartSidebar()">×</button>
+        <h3>🛒 עגלת הקניות</h3>
+        <div id="cartItems">
+          <!-- פריטים יתווספו כאן -->
+        </div>
+      </div>
     </div>
-</div>            
-<div id="logout-button" style="display: none;">
-<button class="logout-button" onclick="logout()">
-    <i class="fas fa-sign-out-alt"></i> התנתק
-</button>
+    <!-- כפתור התנתקות -->
+    <div id="logout-button" style="display: none;">
+      <button class="logout-button" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i> התנתק
+      </button>
+    </div>
+  </div>
+
+  <!-- שאר הכפתורים ב-navbar -->
+  <div id="login-button" style="display: block;">
+    <button class="login-button" onclick="openPopup('loginpopup')">
+      <i class="fas fa-sign-in-alt"></i> התחבר
+    </button>
+  </div>
+  <div id="register-button" style="display: block;">
+    <button class="register-button" onclick="openPopup('regispopup')">
+      <i class="fas fa-user-plus"></i> הרשמה
+    </button>
+  </div>
+  <div id="profile-icon" style="display: none;">
+    <a href="profile.html">
+      <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+           alt="Profile" width="40" height="40">
+    </a>
+        <span class="profile-name">שם משתמש</span>
+
+  </div>
 </div>
-<div id="login-button" style="display: block;">
-<button class="login-button" onclick="openPopup('loginpopup')">
-    <i class="fas fa-sign-in-alt"></i> התחבר
-</button>
-</div>
-<div id="register-button" style="display: block;">
-<button class="register-button" onclick="openPopup('regispopup')">
-    <i class="fas fa-user-plus"></i> הרשמה
-</button>
-            </div>
-            <div id="profile-icon" style="display: none;">
-              <span class="profile-name"></span>
-                <a href="profile.html">
-                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile" width="40" height="40">
-                </a>
-            </div>
-            
-        </div>
-        </nav>
-        </div>
     </header>
 
     <!-- shopping categ.-->
@@ -181,6 +190,13 @@
             <img src="res/logo.png" alt="Logo">
             <h2>הזמן פינוק לחייתך</h2>
       
+                        <!-- שירות -->
+            <div class="input-field">
+              <select id="serviceSelect" required>
+                <option value="">בחר שירות</option>
+              </select>
+            </div>
+
             <!-- תאריך -->
             <div class="input-field">
               <input type="date" id="appointmentDate" required>
@@ -193,12 +209,6 @@
               </select>
             </div>
       
-            <!-- שירות -->
-            <div class="input-field">
-              <select id="serviceSelect" required>
-                <option value="">בחר שירות</option>
-              </select>
-            </div>
       
             <!-- כלב -->
             <div class="input-field">
@@ -281,28 +291,40 @@
         <img src="res/logo.png" alt="Logo" />
         <h2>הזמן שירות פנסיון</h2>
   
-        <label>תאריך כניסה</label>
         <div class="input-field">
-          <input type="date" id="checkinDate"  required />
+  <input
+    type="text"
+    id="checkinDate"
+    placeholder="בחר תאריך כניסה"
+    required
+    onfocus="this.type='date'"
+    onblur="if(!this.value) this.type='text'"
+  />
         </div>
   
-        <label>תאריך יציאה</label>
         <div class="input-field">
-          <input type="date" id="checkoutDate" required />
+        <!--  <input type="date" id="checkoutDate" placeholder="בחר תאריך יציאה" required />-->
+          <input
+            type="text"
+            id="checkoutDate"
+            placeholder="בחר תאריך יציאה"
+            required
+            onfocus="this.type='date'"
+            onblur="if(!this.value) this.type='text'"
+          />
         </div>
   
-        <label>בחירת כלב</label>
         <div class="input-field">
           <select id="boardingDogSelect" required>
             <option value="">בחר כלב</option>
           </select>
         </div>
   
-        <label>הערות</label>
         <div class="input-field">
-          <textarea id="boardingNotes" placeholder="הכנס הערות נוספות"></textarea>
+          <textarea id="boardingNotes" placeholder="האם יש משהו חשוב שנדע?"></textarea>
         </div>
-  
+                  <div id="Boarding_priceDisplay" class="price-label">עלות - </div>
+
         <button type="submit" class="popup-button" >הזמן פנסיון</button>
       </div>
     </div>
@@ -316,14 +338,14 @@
         <img src="res/logo.png" alt="Logo">
         <h2>כניסה</h2>
         
-        <label>שם משתמש</label>
+        <!--<label>ת.ז.</label>-->
         <div class="input-field">
-            <input type="integer" id="log_id" placeholder="הכנס שם משתמש" required>
+            <input type="integer" id="log_id" placeholder="ת.ז." required>
         </div>
         
-        <label>סיסמא</label>
+       <!-- <label>סיסמא</label>-->
         <div class="input-field">
-            <input type="password" id="log_pass" placeholder="הכנס סיסמא" required>
+            <input type="password" id="log_pass" placeholder=" סיסמא" required>
         </div>
         
         <a href="#" class="forgot-password">שכחת סיסמא?</a>

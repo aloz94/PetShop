@@ -152,6 +152,52 @@ body {
   align-items: center;   /* vertically center icon + text */
   gap: 5px;              /* space between image and name */
 }
+#profile-icon {
+  display: flex;
+  flex-direction: column-reverse;  /* icon first, name below */
+  align-items: center;             /* center horizontally */
+  gap: 5px;                        /* space between icon & name */
+}
+
+#profile-icon a {
+  /* make sure the link only wraps the image */
+  display: block;
+}
+
+#profile-icon img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;              /* optional: circle crop */
+}
+
+#profile-icon .profile-name {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #333;
+}
+/* בתוך קובץ ה־CSS שלך */
+.cart-logout-group {
+  display: flex;
+  flex-direction: column; /* ורטיקלי: עגלה מעל התנתקות */
+  gap: 10px;              /* רווח בין שני הכפתורים */
+}
+
+.left-navbar {
+  display: flex;
+  align-items: center;
+  gap: 20px;  /* רווח בין כל הבלוקים ב־navbar */
+}
+
+/* שמירה על יישור וכיוון אחיד בתוך כל קונטיינר */
+.cart-container,
+#logout-button,
+#login-button,
+#register-button,
+#profile-icon {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
 
 /* 3. All buttons in the navbar: ensure icon + text sit side by side */
 .left-navbar button {
@@ -165,6 +211,20 @@ body {
   
   white-space: nowrap;     /* force one-liner */
   box-sizing: border-box;  /* include padding in that width */
+}
+
+.left-navbar .cart-container {
+  display: flex;         /* הופך אותה למכולת flex */
+  align-items: center;   /* מרכז אנכית כל איבר */
+  gap: 10px;             /* ריווח אופקי בין הכפתורים */
+  /* אם רוצים למנוע שבירה לשורה */
+  flex-wrap: nowrap;
+}
+
+/* אפשר לחזק שכל כפתור ייראה אחיד: */
+.left-navbar .cart-container > * {
+  /* שומר על גודל הכפתור כפי שהגדרת */
+  flex-shrink: 0;        /* לא יקיצר את הכפתור כשאין מקום */
 }
 
 /* 4. Individual button colors */
@@ -203,23 +263,25 @@ body {
 
 
 .cart-sidebar {
-    position: fixed;
-    top: 0;
-    left: -300px; /* Initially hidden */
-    width: 300px;
-    height: 100%;
-    background-color: #fff;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
-    padding: 20px;
-    overflow-y: auto;
-    transition: left 0.3s ease; /* Smooth slide-in effect */
-    z-index: 1000;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5000;
+  background: #fff;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.18);
+  border-radius: 16px;
+  padding: 32px 28px 24px 28px;
+  min-width: 340px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: none; /* stays hidden until toggled */
 }
 
 .cart-sidebar.open {
-    left: 0; /* Slide in */
+  display: block;
 }
-
 .close-sidebar {
     position: absolute;
     top: 10px;
@@ -285,79 +347,40 @@ body {
   border-top: 2px solid #ccc;
 }
 
-#cartSidebar .checkout-btn {
-  display: inline-block;
-  background-color: #4CAF50;
-  color: white;
-  padding: 8px 16px;
-  text-decoration: none;
-  border-radius: 6px;
-  font-weight: bold;
-  transition: background-color 0.3s;
-}
-
-#cartSidebar .checkout-btn:hover {
-  background-color: #45a049;
-}
-
-/* תמונת מוצר */
-.cart-thumb {
-  width: 45px;
-  height: 45px;
-  object-fit: cover;
-  border-radius: 6px;
-}
-
-/* כפתורי כמות */
+/* Smaller but visible cart buttons */
 .qty-btn, .remove-btn {
   background: #ffcc80;
   border: none;
   border-radius: 6px;
-  padding: 6px 10px;
-  margin: 0 2px;
-  font-size: 1.1rem;
+  padding: 4px 10px;      /* smaller padding */
+  margin: 0 1px;
+  font-size: 1.05rem;     /* slightly smaller icon/text */
   cursor: pointer;
   transition: background 0.2s;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-width: 32px;        /* ensures button is still clickable */
+  min-height: 32px;
 }
 
 .qty-btn:hover, .remove-btn:hover {
   background: #ffb347;
 }
 
-.qty-btn i, .remove-btn i {
-  pointer-events: none;
-}
-/* הכמות עצמה */
-.qty {
-  display: inline-block;
-  min-width: 20px;
-  text-align: center;
-  font-weight: 500;
+/* Bigger text for table, but not too big */
+#cartSidebar table,
+#cartSidebar th,
+#cartSidebar td {
+  font-size: 0.1  rem;   /* slightly bigger than default */
 }
 
-/* כפתור מחיקה */
-/* טבלה רספונסיבית למסכים קטנים */
-@media (max-width: 400px) {
-  .cart-sidebar {
-    width: 100%;
-  }
-
-  #cartSidebar table {
-    font-size: 0.85rem;
-  }
-
-  .qty-btn {
-    padding: 2px 6px;
-    font-size: 13px;
-  }
-
-  .checkout-btn {
-    font-size: 0.95rem;
-  }
+/* Make the checkout button text a bit bigger */
+#cartSidebar .checkout-btn {
+  font-size: 1.13rem;
+  padding: 10px 0;
 }
+
 .shop, .services, .subscribe, .carousel, .location {
     text-align: center;
     padding: 20px;
@@ -608,6 +631,42 @@ a.shop-item {
   box-shadow: 0 0 6px rgba(238, 164, 27, 0.959);
   transition: border-color .2s ease, box-shadow .2s ease;
 }*/
+/* target Chrome, Edge, Opera */
+input[type="file"]::-webkit-file-upload-button {
+  background-color: #d29f6a;    /* button bg */
+  color: #fff;                  /* text color */
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color .2s;
+}
+/* target Firefox */
+input[type="file"]::file-selector-button {
+  background-color: #d29f6a;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color .2s;
+}
+
+/* hover state */
+input[type="file"]::-webkit-file-upload-button:hover,
+input[type="file"]::file-selector-button:hover {
+  background-color: #b58852;
+}
+
+/* optional: make the “No file chosen” text lighter */
+input[type="file"] {
+  color: #555;
+  font-size: 0.9rem;
+}
+
+
 
 .popup-content {
   animation: popupEnter 0.5s cubic-bezier(.25,.8,.25,1);

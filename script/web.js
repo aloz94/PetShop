@@ -535,15 +535,15 @@ function updatePriceLabel() {
   
     //  const result = await res.json();
       //alert(result.message || 'הדיווח נשלח בהצלחה!');
-      if (response.ok) {
-        const result = await response.json();
+      if (res.ok) {
+        const result = await res.json();
         showCustomAlert(result.message || 'הפנייה נשלחה בהצלחה!');
         setTimeout(() => {
           window.location.reload();
         }, 3000);
 
       } else {
-        const errorText = await response.json(); // מנסה לקרוא את הטקסט של השגיאה
+        const errorText = await res.json(); // מנסה לקרוא את הטקסט של השגיאה
         console.error('Server error:', errorText);
       }
       
@@ -605,6 +605,41 @@ function updatePriceLabel() {
       return false;
     }
   }
+  // עלות ליום בש״ח
+  const pricePerDay = 100;
+
+  const checkinInput  = document.getElementById('checkinDate');
+  const checkoutInput = document.getElementById('checkoutDate');
+  const priceDisplay  = document.getElementById('Boarding_priceDisplay');
+
+  function updatePrice() {
+    const inVal  = checkinInput.value;
+    const outVal = checkoutInput.value;
+
+    // אם אחד מהתאריכים ריק, נעדכן חזרה לברירת מחדל
+    if (!inVal || !outVal) {
+      priceDisplay.textContent = 'עלות - ';
+      return;
+    }
+
+    const inDate  = new Date(inVal);
+    const outDate = new Date(outVal);
+    const diffMs  = outDate - inDate;
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    // בדיקה שתאריך יציאה אחרי כניסה
+    if (diffDays <= 0) {
+      priceDisplay.textContent = 'תאריכים לא תקינים';
+      return;
+    }
+
+    const total = diffDays * pricePerDay;
+    priceDisplay.textContent = `עלות - ${total} ₪ (${diffDays} לילות)`;
+  }
+
+  // מאזינים לשינוי בשני הקלטים
+  checkinInput.addEventListener('change', updatePrice);
+  checkoutInput.addEventListener('change', updatePrice);
 
   async function submitBoardingAppointment(e) {
     e.preventDefault();

@@ -663,3 +663,24 @@ h2 {
     transform: translateY(-20px);
   }
 }
+
+#foodProductGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 products per row */
+  gap: 20px;
+  justify-content: center; /* Center the grid itself */
+  align-items: start;
+  width: 90%;
+  margin: 40px auto 0 auto; /* Center horizontally with margin at top */
+  padding: 20px 0;
+}
+@media (max-width: 1100px) {
+  #foodProductGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 700px) {
+  #foodProductGrid {
+    grid-template-columns: 1fr;
+  }
+}

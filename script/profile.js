@@ -75,6 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('info-address').textContent = user.address;
       document.getElementById('username').innerText = `ברוך הבא, ${user.name}!`;
 
+
     } catch (err) {
       console.error('Failed to load user details:', err);
       // Optionally redirect to login
@@ -206,43 +207,57 @@ function openEditDog(id, name, breed, age, size, gender) {
   
   
   // 2) בתום loadUserDogs: הוסף כפתור עריכה יחד עם מחיקה לכל כרטיס
-  async function loadUserDogs() {
-    const res = await fetch('http://localhost:3000/my-dogs', { credentials: 'include' });
-    const dogs = await res.json();
-  
-    const container = document.getElementById('dog-list');
-    container.innerHTML = '';
-  
-    dogs.forEach(dog => {
-      const card = document.createElement('div');
-      card.className = 'dog-card';
-      card.innerHTML = `
-        <div class="dog-name">${dog.name}</div>
-        <ul class="dog-info">
-          <li><span>גזע:</span><span>${dog.breed}</span></li>
-          <li><span>גודל:</span><span>${dog.size}</span></li>
-          <li><span>מין:</span><span>${dog.gender}</span></li>
-          <li><span>גיל:</span><span>${dog.age}</span></li>
+async function loadUserDogs() {
+  const res = await fetch('http://localhost:3000/my-dogs', {
+    credentials: 'include'
+  });
+  const dogs = await res.json();
 
-        </ul>
-        <div class="card-buttons">
-          <button class="edit-btn"
-                  onclick="openEditDog(${dog.id},
-                                       '${dog.name}',
-                                       '${dog.breed}',
-                                       ${dog.age},
-                                       '${dog.size}',
-                                       '${dog.gender}')">
-            ✏ ערוך
-          </button>
-          <button class="delete-btn" onclick="deleteDog(${dog.id})">
-            🗑 מחק
-          </button>
+  const container = document.getElementById('dog-list');
+  container.innerHTML = '';
+
+  dogs.forEach(dog => {
+    const card = document.createElement('div');
+    card.className =
+      'dog-card ';
+
+    card.innerHTML = `
+      <div >
+        <img
+          src="${dog.image ? `/uploads/${dog.image}` : 'https://cdn-icons-png.flaticon.com/512/616/616408.png'}"
+          alt="${dog.name}"
+          class="w-16 h-16 rounded-full object-cover border textalign-center mx-auto mb-2"
+        />
+        <div>
+          <h4 class="text-lg font-semibold text-gray-800">${dog.name}</h4>
+          <p class="text-sm text-gray-600">גזע: ${dog.breed}</p>
         </div>
-      `;
-      container.appendChild(card);
-    });
-  }
+      </div>
+
+      <ul class="text-sm text-gray-600 mb-4 space-y-1">
+        <li>גודל: ${dog.size}</li>
+        <li>מין: ${dog.gender === 'male' ? 'זכר' : 'נקבה'}</li>
+        <li>גיל: ${dog.age}</li>
+      </ul>
+
+      <div class="flex justify-center mt-4 gap-2">
+        <button
+          class="edit-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition "
+          onclick="openEditDog(${dog.id}, '${dog.name}', '${dog.breed}', ${dog.age}, '${dog.size}', '${dog.gender}')"
+        >
+          ✏ ערוך
+        </button>
+        <button
+          class="delete-btn bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition textalign-center"
+          onclick="deleteDog(${dog.id})"
+        >
+          🗑 מחק
+        </button>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
   
   // 3) מדגם פונקציית deleteDog  
   async function deleteDog(id) {
@@ -492,7 +507,7 @@ rejected: 'בטיפול - מתאם שליח אחר',
             console.log('Abandoned report status:', r.status); // Debug line
 
           const html = `
-            <div class="report-card">
+            <div class="report-card"  >
               <div class="report-image">
                 <img src="uploads/${r.image_path || 'placeholder.png'}" alt="תמונה">
               </div>
@@ -588,10 +603,11 @@ rejected: 'בטיפול - מתאם שליח אחר',
       const dogEl     = document.getElementById('grooming-dog');
       const statusEl  = document.getElementById('grooming-status');
       const cancelBtn = document.getElementById('grooming-cancel');
+      const editBtn   = document.getElementById('grooming-edit');
 
       if (appt) {
         dateEl.innerText   = `תאריך: ${new Date(appt.date).toLocaleDateString('he-IL')}`;
-        timeEl.innerText   = `שעה: ${appt.time}`;
+timeEl.innerText = `שעה: ${appt.time.slice(0, 5)}`;
         servEl.innerText   = `שירות: ${appt.service_type}`;
         dogEl.innerText    = `כלב: ${appt.dog_name}`;
 statusEl.innerHTML = `סטטוס: <span class="status-badge status-${appt.status}">${statusLabels[appt.status] || appt.status}</span>`;
@@ -608,11 +624,13 @@ statusEl.innerHTML = `סטטוס: <span class="status-badge status-${appt.status
       } else {
         // אין תור מתוזמן
         dateEl.innerText = 'אין תורים מתוזמנים';
+        dateEl.style.textAlign = 'center';
         timeEl.style.display =
         servEl.style.display =
         dogEl.style.display =
         statusEl.style.display =
         cancelBtn.style.display = 'none';
+      editBtn.style.display = 'none'; // Hide edit button if no appointment
       }
 
     } catch (err) {
@@ -674,6 +692,7 @@ reports.forEach(r => {
 });
       } else {
         none.style.display = '';
+        none.style.textAlign = 'center';
       }
     } catch (err) {
       console.error('Failed to load abandoned reports:', err);
@@ -703,7 +722,7 @@ async function loadNextBoarding() {
     const dogEl     = document.getElementById('boarding-dog');
     const statusEl  = document.getElementById('boarding-status');
     const cancelBtn = document.getElementById('boarding-cancel');
-
+   const editBtn   = document.getElementById('boarding-edit');
     if (data) {
       // Parse & format start date
       const sd = new Date(data.startdate);
@@ -714,6 +733,8 @@ dogEl.innerText    = `כלב: ${data.dogname}`;
 statusEl.innerHTML = `סטטוס: <span class="status-badge status-${data.status}">${boardingStatusLabels[data.status] || data.status}</span>`;
       // Show cancel button if hidden
       cancelBtn.style.display = 'inline-block';
+      editBtn.style.display = 'inline-block';
+
       cancelBtn.onclick = async () => {
         await fetch(`/api/customers/me/boarding/${data.id}`, {
           method: 'DELETE',
@@ -724,7 +745,8 @@ statusEl.innerHTML = `סטטוס: <span class="status-badge status-${data.status
     } else {
       // No upcoming booking
       startEl.innerText = 'אין הזמנות מתוזמנות';
-      [durEl, dogEl, statusEl, cancelBtn].forEach(el => el.style.display = 'none');
+      startEl.style.textAlign = 'center';
+      [durEl, dogEl, statusEl, cancelBtn, editBtn].forEach(el => el.style.display = 'none');
     }
 
   } catch (err) {

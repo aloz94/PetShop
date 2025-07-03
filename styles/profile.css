@@ -47,60 +47,221 @@
 }
 
 /* Overview Cards */
+/* ===== Overview Cards ===== */
 .overview-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
   margin-bottom: 2rem;
 }
-.card {
+.overview-cards .card {
+  display: flex;
+  flex-direction: column;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
-.card h3 {
+.overview-cards .card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+.overview-cards .card h3 {
   margin: 0;
   padding: 1rem;
-  background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
-  font-size: 1.1rem;
+  font-size: 1.125rem;
   font-weight: 600;
+  background: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: center;
 }
-.card-body {
+.overview-cards .card-body {
+  flex: 1;
+  padding: 1rem;
+  font-size: 0.95rem;
+  color: #374151;
+  text-align: center;
+}
+.overview-cards .card-actions {
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+}
+.overview-cards .btn-edit,
+.overview-cards .btn-cancel {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  transition: background 0.2s;
+}
+.overview-cards .btn-edit { background: #3b82f6; }
+.overview-cards .btn-edit:hover { background: #2563eb; }
+.overview-cards .btn-cancel { background: #ef4444; }
+.overview-cards .btn-cancel:hover { background: #dc2626; }
+
+/* ===== Details & Dogs Section ===== */
+.details-dogs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Personal Info Card */
+.card.info h3 {
+  margin: 0;
+  padding: 1rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  background: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Info List */
+.info-list {
+  list-style: none;
+  padding: 1rem;
+  margin: 0;
+}
+.info-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  font-size: 0.95rem;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+.info-list li:last-child { border-bottom: none; }
+
+/* Dogs Grid */
+.dog-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 2fr));
+  gap: 1.5rem;
   padding: 1rem;
 }
 
-/* Details & Dogs */
-.details-dogs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 2rem;
+/* Individual Dog Card */
+.dog-cards .dog-card {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+  overflow: hidden;
+  padding: 1rem;
+  min-height: 300px;
 }
-.info-list {
+.dog-cards .dog-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+.dog-cards .dog-card .dog-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #1f2937;
+}
+.dog-cards .dog-card .dog-info {
   list-style: none;
+  padding: 0;
+  margin: 0 0 1rem 0;
+  flex: 1;
 }
-.info-list li {
-  margin-bottom: 0.5rem;
+.dog-cards .dog-card .dog-info li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.3rem 0;
+  font-size: 0.95rem;
+  color: #4b5563;
+  border-bottom: 1px solid #e5e7eb;
 }
-.dog-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
-  gap: 1rem;
+.dog-cards .dog-card .dog-info li:last-child { border-bottom: none; }
+/* Card for My Dogs section */
+.card.dogs {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 2.5rem 2rem;
+  max-width: 1200px;
+  width: 100%;
+  min-height: 500px;
+  min-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  transition: box-shadow 0.2s, transform 0.2s;
 }
-.add-dog-btn {
-  display: block;
-  margin: 1rem auto 0;
-  padding: 0.5rem 1rem;
-  background: #2563eb;
-  color: #fff;
+
+.card.dogs:hover {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  transform: translateY(-2px) scale(1.01);
+}
+
+.card.dogs h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #e5e7eb;
+  background: transparent;
+  color: #2563eb;
+  text-align: right;
+}
+
+.card.dogs .dog-cards {
+  flex: 1;
+  margin-bottom: 1.5rem;
+}
+
+.card.dogs .add-dog-btn {
+  margin-top: 2rem;
+  align-self: center;
+}
+/* Card Buttons */
+.card-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+.card-buttons .edit-btn,
+.card-buttons .delete-btn {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  color: #fff;
+  transition: background 0.2s;
+}
+.card-buttons .edit-btn { background: #3b82f6; }
+.card-buttons .edit-btn:hover { background: #2563eb; }
+.card-buttons .delete-btn { background: #ef4444; }
+.card-buttons .delete-btn:hover { background: #dc2626; }
+
+/* ===== Add Dog Button ===== */
+.add-dog-btn {
+  display: block;
+  margin: 1.5rem auto 0;
+  padding: 0.75rem 1.5rem;
+  background: #10b981;
+  color: #fff;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 .add-dog-btn:hover {
-  background: #1e40af;
+  background: #059669;
 }
 
 .appointments-scroll {
@@ -118,6 +279,8 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  min-height: 600px; /* Ensure it has a minimum height */
+
 }
 
 /* 2) Style each LI as a card */
@@ -162,6 +325,7 @@
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   word-break: break-word;
+  max-height: fit-content;
 }
 
 #Upcoming-appointments li::before {
@@ -319,7 +483,7 @@
   color: #fff;
   margin-right: 0.5em;
 }
-.status-pending    { background: #f59e42; }
+.status-pending    { background: #3498db; }
 .status-confirmed  { background: #10b981; }
 .status-cancelled  { background: #ef4444; }
 .status-completed  { background: #2563eb; }
@@ -352,4 +516,173 @@
 }
 .status-badge.status-cancelled {
   background-color: #9ca3af;   /* בוטל - gray */
+}
+
+/* wrapper grid */
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin: 2rem 0;
+  max-height: 500px; /* optional: limit height */
+}
+
+@media (min-width: 768px) {
+  .card-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* each card */
+.card-grid section {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* header */
+.card-grid section h3 {
+  margin: 0;
+  padding: 1rem;
+  background: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* body/content area */
+.card-grid section > div,
+.card-grid section > ul {
+  padding: 1rem;
+  flex: 1;
+}
+
+/* make lists scroll if too tall */
+.card-grid section ul {
+  list-style: disc inside;
+  max-height: 240px;
+  overflow-y: auto;
+  margin: 0;
+}
+
+/* spacing inside list */
+.card-grid section ul li {
+  margin-bottom: 0.5rem;
+  color: #4b5563;
+}
+
+/* optional: style empty-state text */
+.card-grid section ul:empty + p {
+  padding: 1rem;
+  color: #9ca3af;
+  text-align: center;
+  font-style: italic;
+}
+
+/* Reports grid wrapper */
+#reports-list {
+  max-height: 500px;    /* pick whatever height fits your design */
+  overflow-y: auto;     /* enable vertical scrolling */
+  padding: 0;           /* optional: reset UL padding */
+  margin: 0;            /* optional: reset UL margin */
+  list-style: none;     /* optional: remove bullets */
+}
+
+@media (min-width: 768px) {
+  #reports-list {
+    grid-template-columns: repeat(2, 1fr);  /* two columns on ≥md */
+  }
+}
+
+/* Individual report card */
+#reports-list .report-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#reports-list .report-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+/* If you have an image at top */
+#reports-list .report-card img {
+  width: 50%;
+  height: auto;
+  object-fit: cover;
+    margin: 1rem auto 0 auto; /* Top margin, auto left/right centers the image */
+  display: block;
+
+}
+
+/* Report text/content */
+#reports-list .report-card .report-info {
+  padding: 1rem;
+  font-size: 0.95rem;
+  color: #374151;
+  flex: 1;
+}
+
+/* Actions/footer */
+#reports-list .report-card .report-actions {
+  padding: 0.75rem 1rem;
+  text-align: right;
+  border-top: 1px solid #e5e7eb;
+    display: flex;           /* Add this */
+  flex-direction: row;     /* Add this */
+  justify-content: flex-end; /* Add this for right alignment */
+  gap: 0.5rem;             /* Add spacing between buttons */
+
+}
+
+#reports-list .report-card .report-actions button {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s;
+    margin: 1rem auto 0 auto; /* Top margin, auto left/right centers the image */
+  display: block;
+
+}
+#reports-list .report-card .report-actions .btn-edit {
+  background: #3b82f6;
+}
+#reports-list .report-card .report-actions .btn-edit:hover {
+  background: #2563eb;
+}
+#reports-list .report-card .report-actions .btn-delete {
+  background: #ef4444;
+}
+#reports-list .report-card .report-actions .btn-delete:hover {
+  background: #dc2626;
+}
+.info-list li {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  align-items: center;
+  gap: 0.5rem;              /* spacing between label and value */
+}
+
+/* center only the value cell */
+.info-list li span {
+  display: block;           /* make span a block so justify-self works */
+  justify-self: center;
+}
+
+/* optional: left-align the labels */
+.info-list li strong {
+  justify-self: start;
 }
