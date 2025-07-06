@@ -319,9 +319,9 @@ async function loadBoardingData() {
         customer_name: "שם לקוח",
         phone:         "טלפון",
         notes:         "הערות",
-        statusBadge:   " ",
+        statusBadge:   " סטטוס",
         statusSelect:  "עדכן סטטוס",
-        editHtml:      ""
+        editHtml:      "ערוך"
       }
     );
   } catch (err) {
@@ -393,9 +393,9 @@ editHtml: `<button class="action-btn btn-edit" data-id="${item.id}">
       customer_name: "שם לקוח",
       phone:         "טלפון",
       notes:         "הערות",
-      statusBadge:   " ",
+      statusBadge:   "סטטוס",
       statusSelect:  "עדכן סטטוס",
-      editHtml:      ""
+      editHtml:      "ערוך"
     }
   );
 }
@@ -735,8 +735,10 @@ appointments.forEach(app => {
   const row = document.createElement('tr');
   row.innerHTML = `
     <td>${app.id}</td>
-    <td>${app.slot_time}</td>
+  <td>${formatHebTime(app.slot_time)}</td>
     <td>${app.dog_name}</td>
+    <td>${app.customer_name}</td>
+    <td>${app.customer_phone}</td>
     <td>${app.service_name}</td>
   `;
   tbody.appendChild(row);
@@ -770,10 +772,12 @@ document.getElementById('grooming_cancelled').addEventListener('click', async ()
         const dateOnly = new Date(app.appointment_date).toLocaleDateString('he-IL');
         row.innerHTML = `
           <td>${app.id}</td>
+                    <td>${dateOnly}</td>
+
+          <td>${formatHebTime(app.slot_time)}</td>
           <td>${app.dog_name}</td>
           <td>${app.customer_name}</td>
           <td>${app.phone}</td>
-          <td>${dateOnly}</td>
         `;
         tbody.appendChild(row);
       });
@@ -801,13 +805,13 @@ document.getElementById('checkin_today').addEventListener('click', async () => {
     tbody.innerHTML = '';
 
     if (checkins.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="3">אין כניסות ממתינות להיום</td></tr>';
-    } else {
+tbody.innerHTML = '<tr><td colspan="3" class="centered-cell">אין כניסות  להיום</td></tr>';    } else {
       checkins.forEach(c => {
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>${c.id}</td>
           <td>${c.dog_name}</td>
+          <td>${c.customer_name}</td>
           <td>${c.phone}</td>
         `;
         tbody.appendChild(row);
@@ -838,13 +842,14 @@ document.getElementById('chekcout_todaynun').addEventListener('click', async () 
     tbody.innerHTML = '';
 
     if (checkouts.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="3">אין יציאות ממתינות להיום</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="3">אין יציאות היום</td></tr>';
     } else {
       checkouts.forEach(c => {
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>${c.id}</td>
           <td>${c.dog_name}</td>
+          <td>${c.customer_name}</td>
           <td>${c.phone}</td>
         `;
         tbody.appendChild(row);
@@ -875,14 +880,13 @@ document.getElementById('cancelled-Ap').addEventListener('click', async () => {
     } else {
       cancelled.forEach(c => {
         const row = document.createElement('tr');
-          const formattedDate = new Date(c.check_in).toISOString().split('T')[0];
-
         row.innerHTML = `
           <td>${c.id}</td>
           <td>${c.dog_name}</td>
           <td>${c.customer_name}</td>
           <td>${c.phone}</td>
-          <td>${formattedDate}</td>
+<td>${new Date(c.check_in).toLocaleDateString('he-IL')}</td>
+<td>${new Date(c.check_out).toLocaleDateString('he-IL')}</td>
         `;
         tbody.appendChild(row);
       });
@@ -967,12 +971,12 @@ editHtml: `<button class="action-btn btn-edit" data-id="${item.id}">
       date:          "תאריך",
       time:          "שעה",
       service:       "שירות",
-      statusBadge:   " ",
+      statusBadge:   "סטטוס",
       statusSelect:  "עדכן סטטוס",
       customer_name: "שם לקוח",
       phone:         "טלפון",
       dog_name:      "שם כלב",
-      editHtml:      ""
+      editHtml:      "ערוך"
     }
   );
 }
@@ -1820,7 +1824,7 @@ let editingAbnId  = null;
           handler_name:       "שליח",
           care_provider_name: "גורם מטפל ",
           image_path:     "",
-         statusBadge:   " ",
+         statusBadge:   "סטטוס",
         statusSelect:  "עדכן סטטוס",
         editHtml:      "ערוך"
 
@@ -1904,6 +1908,109 @@ if (abandonedAcc) {
       console.error('Error loading abandoned-reports stats:', err);
     }
   }
+
+// 1) Bind click על כרטיס ה-KPI הירוק
+document.getElementById('newTodayCard')
+        .addEventListener('click', openTodayInquiries);
+
+// 2) פונקציה לפתיחת ה-Modal וטעינת הנתונים
+async function openTodayInquiries() {
+  // בונים תאריך Today בפורמט YYYY-MM-DD
+  const today = new Date().toLocaleDateString('en-CA');
+
+  try {
+    const res = await fetch(
+      `/dashboard/abnd/reports/today`,
+      { credentials: 'include' }
+    );
+    if (!res.ok) throw new Error(res.statusText);
+
+    const data = await res.json();  // מצפים למערך של אובייקטים עם שדות {id, report_date, customer_name, dog_size, health_status, status}
+
+    // בונים את ה-tbody
+    const tbody = document
+      .getElementById('todayInquiriesTable')
+      .querySelector('tbody');
+    tbody.innerHTML = data.map(item => `
+      <tr>
+        <td>${item.id}</td>
+        <td>${item.customer_name || '-'}</td>
+        <td>${item.phone || '-'}</td>
+        <td>${item.address || '-'}</td>
+        <td>${item.dog_size || '-'}</td>
+        <td>${item.health_status || '-'}</td>
+      </tr>
+    `).join('');
+
+    // אם אין נתונים – אפשר לשים שורה אחת עם “אין פניות”
+    if (data.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6">אין פניות חדשות היום</td>
+        </tr>`;
+    }
+
+    // מציגים את ה-Modal
+    const modal = document.getElementById('todayInquiriesModal');
+    modal.style.display = 'block';
+
+  } catch (err) {
+    console.error('Error loading today inquiries:', err);
+    alert('שגיאה בטעינת הפניות של היום');
+  }
+}
+
+// bind click על כרטיס KPI
+document
+  .getElementById('openReportsCard')
+  .addEventListener('click', openOpenReports);
+
+async function openOpenReports() {
+  try {
+    // מביאים את כל הפניות בסטטוס open
+    const res = await fetch('/dashboard/abnd/reports/open', {
+      credentials: 'include'
+    });
+    if (!res.ok) throw new Error(res.statusText);
+    const data = await res.json(); 
+    // מצפים לשדות:
+    // { id, customer_name, phone, address, dog_size, health_status, report_date }
+
+    const tbody = document
+      .getElementById('openReportsTable')
+      .querySelector('tbody');
+
+    if (data.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align:center; padding:1rem;">
+            אין פניות פתוחות
+          </td>
+        </tr>`;
+    } else {
+      tbody.innerHTML = data.map(r => `
+        <tr>
+          <td>${r.id}</td>
+          <td>${r.customer_name || '-'}</td>
+          <td>${r.phone || '-'}</td>
+          <td>${r.address || '-'}</td>
+          <td>${r.dog_size || '-'}</td>
+          <td>${r.health_status || '-'}</td>
+          <td>${new Date(r.report_date).toLocaleDateString('he-IL')}</td>
+        </tr>
+      `).join('');
+    }
+
+    // הפעלת המודאל
+    const modal = document.getElementById('openReportsModal');
+    modal.style.display = 'block';
+  } catch (err) {
+    console.error('Error loading open reports:', err);
+    alert('שגיאה בטעינת הפניות הפתוחות');
+  }
+}
+
+
 
   // Run as soon as DOM is ready:
 
@@ -2023,7 +2130,7 @@ loadAbandonedCancelledCount();
 
 async function updateHandlerReportCounts() {
   const statuses = ['accepted', 'ontheway', 'rejected'];
-
+  let sumofCounts = 0;
   for (const status of statuses) {
     try {
       const res = await fetch(`/manager/reports/by-status/${status}`, { credentials: 'include' });
@@ -2031,11 +2138,15 @@ async function updateHandlerReportCounts() {
 
       if (status === 'accepted') {
         document.getElementById('Hacceptedcount').textContent = data.length;
+        sumofCounts+=data.length;
       } else if (status === 'ontheway') {
         document.getElementById('Honthewaycount').textContent = data.length;
+        sumofCounts+=data.length;
       } else if (status === 'rejected') {
         document.getElementById('Hrejectedcount').textContent = data.length;
+        sumofCounts+=data.length;
       }
+      document.getElementById('Htotalcount').textContent = sumofCounts;
     } catch (err) {
       console.error(`Failed to load count for ${status}:`, err);
     }
@@ -2058,9 +2169,21 @@ Object.entries(statusMap).forEach(([divId, status]) => {
 
       const tbody = document.querySelector('#handlerReportsTable tbody');
       tbody.innerHTML = '';
+        switch (status) {
+          case 'accepted':
+            document.getElementById('handlerReportsModalHeader').textContent = 'פניות שהתקבלו';
+            break;
+          case 'ontheway':
+            document.getElementById('handlerReportsModalHeader').textContent = 'פניות בדרך';
+            break;
+          default:
+            document.getElementById('handlerReportsModalHeader').textContent = 'פניות שנדחו';
+            
+
+        }
 
       if (reports.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4">אין פניות עם סטטוס ${status}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6">אין פניות   </td></tr>`;
       } else {
         reports.forEach(r => {
           const row = document.createElement('tr');
@@ -2242,6 +2365,10 @@ document.addEventListener('click', function(e) {
     showImgModal(img.src); // Show the modal with the clicked image
   }
 });
+
+document.getElementById('openabndBtn').addEventListener('click', async () => {
+  document.getElementById('abandentpopup').style.display = 'block';
+});
 // ────────────────────────────────────────────────────────────────────────────
 // 2) הפונקציה שמוציאה לפועל את הפופ-אפ עבור “לא משויך שליח”
 async function showCourierPopup() {
@@ -2299,6 +2426,7 @@ function buildAndShowCourierPopup(reportsArray, courierList) {
   const header = document.createElement('header');
   const title = document.createElement('h2');
   title.textContent = 'פניות בטיפול ללא שליח';
+  title.style.textAlign = 'center'; // מרכז את הטקסט
   const closeBtn = document.createElement('button');
   closeBtn.className = 'close-btn';
   closeBtn.innerHTML = '&times;';

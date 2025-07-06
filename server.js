@@ -917,7 +917,8 @@ SELECT
   d.name AS dog_name,
   c.phone,
   c.first_name || ' ' || c.last_name AS customer_name,
-  ga.check_in
+  ga.check_in,
+  ga.check_out
 
 FROM boarding_appointments ga
 JOIN dogs d ON ga.dog_id = d.id
@@ -1103,7 +1104,8 @@ app.get('/profile/Upcoming/boarding', authenticateToken, async (req, res) => {
         ba.id,
         d.name       AS dog_name,
         ba.check_in  AS check_in,
-        ba.check_out AS check_out
+        ba.check_out AS check_out,
+        (ba.check_out - ba.check_in) AS durationDays
       FROM boarding_appointments ba
       JOIN dogs d ON ba.dog_id = d.id
       WHERE ba.customer_id = $1
@@ -1244,11 +1246,11 @@ app.get('/boarding/stats', authenticateToken, async (req, res) => {
     const date  = req.query.date || today;
 
     const inRes  = await con.query(
-      `SELECT COUNT(*) AS cnt FROM boarding_appointments WHERE check_in = $1`,
+      `SELECT COUNT(*) AS cnt FROM boarding_appointments WHERE check_in = $1 AND status = 'pending'`,
       [date]
     );
     const outRes = await con.query(
-      `SELECT COUNT(*) AS cnt FROM boarding_appointments WHERE check_out = $1`,
+      `SELECT COUNT(*) AS cnt FROM boarding_appointments WHERE check_out = $1 AND status = 'inprogress'`,
       [date]
     );
     const cancelRes = await con.query(
@@ -1488,10 +1490,17 @@ LIMIT 1;
 app.get('/manager/grooming/today', async (req, res) => {
   try {
     const result = await con.query(`
-      SELECT ga.id, d.name AS dog_name, s.name AS service_name, ga.slot_time
+      SELECT 
+        ga.id, 
+        d.name AS dog_name, 
+        s.name AS service_name, 
+        ga.slot_time,
+        c.first_name || ' ' || c.last_name AS customer_name,
+        c.phone AS customer_phone
       FROM grooming_appointments ga
       JOIN dogs d ON ga.dog_id = d.id
       JOIN services s ON ga.service_id = s.id
+      JOIN customers c ON d.customer_id = c.id
       WHERE DATE(ga.appointment_date) = CURRENT_DATE
         AND ga.status = 'scheduled'
       ORDER BY ga.slot_time ASC
@@ -1511,7 +1520,8 @@ app.get('/manager/grooming/cancelled-today', authenticateToken, async (req, res)
         d.name AS dog_name,
         c.first_name || ' ' || c.last_name AS customer_name,
         c.phone,
-        ga.appointment_date
+        ga.appointment_date,
+        ga.slot_time
       FROM grooming_appointments ga
       JOIN dogs d ON ga.dog_id = d.id
       JOIN customers c ON d.customer_id = c.id
@@ -1768,6 +1778,58 @@ WHERE report_date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jerusalem')::date
     return res.status(500).json({ message: 'שגיאה בטעינת הסטטיסטיקות' });
   }
 });
+
+app.get('/dashboard/abnd/reports/today', authenticateToken, async (req, res) => {
+  try {
+    const query = `
+      SELECT
+        r.id,
+        c.first_name || ' ' || c.last_name AS customer_name,
+        c.phone,
+        c.address,
+        r.dog_size,
+        r.health_status,
+        r.status
+      FROM abandoned_dog_reports r
+      JOIN customers c ON r.customer_id = c.id
+      WHERE r.report_date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jerusalem')::date
+        AND r.status = 'open'
+      ORDER BY r.id;
+    `;
+    const { rows } = await con.query(query);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error in GET /dashboard/abnd/reports/today:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// routes/abandonedReports.js
+app.get('/dashboard/abnd/reports/open', authenticateToken, async (req, res) => {
+  try {
+    const query = `
+      SELECT
+        r.id,
+        c.first_name || ' ' || c.last_name AS customer_name,
+        c.phone,
+        c.address,
+        r.dog_size,
+        r.health_status,
+        r.report_date
+      FROM abandoned_dog_reports r
+      JOIN customers c ON r.customer_id = c.id
+      WHERE r.status = 'open'
+      ORDER BY r.id;
+    `;
+    const { rows } = await con.query(query);
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 
 app.get('/manager/abandoned/cancelled-today', authenticateToken, async (req, res) => {
   try {

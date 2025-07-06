@@ -218,7 +218,7 @@
             <div class="popup-content">
               <span class="close-btn" onclick="closePopup('boardingpopup')">&times;</span>
               <img src="res/logo.png" alt="Logo" />
-              <h2>הזמן / ערוך תור פנסיון</h2>
+              <h2> ערוך תור פנסיון</h2>
     
               <label>תאריך כניסה</label>
               <div class="input-field">
@@ -249,12 +249,14 @@
         <div id="boardingCheckinsModal" class="modal" style="display:none;">
   <div class="modal-content">
     <span class="close-btn" onclick="closeCheckinsModal()">×</span>
-    <h3>כניסות ממתינות להיום</h3>
+
+    <h3>כניסות היום</h3>
     <table id="boardingCheckinsTable" class="appointments-table">
       <thead>
         <tr>
-          <th>מספר</th>
+          <th> מספר הזמנה</th>
           <th>שם הכלב</th>
+          <th>שם הלקוח</th>
           <th>נייד</th>
         </tr>
       </thead>
@@ -270,8 +272,9 @@
     <table id="boardingCheckoutsTable" class="appointments-table">
       <thead>
         <tr>
-          <th>מספר</th>
+          <th> מספר הזמנה</th>
           <th>שם הכלב</th>
+          <th>שם הלקוח</th>
           <th>נייד</th>
         </tr>
       </thead>
@@ -293,15 +296,14 @@
     <th>שם הכלב</th>
     <th>שם הלקוח</th>
     <th>טלפון</th>
-    <th>תאריך הזמנה</th>
+    <th>תאריך כניסה</th>
+    <th>תאריך יציאה</th>
   </tr>
 </thead>
       <tbody></tbody>
     </table>
   </div>
 </div>
-
-
       </section>
     
 
@@ -435,9 +437,11 @@
     <table id="groomingTodayTable" class="appointments-table">
       <thead>
         <tr>
-          <th>מספר</th>
+          <th>מספר תור</th>
           <th>שעה</th>
           <th>שם הכלב</th>
+          <th>שם הלקוח</th>
+          <th>טלפון</th>
           <th>שירות</th>
         </tr>
       </thead>
@@ -449,15 +453,16 @@
 <div id="cancelledGroomingModal" class="modal">
   <div class="modal-content">
     <span class="close-btn" onclick="closeCancelledGroomingModal()">&times;</span>
-    <h2>תורים מבוטלים בטיפוח - היום</h2>
+    <h2 style="text-align: center;">תורים מבוטלים בטיפוח - היום</h2>
     <table class="modern-table">
       <thead>
         <tr>
-          <th>מס׳</th>
-          <th>שם הכלב</th>
-          <th>שם הלקוח</th>
-          <th>טלפון</th>
+          <th>מספר תור</th>
           <th>תאריך תור</th>
+          <th>שעה</th>
+          <th>שם כלב</th>
+          <th>שם לקוח</th>
+          <th>טלפון</th>
         </tr>
       </thead>
       <tbody id="cancelledGroomingTableBody">
@@ -646,6 +651,70 @@
 </section>
 
     <section class="content" id="abandoned">
+
+      
+      <h2>פניות לכלבים נטושים</h2>
+              <header class="kpi-bar">
+          <div class="kpi-card green" id="newTodayCard">
+            <div class="icon"><i class="fas fa-sign-in-alt"></i>
+            </div>
+            <div class="value" id="new_today">12</div>
+            <div class="label">פניות חדשות היום</div>
+          </div>
+
+          <div class="kpi-card blue" id="openReportsCard">
+            <div class="icon"><i class="fas fa-sign-out-alt"></i>
+            </div>
+            <div class="value" id="open_reports">5</div>
+            <div class="label">פניות פתוחות</div>
+          </div>
+      
+<div class="kpi-card" id="kpi-in-progress">
+  <div class="kpi-sub-values">
+    <div class="kpi-sub-value clickable" id="sub-courier">
+      <span class="kpi-sub-number" id="unassigned-courier">–</span>
+      <span class="kpi-sub-label">לא משויך שליח</span>
+    </div>
+    <div class="kpi-sub-value clickable" id="sub-care">
+      <span class="kpi-sub-number" id="unassigned-care">–</span>
+      <span class="kpi-sub-label">לא משויך גורם סיוע</span>
+    </div>
+  </div>
+  <div class="value" id="in_progress_reports">–</div>
+  <div class="kpi-label">בטיפול</div>
+
+  <!-- (אופציונלי) קונטיינר לדיפולדן שב-JS נפתח בעת הצורך -->
+  <div class="kpi-dropdown" id="kpi-dropdown" aria-hidden="true">
+    <select id="kpi-select"></select>
+  </div>
+</div>
+
+<div class="kpi-card" id="handlers_update">
+  <div class="kpi-sub-values">
+    <div class="kpi-sub-value clickable" id="sub-accepted">
+      <span class="kpi-sub-number" id="Hacceptedcount">–</span>
+      <span class="kpi-sub-label">פניות שהתקבלו</span>
+    </div>
+    <div class="kpi-sub-value clickable" id="sub-ontheway">
+      <span class="kpi-sub-number" id="Honthewaycount">–</span>
+      <span class="kpi-sub-label">פניות בדרך</span>
+    </div>
+    <div class="kpi-sub-value clickable" id="sub-rejected">
+      <span class="kpi-sub-number" id="Hrejectedcount">–</span>
+      <span class="kpi-sub-label">פניות נדחו</span>
+    </div>
+  </div>
+  <div class="kpi-sub-value clickable" id="Htotalcount">–</div>
+  <div class="kpi-label"> פניות בטיפול שליחים</div>
+</div>
+
+  <div class="kpi-card red" id="Abandoned_cancelled">
+    <div class="icon"><i class="fas fa-times-circle"></i></div>
+    <div class="value" id="Abandoned-cancelled-today">-</div>
+    <div class="label">מבוטלים היום</div>
+  </div>
+  </header>
+
               <div class="search-group">
           <button class="add-btn" type="button" id="openabndBtn">
          <i class="fas fa-plus"></i>
@@ -694,70 +763,6 @@
   </button>
 </div>
 
-      
-      <h2>פניות לכלבים נטושים</h2>
-              <header class="kpi-bar">
-          <div class="kpi-card green" >
-            <div class="icon"><i class="fas fa-sign-in-alt"></i>
-            </div>
-            <div class="value" id="new_today">12</div>
-            <div class="label">פניות חדשות היום</div>
-          </div>
-      
-          <div class="kpi-card blue">
-            <div class="icon"><i class="fas fa-sign-out-alt"></i>
-            </div>
-            <div class="value" id="open_reports">5</div>
-            <div class="label">פמיות פתוחות </div>
-          </div>
-      
-<div class="kpi-card" id="kpi-in-progress">
-  <div class="kpi-sub-values">
-    <div class="kpi-sub-value clickable" id="sub-courier">
-      <span class="kpi-sub-number" id="unassigned-courier">–</span>
-      <span class="kpi-sub-label">לא משויך שליח</span>
-    </div>
-    <div class="kpi-sub-value clickable" id="sub-care">
-      <span class="kpi-sub-number" id="unassigned-care">–</span>
-      <span class="kpi-sub-label">לא משויך גורם סיוע</span>
-    </div>
-  </div>
-  <div class="value" id="in_progress_reports">–</div>
-  <div class="kpi-label">בטיפול</div>
-
-  <!-- (אופציונלי) קונטיינר לדיפולדן שב-JS נפתח בעת הצורך -->
-  <div class="kpi-dropdown" id="kpi-dropdown" aria-hidden="true">
-    <select id="kpi-select"></select>
-  </div>
-</div>
-
-<div class="kpi-card" id="handlers_update">
-  <div class="kpi-sub-values">
-    <div class="kpi-sub-value clickable" id="sub-accepted">
-      <span class="kpi-sub-number" id="Hacceptedcount">–</span>
-      <span class="kpi-sub-label">פניות שהתקבלו</span>
-    </div>
-    <div class="kpi-sub-value clickable" id="sub-ontheway">
-      <span class="kpi-sub-number" id="Honthewaycount">–</span>
-      <span class="kpi-sub-label">פניות בדרך</span>
-    </div>
-    <div class="kpi-sub-value clickable" id="sub-rejected">
-      <span class="kpi-sub-number" id="Hrejectedcount">–</span>
-      <span class="kpi-sub-label">פניות נדחו</span>
-    </div>
-  </div>
-  <div class="kpi-sub-value clickable" id="in_progress_reports">–</div>
-  <div class="kpi-label"> פניות בטיפול שליחים</div>
-</div>
-
-  <div class="kpi-card red" id="Abandoned_cancelled">
-    <div class="icon"><i class="fas fa-times-circle"></i></div>
-    <div class="value" id="Abandoned-cancelled-today">-</div>
-    <div class="label">מבוטלים היום</div>
-  </div>
-  </header>
-
-
       <table class="dashboard-table" id="abandoned-posts">
         <thead>
           <tr>
@@ -778,6 +783,49 @@
       </table>
       
       <div id="accordion-abandoned"></div>
+
+      <div id="todayInquiriesModal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeModal('todayInquiriesModal')">&times;</span>
+    <h3 class="modal-header">פניות חדשות היום</h3>
+    <table id="todayInquiriesTable">
+      <thead>
+        <tr>
+          <th>מספר</th>
+          <th>לקוח</th>
+          <th>טלפון</th>
+          <th>כתובת</th>
+          <th>גודל כלב</th>
+          <th>מצב בריאותי</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="openReportsModal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeModal('openReportsModal')">&times;</span>
+    <h3 class="modal-header">פניות פתוחות</h3>
+    <table id="openReportsTable">
+      <thead>
+        <tr>
+          <th>מספר</th>
+          <th>לקוח</th>
+          <th>טלפון</th>
+          <th>כתובת</th>
+          <th>גודל כלב</th>
+          <th>מצב בריאותי</th>
+          <th>תאריך דיווח</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+
 <div id="img-modal" class="popup-container" style="display: none;">
     <span class="close-btn" onclick="closeImgModal()">&times;</span>
     <img id="img-modal-img" src="" alt="Image Preview">
@@ -790,7 +838,7 @@
       <thead>
         <tr>
           <th>מספר</th>
-          <th>שם מוסר</th>
+          <th>לקוח </th>
           <th>טלפון</th>
           <th>תאריך דיווח</th>
         </tr>
@@ -806,7 +854,7 @@
 <div id="handlerReportsModal" class="modal">
   <div class="modal-content">
     <span class="close" onclick="closeHandlerReportsModal()">&times;</span>
-    <h3>פניות לפי סטטוס</h3>
+    <h3 id="handlerReportsModalHeader">פניות לפי סטטוס</h3>
     <table id="handlerReportsTable" class="styled-table">
       <thead>
         <tr>
@@ -825,8 +873,57 @@
   </div>
 </div>
 
+      <div id="abandentpopup" class="popup-container">
+      <div class="popup-content">
+      <form id="abandentpopup_form" enctype="multipart/form-data">
+            <span class="close-btn" onclick="closePopup('abandentpopup')">&times;</span>
+            <img src="res/logo.png" alt="Logo">
+            <h2>טופס דיווח על כלב נטוש</h2>
+      
+            <input type="text" id="BcustomerIdInput" placeholder="ת.ז. הלקוח" required pattern="\d*" inputmode="numeric" maxlength="9">      </div>
 
-          </section>
+            <div class="input-field">
+              <select id="dogSizeSelect" name="size" required>
+                <option>גודל הכלב</option>
+                <option>קטן</option>
+                <option>בינוני</option>
+                <option>גדול</option>
+                <option>לא ידוע</option>
+
+              </select>
+            </div>
+      
+            <div class="input-field">
+              <select id="healthStatusSelect" name="health" required >
+                <option>מצב בריאותי</option>
+                <option>בריא</option>
+                <option>פצוע</option>
+                <option>חולה</option>
+                <option>לא ידוע</option>
+              </select>
+            </div>
+      
+            
+            <div class="input-field">
+              <input type="text" id="abandon_address" name="address" placeholder=" כתובת" required />
+            </div>
+      
+            
+            <textarea rows="4" class="textarea-field" id="abandon_notes" name="notes" placeholder="הכנס הערות"></textarea>
+      
+            
+            <div class="file-upload">
+              <span>העלה תמונות</span>
+              <input type="file" id="picupload" name="image" accept="image/*">
+            </div>
+      
+            <button type="submit" class="popup-button" onclick="submitAbandonedDogForm()">שלח טופס</button>
+                  </form>
+
+          </div>
+        </div>
+
+      </section>
 
 
           
@@ -1278,6 +1375,15 @@
       <div class="input-field">
         <input type="date" id="appointmentDate" required>
       </div>
+      
+            <!-- שירות -->
+      <div class="input-field">
+        <select id="serviceSelect" required>
+          <option value="">בחר שירות</option>
+        </select>
+      </div>
+
+
 
       <!-- שעה -->
       <div class="input-field">
@@ -1286,12 +1392,6 @@
         </select>
       </div>
 
-      <!-- שירות -->
-      <div class="input-field">
-        <select id="serviceSelect" required>
-          <option value="">בחר שירות</option>
-        </select>
-      </div>
 
       <!-- כלב -->
       <div class="input-field">
@@ -1383,29 +1483,39 @@
 <input type="text" id="BcustomerIdInput" placeholder="ת.ז. הלקוח" required pattern="\d*" inputmode="numeric" maxlength="9">      </div>
 
 
-        <label>תאריך כניסה</label>
         <div class="input-field">
-          <input type="date" id="BcheckinDate" required />
+            <input
+    type="text"
+    id="BcheckinDate"
+    placeholder="בחר תאריך כניסה"
+    required
+    onfocus="this.type='date'"
+    onblur="if(!this.value) this.type='text'"
+  />
         </div>
   
-        <label>תאריך יציאה</label>
         <div class="input-field">
-          <input type="date" id="BcheckoutDate" required />
+          <input
+            type="text"
+            id="BcheckoutDate"
+            placeholder="בחר תאריך יציאה"
+            required
+            onfocus="this.type='date'"
+            onblur="if(!this.value) this.type='text'"
+          />
         </div>
   
-        <label>בחירת כלב</label>
         <div class="input-field">
           <select id="BboardingDogSelect" required>
             <option value="">בחר כלב</option>
           </select>
         </div>
   
-        <label>הערות</label>
         <div class="input-field">
           <textarea id="BboardingNotes" placeholder="הכנס הערות נוספות"></textarea>
         </div>
   
-        <button type="submit" class="popup-button" >שלח בקשה</button>
+        <button type="submit" class="popup-button" >הזמן פנסיון</button>
       </div>
     </div>
   </form>
@@ -1417,7 +1527,7 @@
 
         <span class="close-btn" onclick="closePopup('addboardingpopup')">&times;</span>
         <img src="res/logo.png" alt="Logo" />
-        <h2>הזמן שירות פנסיון</h2>
+        <h2>עדכון פרטי הזמנה</h2>
         
               <div class="input-field">
         <input type="number" id="BcustomerIdInput" placeholder="ת.ז. הלקוח" required>

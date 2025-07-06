@@ -371,7 +371,7 @@ async function loadAllAppointments() {
         datetime: dt,
         type:     'grooming',
         text:     `${app.service_name} לכלב ${app.dog_name} בתאריך ` +
-                  `${dt.toLocaleDateString('he-IL')} בשעה ${app.slot_time}`
+                  `${dt.toLocaleDateString('he-IL')} בשעה ${app.slot_time.slice(0,5)}`
       });
     });
 
@@ -450,7 +450,7 @@ async function loadFutureAppointments() {
       all.push({
         datetime: dt,
         text:     `${app.service_name} לכלב ${app.dog_name} בתאריך ` +
-                  `${dt.toLocaleDateString('he-IL')} בשעה ${app.slot_time}`
+                  `${dt.toLocaleDateString('he-IL')} בשעה ${app.slot_time.slice(0,5)}`
       });
     });
 
@@ -462,8 +462,7 @@ async function loadFutureAppointments() {
       all.push({
         datetime: dt,
         text:     `פנסיון לכלב ${b.dog_name} בתאריך ` +
-                  `${dt.toLocaleDateString('he-IL')} ל־${b.duration_days} ימים בשעה ` +
-                  `${dt.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})}`
+                  ` ל־${b.durationdays} ימים  ` 
       });
     });
 
@@ -509,9 +508,9 @@ rejected: 'בטיפול - מתאם שליח אחר',
           const html = `
             <div class="report-card"  >
               <div class="report-image">
-                <img src="uploads/${r.image_path || 'placeholder.png'}" alt="תמונה">
-              </div>
+<img src="${r.image_path ? 'uploads/' + r.image_path : 'res/placeholder.png'}" alt="תמונה">              </div>
               <div class="report-info">
+              <p><strong>מזהה דיווח:</strong> ${r.id}</p>
                 <p><strong>גודל כלב:</strong> ${r.dog_size}</p>
                 <p><strong>מצב בריאותי:</strong> ${r.health_status}</p>
                 <p><strong>כתובת:</strong> ${r.address}</p>
@@ -521,13 +520,13 @@ rejected: 'בטיפול - מתאם שליח אחר',
                 <p><strong>סטטוס:</strong> <span class="status-badge status-${r.status}">${abandonedStatusLabels[r.status] || r.status}</span></p>              </div>
               <div class="report-actions">
                 <button class="btn-edit" onclick="openEditReport(${r.id})">ערוך</button>
-                <button class="btn-delete" onclick="deleteReport(${r.id})">מחק</button>
+               
               </div>
             </div>`;
           container.insertAdjacentHTML('beforeend', html);
         });
       }
-
+// <button class="btn-delete" onclick="deleteReport(${r.id})">מחק</button>
   /*      const abandonedStatusLabels = {
   open:       'חדש',
   inprogress: 'בטיפול',

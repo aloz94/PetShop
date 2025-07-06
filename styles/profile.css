@@ -341,8 +341,9 @@
 
 /* Highlight the newest appointment */
 #appointments-list li.latest {
-  background-color: #fffbeb;   /* soft yellow background */
-  border-left-color: #f59e0b;  /* amber accent stripe */
+  background-color: #a4d4f5;   /* soft yellow background */
+  
+  border-left-color: #04abff;  /* amber accent stripe */
 }
 
 /* (Optional) make the text stand out */
@@ -351,7 +352,7 @@
 }
 /* highlight the very next appointment */
 #Upcoming-appointments li.next-up {
-  background-color: #e0f2fe;     /* light-blue background */
+  background-color: #a4d4f5;     /* light-blue background */
   border-left-color: #0284c7;    /* darker-blue accent */
   font-weight: 600;
 }

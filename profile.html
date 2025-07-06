@@ -111,6 +111,9 @@
                 onclick="openPopup('EditInfo_popup')">
           ערוך פרטים
         </button>
+        <button class="pass-info-btn block mx-auto mb-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                onclick="deleteUser()">
+שינוי סיסמה        </button>
       </div>
 </section>
       <!-- My Dogs -->
@@ -171,7 +174,19 @@
         <h2 class="text-lg font-semibold mb-4">פרטי הכלב</h2>
         <div class="input-group grid grid-cols-2 gap-4 mb-4">
           <input type="text" id="dogName" placeholder="שם הכלב *" required class="border rounded p-2">
-          <input type="text" id="dogBreed" placeholder="גזע" required class="border rounded p-2">
+  <select
+    id="dogBreed"
+    name="dogBreed"
+    required
+    class="border rounded p-2"
+  >
+    <option value="" disabled selected>בחר גזע *</option>
+    <option value="לברדור">לברדור</option>
+    <option value="רוטוילר">רוטוילר</option>
+    <option value="פיקסיה">פיקסיה</option>
+    <option value="גולדן רטריבר">גולדן רטריבר</option>
+    <!-- הוסיפו פה עוד גזעים לפי הצורך -->
+  </select>
         </div>
         <div class="input-group grid grid-cols-2 gap-4 mb-4">
           <input type="number" id="dogAge" placeholder="גיל *" min="0" required class="border rounded p-2">
@@ -182,14 +197,16 @@
             <option>גדול</option>
           </select>
         </div>
-        <div class="input-group mb-4">
-          <label class="block mb-1">מין *</label>
-          <label class="inline-flex items-center mr-4">
-            <input type="radio" name="dogGender" value="male" required class="mr-1"> זכר
-          </label>
-          <label class="inline-flex items-center">
-            <input type="radio" name="dogGender" value="female" class="mr-1"> נקבה
-          </label>
+<div class="input-group mb-4 flex items-center">
+          <label class="ml-4  whitespace-nowrap">מין* :</label>
+          <div class="flex justify-center gap-6 w-full">
+            <label class="inline-flex items-center">
+              <input type="radio" name="dogGender" value="male" required class="mr-1"> זכר
+            </label>
+            <label class="inline-flex items-center">
+              <input type="radio" name="dogGender" value="female" class="mr-1"> נקבה
+            </label>
+          </div>
         </div>
         <button type="submit"
                 class="popup-button w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
@@ -208,7 +225,9 @@
         <input type="hidden" id="editDogId">
         <div class="input-group grid grid-cols-2 gap-4 mb-4">
           <input type="text" id="editDogName" placeholder="שם הכלב *" required class="border rounded p-2">
-          <input type="text" id="editDogBreed" placeholder="גזע *" required class="border rounded p-2">
+          <input type="text" id="editDogBreed" placeholder="גזע *" required class="border rounded p-2">  
+
+
         </div>
         <div class="input-group grid grid-cols-2 gap-4 mb-4">
           <input type="number" id="editDogAge" placeholder="גיל *" min="0" required class="border rounded p-2">
@@ -219,14 +238,17 @@
             <option value="גדול">גדול</option>
           </select>
         </div>
-        <div class="input-group mb-4">
-          <label class="block mb-1">מין *</label>
+<div class="input-group mb-4 flex items-center">
+          <label class="ml-4  whitespace-nowrap">מין *</label>
+            <div class="flex justify-center gap-6 w-full">
+
           <label class="inline-flex items-center mr-4">
             <input type="radio" name="editDogGender" value="male" required class="mr-1"> זכר
           </label>
           <label class="inline-flex items-center">
             <input type="radio" name="editDogGender" value="female" class="mr-1"> נקבה
           </label>
+        </div>
         </div>
         <button type="button"
                 class="popup-button w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
