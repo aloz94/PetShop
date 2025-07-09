@@ -167,15 +167,20 @@ input.addEventListener('paste', function (e) {
   // =================== SIDEBAR SECTION SWITCHING ===================
   // מעבר בין סקשנים
 document.querySelectorAll('.sidebar-nav a').forEach(link => {
-    link.addEventListener('click', e => {
-      e.preventDefault();
-      document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
-      link.classList.add('active');
-      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-      document.getElementById(link.dataset.target).classList.add('active');
-      if (link.dataset.target === 'boarding') loadBoardingData();
-    });
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    // 1. deactivate all links + contents
+    document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+    document.querySelectorAll('main .content').forEach(sec => sec.classList.remove('content--active'));
+    // 2. activate the clicked link + matching section
+    link.classList.add('active');
+    const id = link.dataset.target;
+    const section = document.getElementById(id);
+    if (section) section.classList.add('content--active');
+    // 3. special hook for boarding reload
+    if (id === 'boarding') loadBoardingData();
   });
+});
   
 // =================== ACCORDION BUILDERS ===================
 function renderAccordionHeaderRow(container, headerKeys, labels) {
@@ -4450,84 +4455,202 @@ document.getElementById('ontheway_orders')
 document.getElementById('cancelled_orders')
   .addEventListener('click', () => showStatusOrders('cancelled'));
 
-  async function loadEmployeesAccordion() {
-  try {
-    // 1) Fetch all employees
-    const res = await fetch('/api/employees', {
-      credentials: 'include'
-    });
-    if (!res.ok) throw new Error(`Server error: ${res.status}`);
-    const employees = await res.json();
+    async function loadEmployeesAccordion() {
+      console.log('Loading employees accordion…');
+        const roleLabels = {
+    manager:    'מנהל',
+    groomingE:  'טיפוח',
+    boardingE:  'פנסיון',
+    abandonedE: 'נטושים',
+    storeE:     'חנות',
+    handlerE:   'שליח'
+  };
 
-    // 2) Hide any existing table
-    const table = document.getElementById('employees-table');
-    if (table) table.style.display = 'none';
+    try {
+      // 1) Fetch all employees
+      const res = await fetch('/api/employees', {
+        credentials: 'include'
+      });
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+      const employees = await res.json();
 
-    // 3) Prepare the accordion container
-    const container = document.getElementById('employee-accordion');
-    container.innerHTML = '';
+      // 2) Hide any existing table
+      const table = document.getElementById('employees-table');
+      if (table) table.style.display = 'none';
 
-    // 4) Static header row
-    const hdr = document.createElement('div');
-    hdr.classList.add('accordion-header', 'accordion-header--static');
-    hdr.innerHTML = `
-      <span>מס' עובד</span>
-      <span>שם מלא</span>
-      <span>טלפון</span>
-      <span>תפקיד</span>
-      <span>ערוך</span>
-    `;
-    container.append(hdr);
+      // 3) Prepare the accordion container
+      const container = document.getElementById('employee-accordion');
+      container.innerHTML = '';
 
-    // 5) One panel per employee
-    employees.forEach(emp => {
-      const panel = document.createElement('div');
-      panel.classList.add('accordion');
-
-      // — Header
-      const header = document.createElement('div');
-      header.classList.add('accordion-header');
-      header.innerHTML = `
-        <span>${emp.id}</span>
-        <span>${emp.full_name}</span>
-        <span>${emp.phone || '—'}</span>
-        <span>${emp.role || '—'}</span>
-        <button
-          class="edit-btn"
-          title="ערוך עובד"
-          onclick="openEditEmployee(${emp.id})"
-          style="border:none;background:#ffc107;color:#2563eb;cursor:pointer;max-width:60px;margin-right:120px;"
-        >
-          <i class="fa fa-edit"></i>
-        </button>
+      // 4) Static header row
+      const hdr = document.createElement('div');
+      hdr.classList.add('accordion-header', 'accordion-header--static');
+      hdr.innerHTML = `
+        <span>מס' עובד</span>
+        <span>שם מלא</span>
+        <span>טלפון</span>
+        <span>תפקיד</span>
+        <span>ערוך</span>
       `;
+      container.append(hdr);
 
-      // — Body (hidden by default)
-      const body = document.createElement('div');
-      body.classList.add('accordion-body');
-      body.style.display = 'none';
-      body.innerHTML = `
-        <p><strong>אימייל:</strong> ${emp.email || '—'}</p>
-        <p><strong>כתובת:</strong> ${emp.address || '—'}</p>
-      `;
+      // 5) One panel per employee
+      employees.forEach(emp => {
+        const panel = document.createElement('div');
+        panel.classList.add('accordion');
+      const roleLabel = roleLabels[emp.role] || emp.role;
 
-      // — Toggle open/closed
-      header.addEventListener('click', e => {
-        // If click on the edit button, skip the toggle
-        if (e.target.closest('.edit-btn')) return;
-        const isOpen = header.classList.toggle('open');
-        body.style.display = isOpen ? 'block' : 'none';
+        // — Header
+        const header = document.createElement('div');
+        header.classList.add('accordion-header');
+        header.innerHTML = `
+          <span>${emp.id}</span>
+          <span>${emp.full_name}</span>
+          <span>${emp.phone || '—'}</span>
+          <span>${roleLabel || '—'}</span>
+          <button
+            class="edit-btn"
+            title="ערוך עובד"
+            onclick="openEditEmployee('${emp.id}')"
+            style="border:none;background:#ffc107;color:#2563eb;cursor:pointer;max-width:60px;margin-right:120px;"
+          >
+            <i class="fa fa-edit"></i>
+          </button>
+        `;
+
+        // — Body (hidden by default)
+        const body = document.createElement('div');
+        body.classList.add('accordion-body');
+        body.style.display = 'none';
+        body.innerHTML = `
+          <p><strong>אימייל:</strong> ${emp.email || '—'}</p>
+          <p><strong>כתובת:</strong> ${emp.address || '—'}</p>
+        `;
+
+        // — Toggle open/closed
+        header.addEventListener('click', e => {
+          // If click on the edit button, skip the toggle
+          if (e.target.closest('.edit-btn')) return;
+          const isOpen = header.classList.toggle('open');
+          body.style.display = isOpen ? 'block' : 'none';
+        });
+
+
+        panel.append(header, body);
+        container.append(panel);
       });
 
-      panel.append(header, body);
-      container.append(panel);
-    });
-
-  } catch (err) {
-    console.error('Error loading employees:', err);
-    alert('שגיאה בטעינת העובדים');
+    } catch (err) {
+      console.error('Error loading employees:', err);
+      alert('שגיאה בטעינת העובדים');
+    }
   }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    loadEmployeesAccordion();
+  });
+document
+  .getElementById('openEmployeeBtn')
+  .addEventListener('click', () => openPopup('addEmployeePopup'));
+
+
+// 3) Handle the form submission
+document
+  .getElementById('addEmployeeForm')
+  .addEventListener('submit', async e => {
+    e.preventDefault();
+    const id        = document.getElementById('employeeId').value;
+    const full_name = document.getElementById('employeeFullName').value.trim();
+    const role      = document.getElementById('employeeRole').value.trim();
+    const phone     = document.getElementById('employeePhone').value.trim();
+    const email     = document.getElementById('employeeEmail').value.trim();
+    const address   = document.getElementById('employeeAddress').value.trim();
+    const password  = document.getElementById('employeePassword').value;
+
+    try {
+      const res = await fetch('/api/employees', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({id, full_name, role, phone, email, address, password })
+      });
+      if (!res.ok) throw new Error(`Status ${res.status}`);
+      // success!
+      closePopup('addEmployeePopup');
+      // clear the form:
+      e.target.reset();
+      // reload the list:
+      loadEmployeesAccordion();
+    } catch (err) {
+      console.error('Failed to add employee:', err);
+      alert('שגיאה בהוספת עובד');
+    }
+  });
+
+// 1) Open & populate the Edit popup
+function openEditEmployee(id) {
+  const popup = document.getElementById('editEmployeePopup');
+  const form  = document.getElementById('editEmployeeForm');
+  const passchange = document.getElementById('togglePasswordBtn');
+  const passinput = document.getElementById('editPasswordFields');
+passchange.addEventListener('click', () => {
+  passinput.style.display = passinput.style.display === 'none' ? 'block' : 'none';
+});
+  // fetch the employee data
+  fetch(`/api/employees/${id}`, { credentials: 'include' })
+    .then(r => r.json())
+    .then(emp => {
+      document.getElementById('editEmployeeId').value      = emp.id;
+      document.getElementById('editEmployeeName').value    = emp.full_name;
+      document.getElementById('editEmployeeRole').value    = emp.role;
+      document.getElementById('editEmployeePhone').value   = emp.phone;
+      document.getElementById('editEmployeeEmail').value   = emp.email;
+      document.getElementById('editEmployeeAddress').value = emp.address;
+      document.getElementById('editEmployeePassword').value= '';
+      popup.removeAttribute('hidden');
+      popup.style.display = 'flex';
+    })
+    .catch(err => {
+      console.error('Failed to load employee:', err);
+      alert('שגיאה בטעינת פרטי העובד');
+    });
 }
 
-// Call it on page load (or whenever you need)
-loadEmployeesAccordion();
+// 2) Close helper
+function closeEditEmployee() {
+  document.getElementById('editEmployeePopup').setAttribute('hidden', '');
+  document.getElementById('editEmployeePopup').style.display = 'none';
+}
+
+// 3) Handle form submission (PUT)
+document.getElementById('editEmployeeForm').addEventListener('submit', async e => {
+  e.preventDefault();
+
+  const id       = document.getElementById('editEmployeeId').value;
+  const full_name= document.getElementById('editEmployeeName').value.trim();
+  const role     = document.getElementById('editEmployeeRole').value;
+  const phone    = document.getElementById('editEmployeePhone').value.trim();
+  const email    = document.getElementById('editEmployeeEmail').value.trim();
+  const address  = document.getElementById('editEmployeeAddress').value.trim();
+  const password = document.getElementById('editEmployeePassword').value;
+
+  // build payload
+  const payload = { full_name, role, phone, email, address };
+  if (password) payload.password = password;
+
+  try {
+    const resp = await fetch(`/api/employees/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!resp.ok) throw new Error(`Status ${resp.status}`);
+
+    closeEditEmployee();
+    loadEmployeesAccordion(); // re-load the list
+  } catch (err) {
+    console.error('Error saving employee:', err);
+    alert('שגיאה בעדכון פרטי העובד');
+  }
+});

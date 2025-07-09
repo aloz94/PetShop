@@ -3709,7 +3709,9 @@ app.get('/api/employees', authenticateToken, async (req, res) => {
         id,
         full_name,
         phone,
-        role
+        role,
+        email,
+        address
       FROM employees
       ORDER BY id;
     `;
@@ -3721,7 +3723,72 @@ app.get('/api/employees', authenticateToken, async (req, res) => {
   }
 });
 
+app.get('/api/employees/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const { rows } = await con.query(
+      `SELECT id, full_name, role, phone, email, address
+       FROM employees WHERE id = $1`, [id]
+    );
+    if (!rows[0]) return res.status(404).json({ error: 'Not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
+// POST הוספה
+app.post('/api/employees', authenticateToken, async (req, res) => {
+  const {id, full_name, role, phone, email, address, password } = req.body;
+  try {
+    const { rows } = await con.query(`
+      INSERT INTO employees(id,full_name, role, phone, email, address, password)
+      VALUES($1,$2,$3,$4,$5,$6,$7)
+      RETURNING id, full_name, role, phone, email, address, password
+    `, [id,full_name, role, phone, email, address, password]);
+    res.status(201).json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// PUT עדכון
+// PUT /api/employees/:id  — update an employee
+app.put('/api/employees/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { full_name, role, phone, email, address, password } = req.body;
+
+  // base SQL and params
+  let sql    = `
+    UPDATE employees
+       SET full_name = $1,
+           role      = $2,
+           phone     = $3,
+           email     = $4,
+           address   = $5
+  `;
+  const params = [full_name, role, phone, email, address];
+
+  // optionally include password
+  if (password) {
+    params.push(password);
+    sql += `, password = $${params.length}`;
+  }
+
+  params.push(id);
+  sql += ` WHERE id = $${params.length} RETURNING id, full_name, role, phone, email, address;`;
+
+  try {
+    const { rows } = await con.query(sql, params);
+    if (!rows[0]) return res.status(404).json({ error: 'Employee not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('Error updating employee:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
 //module.exports = router;
 app.listen(3000, () => {

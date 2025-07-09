@@ -80,7 +80,9 @@
             <i class="fa-solid fa-chart-line"></i>
             <span>דוחות</span>
           </a>
-          <a href="employees.html" data-target="employees">
+        </li>
+        <li>
+          <a href="#" data-target="workers">
             <i class="fa-solid fa-users-cog"></i>
             <span>עובדים</span>
           </a>
@@ -1464,10 +1466,44 @@
     <section id="reportContainer">
   <p>בחרי דוח להצגה</p>
 </section>
+</section>
 <!-- ========= Employees Dashboard ========= -->
-<section class="content" id="employees">
+<section class="content" id="workers">
   <h2>עובדים</h2>
   <!-- (Optional) a table fallback if JS is disabled -->
+                 <div class="search-group">
+          <button class="add-btn" type="button" id="openEmployeeBtn">
+         <i class="fas fa-plus"></i>
+          </button>
+          <select id="boardingSearchCategory">
+            <option value="">קטגורית חיפוש</option>
+            <option value="id">מס' תור</option>
+            <option value="customer_id">מס' לקוח (ID)</option>
+            <option value="customer_name">שם לקוח</option>
+            <option value="dog_id">מס' כלב (ID)</option>
+            <option value="dog_name">שם כלב</option>
+            <option value="check_in">תאריך כניסה</option>
+            <option value="check_out">תאריך יציאה</option>
+            <option value="status">סטטוס</option>
+          </select>
+        
+  <input   id="boardingSearchText" type="text"  placeholder="חפש…"  class="search-input"  />
+          <select id="boardingSearchStatusSelect" style="display:none">
+            <option value="">כל הסטטוסים</option>
+            <option value="pending">ממתין</option>
+            <option value="inprogress">בתהליך</option>
+            <option value="completed">הושלם</option>
+            <option value="cancelled">בוטל</option>
+          </select>
+        
+  <button id="boardingSearchBtn" class="btn-search" title="חפש">
+    🔍
+  </button>
+  <button id="boardingClearBtn" class="btn-clear" type="button" title="נקה">
+    ✖
+  </button>
+</div>
+
   <table id="employees-table" class="dashboard-table" style="display:none;">
     <thead>
       <tr>
@@ -1490,6 +1526,114 @@
 </main>
 
 <!--****************************************Dashboard PopUps******************************************-->
+<!-- Add Employee Popup (with explicit ID) -->
+<form id="addEmployeeForm">
+  <div id="addEmployeePopup" class="popup-container" hidden>
+    <div class="popup-content">
+      <span class="close-btn" onclick="closePopup('addEmployeePopup')">&times;</span>
+      <img src="res/logo.png" alt="Logo" />
+      <h2>הוסף עובד חדש</h2>
+
+      <!-- NEW: Employee ID -->
+  <div class="input-field">
+    <input
+      type="text"
+      id="employeeId"
+      placeholder="ת.ז. עובד"
+      required
+      pattern="\d+"
+      inputmode="numeric"
+      maxlength="10"
+          oninput="this.value = this.value.replace(/\D/g, '')"
+
+    />
+ </div>
+
+      <div class="input-field">
+        <input type="text" id="employeeFullName" placeholder="שם מלא" required />
+      </div>
+  <div class="input-field">
+    <select id="employeeRole" required>
+      <option value="" disabled selected>בחר תפקיד…</option>
+            <option value="manager">מנהל</option>
+      <option value="groomingE">טיפוח</option>
+      <option value="boardingE">פנסיון</option>
+      <option value="abandonedE">נטושים</option>
+      <option value="storeE">חנות</option>
+      <option value="handlerE">שליח</option>
+      <!-- תוכל להוסיף כאן עוד ערכים בהתאם לצורך -->
+    </select>
+  </div>
+      <div class="input-field">
+        <input type="text" id="employeePhone" placeholder="טלפון" required />
+      </div>
+      <div class="input-field">
+        <input type="email" id="employeeEmail" placeholder="אימייל" required />
+      </div>
+      <div class="input-field">
+        <input type="text" id="employeeAddress" placeholder="כתובת" required />
+      </div>
+      <div class="input-field">
+        <input type="password" id="employeePassword" placeholder="סיסמה" required />
+      </div>
+      <div class="input-field">
+        <input type="password" id="confirmPassword" placeholder="אשר סיסמה" required />
+      </div>
+      
+
+      <button type="submit" class="popup-button">שמור עובד</button>
+    </div>
+  </div>
+</form>
+<!-- EDIT Employee Popup -->
+<form id="editEmployeeForm">
+  <div id="editEmployeePopup" class="popup-container" hidden>
+    <div class="popup-content">
+      <span class="close-btn" onclick="closeEditEmployee()">&times;</span>
+      <h2>עריכת עובד</h2>
+
+      <!-- holds the ID of the employee being edited -->
+      <input type="hidden" id="editEmployeeId">
+
+      <div class="input-field">
+        <label for="editEmployeeName">שם מלא:</label>
+        <input type="text" id="editEmployeeName" required />
+      </div>
+      <div class="input-field">
+        <label for="editEmployeeRole">תפקיד:</label>
+        <select id="editEmployeeRole" required>
+          <option value="" disabled>בחר תפקיד…</option>
+            <option value="manager">מנהל</option>
+      <option value="groomingE">טיפוח</option>
+      <option value="boardingE">פנסיון</option>
+      <option value="abandonedE">נטושים</option>
+      <option value="storeE">חנות</option>
+      <option value="handlerE">שליח</option>
+        </select>
+      </div>
+      <div class="input-field">
+        <label for="editEmployeePhone">טלפון:</label>
+        <input type="tel" id="editEmployeePhone" required />
+      </div>
+      <div class="input-field">
+        <label for="editEmployeeEmail">אימייל:</label>
+        <input type="email" id="editEmployeeEmail" required />
+      </div>
+      <div class="input-field">
+        <label for="editEmployeeAddress">כתובת:</label>
+        <input type="text" id="editEmployeeAddress" required />
+      </div>
+      <button type="button" id="togglePasswordBtn" class="popup-button" style="margin-bottom: 10px;">שנה סיסמה</button>
+
+      <div class="input-field" id="editPasswordFields" style="display: none;">
+        <input type="password" id="editEmployeePassword" placeholder="סיסמה חדשה" />
+      </div>
+
+      <button type="submit" class="popup-button">שמור שינויים</button>
+    </div>
+  </div>
+</form>
+
 <div id="lowStockModal" class="modal" style="display: none;">
   <div class="modal-content">
     <span class="close-btn">&times;</span>
