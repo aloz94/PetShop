@@ -2775,18 +2775,26 @@ let _handlersDataCache = [];
       const table = document.getElementById('handlers-posts');
       if (table) table.style.display = 'none';
   
+          const formatted = data.map(h => ({
+      ...h,
+      editHtml: `<button class="action-btn btn-edit" data-id="${h.id}">
+  <i class="fa fa-edit"></i>
+</button>`
+    }));
+
       // בניית אקורדיון
       buildAccordionFromData(
-        data,
+        formatted,
         'accordion-handlers',
-        ['id','name','phone','vehicle_type'],                        // שדות בכותרת
+        ['id','name','phone','vehicle_type', 'editHtml'],                        // שדות בכותרת
         ['address','email'], // שדות בגוף
         {
           id:            "מס' שליח",
           name:          "שם",
           phone:         "טלפון",
           address:       "כתובת",
-          vehicle_type:  "סוג רכב",
+          vehicle_type:  "גודל רכב",
+          editHtml:       "ערוך",
           email:         "אימייל"
         }
       );
@@ -2857,20 +2865,25 @@ function renderHandlers(handlers) {
     vehicle_type: handler.vehicle_type || 'לא צוין',
     email: handler.email || 'לא צוין',
     address: handler.address || 'לא צוין',
-  }));
+    editHtml: `<button class="action-btn btn-edit" data-id="${handler.id}">
+  <i class="fa fa-edit"></i>
+</button>`
+    }));
+
 
   // Build accordion from formatted data
   buildAccordionFromData(
     formattedHandlers,
     'accordion-handlers',
-    ['id', 'name', 'phone', 'vehicle_type'], // Header keys
+    ['id', 'name', 'phone', 'vehicle_type', 'editHtml'], // Header keys
     ['address', 'email'], // Body keys
     {
       id: 'מס\' שליח',
       name: 'שם',
       phone: 'טלפון',
-      vehicle_type: 'סוג רכב',
+      vehicle_type: 'גדול רכב',
       address: 'כתובת',
+      editHtml: 'ערוך',
       email: 'אימייל'
     }
   );
@@ -2951,77 +2964,91 @@ document.getElementById('openHandlerBtn').addEventListener('click', () => {
     }
   }
 // =================== CUSTOMERS ACCORDION ===================
-  async function loadCustomersAccordion() {
-    try {
-      const res = await fetch('http://localhost:3000/dashboard/customers', {
-        credentials: 'include'
-      });
-      console.log('res:', res);
-      if (!res.ok) throw new Error(`Server error ${res.status}`);
-      const data = await res.json();
-  
-      // נסתרת הטבלה
-      const table = document.getElementById('customers-posts');
-      if (table) table.style.display = 'none';
-  
-      // בונים אקורדיון
-      const container = document.getElementById('accordion-customers');
-      container.innerHTML = ''; 
-  
-      data.forEach(cust => {
-        const accordion = document.createElement('div');
-        accordion.classList.add('accordion');
-  
-        // כותרת
-        const header = document.createElement('div');
-        header.classList.add('accordion-header');
-        header.innerHTML = `
-          <span>מס' לקוח: ${cust.id}</span>
-          <span>שם: ${cust.customer_name}</span>
-          <span>טלפון: ${cust.phone}</span>
-        `;
-  
-        // גוף
-        const body = document.createElement('div');
-        body.classList.add('accordion-body');
-        body.style.display = 'none';
-  
-        // פרטי לקוח
-        let html = `
-          <div class="cust-info">
-          <div class="email">📧 אימייל: ${cust.email}</div>
-         <div class="address">📍 כתובת: ${cust.address}</div>
+async function loadCustomersAccordion() {
+  try {
+    const res = await fetch('http://localhost:3000/dashboard/customers', {
+      credentials: 'include'
+    });
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+    const data = await res.json();
+
+    // הסתרת הטבלה הקיימת
+    const table = document.getElementById('customers-posts');
+    if (table) table.style.display = 'none';
+
+    // הכנה של הקונטיינר
+    const container = document.getElementById('accordion-customers');
+    container.innerHTML = '';
+
+    // 1) הוספת שורת כותרת אחודה
+    const hdrRow = document.createElement('div');
+    hdrRow.classList.add('accordion-header', 'accordion-header--static');
+    hdrRow.innerHTML = `
+      <span>מס' לקוח</span>
+      <span>שם</span>
+      <span>טלפון</span>
+      <span>ערוך</span>
+    `;
+    container.append(hdrRow);
+
+    // 2) כל לקוח – בניית אקורדיון
+    data.forEach(cust => {
+      const acc = document.createElement('div');
+      acc.classList.add('accordion');
+
+      // הכותרת הדינמית
+      const header = document.createElement('div');
+      header.classList.add('accordion-header');
+      header.innerHTML = `
+        <span>${cust.id}</span>
+        <span>${cust.customer_name}</span>
+        <span>${cust.phone || '—'}</span>
+        <button class="edit-btn" title="ערוך לקוח" 
+                onclick="openEditCustomer(${cust.id})"
+                style="border:none;background:#ffc107;cursor:pointer;color:#2563eb; max-width: 60px; margin-right: 120px;">
+            <i class="fa fa-edit"></i>
+
+        </button>
+      `;
+
+      // גוף האקורדיון
+      const body = document.createElement('div');
+      body.classList.add('accordion-body');
+      body.style.display = 'none';
+      body.innerHTML = `
+        <div class="cust-info">
+          <div>📧 אימייל: ${cust.email || '—'}</div>
+          <div>📍 כתובת: ${cust.address || '—'}</div>
         </div>
-          <h4>🐶 כלבים:</h4>
-  <div class="dog-cards">
-    ${cust.dogs.map(d => `
-      <div class="dog-card">
-        <h5>${d.name}</h5>
-        <div>גזע: ${d.breed}</div>
-        <div>גיל: ${d.age}</div>
-        <div>מין: ${d.gender}</div>
-        <div>גודל: ${d.size}</div>
-      </div>
-    `).join('')}
-  </div>
-`;
-        html += '</ul>';
-        body.innerHTML = html;
-  
-        header.addEventListener('click', () => {
-          const open = header.classList.toggle('open');
-          body.style.display = open ? 'flex' : 'none';
-        });
-  
-        accordion.append(header, body);
-        container.append(accordion);
+        <h4>🐶 כלבים:</h4>
+        <div class="dog-cards">
+          ${cust.dogs.map(d => `
+            <div class="dog-card">
+              <h5>${d.name}</h5>
+              <div>גזע: ${d.breed}</div>
+              <div>גיל: ${d.age}</div>
+              <div>מין: ${d.gender}</div>
+              <div>גודל: ${d.size}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      // פתיחה/סגירה
+      header.addEventListener('click', () => {
+        const open = header.classList.toggle('open');
+        body.style.display = open ? 'block' : 'none';
       });
-  
-    } catch (err) {
-      console.error('Error loading customers:', err);
-      alert('שגיאה בטעינת לקוחות');
-    }
+
+      acc.append(header, body);
+      container.append(acc);
+    });
+
+  } catch (err) {
+    console.error('Error loading customers:', err);
+    alert('שגיאה בטעינת לקוחות');
   }
+}
 
 
 
@@ -3125,9 +3152,10 @@ function renderProducts(products) {
     formatted,
     'products-accordion',
     // ← include 'actions' as the last column
-    ['image', 'name', 'category', 'price', 'stock_quantity', 'stock_badge', 'actions'],
-    ['description', 'min_quantity'],
+    ['id','image', 'name',  'price', 'stock_badge', 'actions'],
+    ['name','category','description', 'min_quantity', 'stock_quantity'],
     {
+      id: 'מספר מוצר',
       image: 'תמונה',
       name: 'שם מוצר',
       category: 'קטגוריה',
@@ -3175,9 +3203,10 @@ function renderProducts(products) {
   buildAccordionFromData(
     formatted,
     'products-accordion',
-    ['image', 'name', 'category', 'price', 'stock_quantity', 'stock_badge', 'actions'],
-    ['description', 'min_quantity'],
+    ['id','image', 'name',  'price', 'stock_badge', 'actions'],
+    ['name','category','description', 'min_quantity', 'stock_quantity'],
     {
+      id: 'מס\' מוצר',
       image: 'תמונה',
       name: 'שם מוצר',
       category: 'קטגוריה',
@@ -3185,8 +3214,8 @@ function renderProducts(products) {
       stock_quantity: 'כמות במלאי',
       min_quantity: 'מינימום מלאי',
       description: 'תיאור',
-      stock_badge: '',
-      actions: 'פעולות'
+      stock_badge: 'מצב מלאי',
+      actions: ' ערוך'
     }
   );
 
@@ -3400,7 +3429,7 @@ function renderTable(bodyEl, products) {
   let html = `
     <table>
       <thead>
-        <tr><th>ID</th><th>שם</th><th>כמות במלאי</th></tr>
+        <tr><th>מספר מוצר</th><th>שם</th><th>כמות במלאי</th></tr>
       </thead>
       <tbody>
   `;
@@ -3784,7 +3813,7 @@ async function loadOrdersAccordion() {
       {                                     // labels for each field
         id:             'מספר הזמנה',
         customer_name:  'לקוח',
-        date:           'תאריך',
+        date:           ' תאריך הזמנה',
         total:          'סה״כ',
         status:         'סטטוס'
       }
@@ -3802,6 +3831,7 @@ async function loadOrdersAccordion() {
 document.addEventListener('DOMContentLoaded', () => {
   loadOrdersAccordion();
 });
+let ordersCache = [];
 
 async function loadOrdersAccordion() {
   try {
@@ -3809,6 +3839,7 @@ async function loadOrdersAccordion() {
     const res = await fetch('/api/orders', { credentials: 'include' });
     if (!res.ok) throw new Error(`Server error: ${res.status}`);
     const orders = await res.json();
+    ordersCache = orders; // cache for edit functionality
 
     // 2) Grab (or create) the container
     const containerId = 'ordersAccordion';
@@ -3823,13 +3854,14 @@ async function loadOrdersAccordion() {
     // 2a) Render the fixed header row
     renderAccordionHeaderRow(
       container,                                          // pass the element itself
-      ['id','customer_name','date','total','status'],     // keys, in display order
+      ['id','customer_name','date','total','status','edit'],     // keys, in display order
       {                                                   // your Hebrew labels
         id:             'מס׳ הזמנה',
         customer_name:  'לקוח',
         date:           'תאריך',
         total:          'סה״כ',
-        status:         'סטטוס'
+        status:         'סטטוס',
+        edit:          'ערוך'
       }
     );
 
@@ -3858,6 +3890,17 @@ async function loadOrdersAccordion() {
         <span class="status-badge status-${order.status}">
           ${statusLabels[order.status] || order.status}
         </span>
+        
+                <button 
+          class="edit-btn" 
+          onclick="openEditOrder(${order.id})" 
+          title="ערוך הזמנה"
+          style=" max-width: 60px; border:none; cursor:pointer;margin-right: 115px;"
+        >
+            <i class="fa fa-edit"></i>
+
+        </button>
+
       `;
       panel.appendChild(hdr);
 
@@ -3869,7 +3912,9 @@ async function loadOrdersAccordion() {
       panel.appendChild(body);
 
       // -- TOGGLE & LAZY LOAD
-      hdr.addEventListener('click', async () => {
+hdr.addEventListener('click', async e => {
+          if (e.target.closest('.edit-btn')) return;
+
         const open = hdr.classList.toggle('open');
         body.style.display = open ? 'block' : 'none';
 
@@ -3898,6 +3943,132 @@ async function loadOrdersAccordion() {
     alert('שגיאה בטעינת ההזמנות');
   }
 }
+
+//edit orders 
+// 1) Utility to recalc the total display
+// 1) Recalculate total whenever quantities change
+function recalcEditTotal() {
+  let sum = 0;
+  document.querySelectorAll('#editOrderProducts tr').forEach(tr => {
+    const qty   = parseInt(tr.querySelector('.item-qty').value,10) || 0;
+    const price = parseFloat(tr.querySelector('.item-price').dataset.price) || 0;
+    const line  = qty * price;
+    tr.querySelector('.item-line').textContent = '₪' + line.toFixed(2);
+    sum += line;
+  });
+  document.getElementById('editOrderTotal').textContent = '₪' + sum.toFixed(2);
+}
+
+// 2) Open modal and populate
+async function openEditOrder(orderId) {
+  try {
+    const res = await fetch(`/api/orders/${orderId}/full`, {
+      credentials: 'include'
+    });
+    if (!res.ok) throw new Error(`Fetch failed ${res.status}`);
+    const order = await res.json();
+
+    // 2a) Fill order ID
+    document.getElementById('editOrderId').value = order.id;
+
+    // 2b) Fill address fields (only city, street, house_number)
+    const addr = order.address || {};
+    document.getElementById('editCity').value        = addr.city || '';
+    document.getElementById('editStreet').value      = addr.street || '';
+    document.getElementById('editHouseNumber').value = addr.house_number || '';
+
+    // 2c) Build products table
+    const tbody = document.getElementById('editOrderProducts');
+    tbody.innerHTML = '';
+    order.items.forEach(item => {
+      // null-safe price
+      const price = Number(item.unit_price) || 0;
+
+      const tr = document.createElement('tr');
+      tr.dataset.productId = item.product_id;
+      tr.innerHTML = `
+        <td>${item.product_name}
+          <input type="hidden" class="edit-item-id" value="${item.product_id}">
+        </td>
+        <td><input type="number" class="item-qty"
+                   value="${item.quantity}" min="0" style="width:4rem;"></td>
+        <td data-price="${price}" class="item-price">₪${price.toFixed(2)}</td>
+        <td class="item-line">₪0.00</td>
+        <td><button type="button" class="delete-item-btn">✖️</button></td>
+      `;
+      // attach events
+      tr.querySelector('.item-qty')
+        .addEventListener('input', recalcEditTotal);
+      tr.querySelector('.delete-item-btn')
+        .addEventListener('click', () => {
+          tr.remove();
+          recalcEditTotal();
+        });
+      tbody.appendChild(tr);
+    });
+
+    // initial total
+    recalcEditTotal();
+
+    // show modal
+    const m = document.getElementById('editOrderModal');
+    m.hidden = false;
+    m.style.display = 'flex';
+
+  } catch (err) {
+    console.error('openEditOrder error:', err);
+    alert('שגיאה בטעינת פרטי ההזמנה');
+  }
+}
+
+// 3) Close modal
+function closeEditOrderModal() {
+  const m = document.getElementById('editOrderModal');
+  m.hidden = true;
+  m.style.display = 'none';
+  document.getElementById('editOrderProducts').innerHTML = '';
+}
+
+// 4) Submit handler
+document.getElementById('editOrderForm')
+  .addEventListener('submit', async e => {
+    e.preventDefault();
+    const orderId = +document.getElementById('editOrderId').value;
+
+    // gather updated items
+    const items = Array.from(
+      document.querySelectorAll('#editOrderProducts tr')
+    ).map(tr => ({
+      product_id: +tr.querySelector('.edit-item-id').value,
+      quantity:   +tr.querySelector('.item-qty').value
+    }));
+
+    // gather address fields
+    const address = {
+      city:         document.getElementById('editCity').value,
+      street:       document.getElementById('editStreet').value,
+      house_number: document.getElementById('editHouseNumber').value
+    };
+
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method:      'PUT',
+        credentials: 'include',
+        headers:     {'Content-Type':'application/json'},
+        body:        JSON.stringify({ address, items })
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || res.statusText);
+      }
+      closeEditOrderModal();
+      await loadOrdersAccordion();
+    } catch (err) {
+      console.error('Error saving order:', err);
+      alert('שגיאה בשמירת השינויים: ' + err.message);
+    }
+  });
+
 
 /**
  * Given a container <div> and a full order object (from /api/orders/:id/full),
@@ -3962,8 +4133,10 @@ const optionsHtml = statuses.map(s => `
     <div class="order-address">
       <h4>כתובת למשלוח</h4>
       <p>
-        ${order.street} ${order.house_number}, 
-        ${order.city} 
+    ${(() => {
+      const a = order.address || {};
+      return `${a.street || ''} ${a.house_number || ''}, ${a.city || ''}`.trim();
+    })()}
       </p>
     </div>
 
@@ -4018,6 +4191,168 @@ const optionsHtml = statuses.map(s => `
   });
 
 }
+
+let productsCache = [];
+let categoriesCache = [];
+
+// 2.1) פוקנציה לטעינת קטגוריות
+async function loadCategories() {
+  const res = await fetch('/api/categories', { credentials:'include' });
+  categoriesCache = await res.json();
+  const catSel = document.getElementById('productCategoryFilter');
+  categoriesCache.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.name;
+    catSel.appendChild(opt);
+  });
+}
+
+// 2.2) פוקנציה למילוי רשימת מוצרים לפי סינון
+function populateProductSelect(filterName = '') {
+  const sel = document.getElementById('newProductSelect');
+  sel.innerHTML = '<option value="">בחר מוצר להוספה…</option>';
+
+  productsCache.forEach(p => {
+    // אם filterName ריק – כל המוצרים, אחרת רק אלו שהתווית שלהם תואמת
+    if (!filterName || p.category === filterName) {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = `${p.name} — ₪${Number(p.price).toFixed(2)}`;
+      sel.appendChild(opt);
+    }
+  });
+}
+
+// 2.3) פוקנציה לטעינת מוצרים + התחברות לסינון
+async function loadAllProducts() {
+  try {
+    const res = await fetch('/products', { credentials:'include' });
+    if (!res.ok) throw new Error(res.statusText);
+    productsCache = await res.json();
+    // אחרי שיש שני caches נתונים, מלא את המודל ברשימות
+    populateProductSelect();  
+  } catch(err) {
+    console.error('Failed to load products:', err);
+  }
+}
+
+loadCategories();
+
+// 2.4) אירוע על שינוי קטגוריה
+document
+  .getElementById('productCategoryFilter')
+  .addEventListener('change', e => {
+    const catId = e.target.value;
+    // מצא את המחרוזת שהמשתמש בחר
+    const cat = categoriesCache.find(c => String(c.id) === String(catId));
+    const name = cat ? cat.name : '';
+    console.log('Filtering products to category name:', name);
+    populateProductSelect(name);
+  });
+
+  
+// 2.5) קריאה ראשונית
+window.addEventListener('DOMContentLoaded', () => {
+  loadAllProducts();
+  populateProductSelect(); // initial population
+    const addBtn = document.getElementById('addProductBtn');
+  console.log('addProductBtnelem=', addBtn);
+  addBtn.addEventListener('click', handleAddProduct);
+});
+
+// 2.6) הוספת מוצר חדש
+function recalcEditOrderTotal() {
+  const tbody = document.getElementById('editOrderProducts');
+  let sum = 0;
+  tbody.querySelectorAll('tr').forEach(tr => {
+    const lineTotalCell = tr.querySelector('.line-total');
+    // הורידו ש"ח וסבילו למספר
+    const value = parseFloat(lineTotalCell.textContent.replace(/[^0-9.-]+/g,"")) || 0;
+    sum += value;
+  });
+  // עדכון התצוגה
+  document.getElementById('editOrderTotal').textContent =
+    `₪${sum.toFixed(2)}`;
+}
+
+// 2) הפונקציה שמטפלת בלחיצה על "הוסף מוצר"
+function handleAddProduct() {
+  const sel   = document.getElementById('newProductSelect');
+  const qtyIn = document.getElementById('newProductQty');
+  const pid   = Number(sel.value);
+  const qty   = Math.max(1, Number(qtyIn.value) || 1);
+
+  if (!pid) {
+    return alert('בחר מוצר לפני הוספה.');
+  }
+
+  // מצא את אובייקט המוצר
+  const prod = productsCache.find(p => p.id === pid);
+  if (!prod) {
+    return console.error('Product not found in cache:', pid);
+  }
+
+  // חשב מחיר שורה
+  const unitPrice = Number(prod.price);
+  const lineTotal = unitPrice * qty;
+
+  // בניית <tr>
+  const tr = document.createElement('tr');
+  tr.setAttribute('data-product-id', pid);
+  tr.style.backgroundColor = '#F0FFFF'; // light gray for new rows
+  tr.innerHTML = `
+    <td>${prod.name}</td>
+    <td>
+      <input type="number"
+             class="item-qty"
+             value="${qty}"
+             min="1"
+             style="width:4rem;"/>
+    </td>
+    <td>₪${unitPrice.toFixed(2)}</td>
+    <td class="line-total">₪${lineTotal.toFixed(2)}</td>
+    <td>
+        <button type="button" class="remove-line-btn">✖️</button>
+    </td>
+  `;
+  
+
+  const tbody = document.getElementById('editOrderProducts');
+  tbody.appendChild(tr);
+
+  // 2a) מאזין לשינוי כמות בשורה
+  tr.querySelector('.item-qty').addEventListener('input', e => {
+    const newQty = Math.max(1, Number(e.target.value) || 1);
+    e.target.value = newQty;
+    const newTotal = unitPrice * newQty;
+    tr.querySelector('.line-total').textContent = `₪${newTotal.toFixed(2)}`;
+    recalcEditOrderTotal();
+  });
+
+  // 2b) מאזין לכפתור הסרה
+document
+  .getElementById('editOrderProducts')
+  .addEventListener('click', function(e) {
+    const btn = e.target.closest('button.remove-line-btn');
+    if (!btn) return;
+    const row = btn.closest('tr');
+    if (row) {
+      row.remove();
+      recalcEditOrderTotal();
+    }
+  });
+}
+
+// 4) רישום המאזין בלחיצה (מקפיד שזה קורה אחרי קיום ה-HTML במודאל)
+const addBtn = document.getElementById('addProductBtn');
+if (addBtn) {
+  addBtn.addEventListener('click', handleAddProduct);
+} else {
+  console.error('addProductBtn not found in DOM');
+}
+
+
 
 async function refreshStatusCards() {
   try {
@@ -4114,3 +4449,85 @@ document.getElementById('ontheway_orders')
   .addEventListener('click', () => showStatusOrders('on_the_way'));
 document.getElementById('cancelled_orders')
   .addEventListener('click', () => showStatusOrders('cancelled'));
+
+  async function loadEmployeesAccordion() {
+  try {
+    // 1) Fetch all employees
+    const res = await fetch('/api/employees', {
+      credentials: 'include'
+    });
+    if (!res.ok) throw new Error(`Server error: ${res.status}`);
+    const employees = await res.json();
+
+    // 2) Hide any existing table
+    const table = document.getElementById('employees-table');
+    if (table) table.style.display = 'none';
+
+    // 3) Prepare the accordion container
+    const container = document.getElementById('employee-accordion');
+    container.innerHTML = '';
+
+    // 4) Static header row
+    const hdr = document.createElement('div');
+    hdr.classList.add('accordion-header', 'accordion-header--static');
+    hdr.innerHTML = `
+      <span>מס' עובד</span>
+      <span>שם מלא</span>
+      <span>טלפון</span>
+      <span>תפקיד</span>
+      <span>ערוך</span>
+    `;
+    container.append(hdr);
+
+    // 5) One panel per employee
+    employees.forEach(emp => {
+      const panel = document.createElement('div');
+      panel.classList.add('accordion');
+
+      // — Header
+      const header = document.createElement('div');
+      header.classList.add('accordion-header');
+      header.innerHTML = `
+        <span>${emp.id}</span>
+        <span>${emp.full_name}</span>
+        <span>${emp.phone || '—'}</span>
+        <span>${emp.role || '—'}</span>
+        <button
+          class="edit-btn"
+          title="ערוך עובד"
+          onclick="openEditEmployee(${emp.id})"
+          style="border:none;background:#ffc107;color:#2563eb;cursor:pointer;max-width:60px;margin-right:120px;"
+        >
+          <i class="fa fa-edit"></i>
+        </button>
+      `;
+
+      // — Body (hidden by default)
+      const body = document.createElement('div');
+      body.classList.add('accordion-body');
+      body.style.display = 'none';
+      body.innerHTML = `
+        <p><strong>אימייל:</strong> ${emp.email || '—'}</p>
+        <p><strong>כתובת:</strong> ${emp.address || '—'}</p>
+      `;
+
+      // — Toggle open/closed
+      header.addEventListener('click', e => {
+        // If click on the edit button, skip the toggle
+        if (e.target.closest('.edit-btn')) return;
+        const isOpen = header.classList.toggle('open');
+        body.style.display = isOpen ? 'block' : 'none';
+      });
+
+      panel.append(header, body);
+      container.append(panel);
+    });
+
+  } catch (err) {
+    console.error('Error loading employees:', err);
+    alert('שגיאה בטעינת העובדים');
+  }
+}
+
+// Call it on page load (or whenever you need)
+loadEmployeesAccordion();

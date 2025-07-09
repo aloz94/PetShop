@@ -3441,22 +3441,22 @@ app.get('/api/orders/:id/full', authenticateToken, async (req, res) => {
     const sql = `
       SELECT
         o.id,
-        to_char(o.created_at,       'YYYY-MM-DD HH24:MI') AS created_at,
+        to_char(o.created_at, 'YYYY-MM-DD HH24:MI') AS created_at,
         o.payment_method,
         o.total,
-        
+
         /* customer */
         c.first_name  || ' ' || c.last_name AS customer_name,
         c.phone AS customer_phone,
         c.email AS customer_email,
-        
-        /* shipping address */
-        a.label      AS address_label,
-        a.city,
-        a.street,
-        a.house_number,
-        a.zip,
-        
+
+        /* nested shipping address */
+        json_build_object(
+          'city',         a.city,
+          'street',       a.street,
+          'house_number', a.house_number
+        ) AS address,
+
         /* line-items as JSON array */
         json_agg(
           json_build_object(
@@ -3480,7 +3480,7 @@ app.get('/api/orders/:id/full', authenticateToken, async (req, res) => {
       GROUP BY
         o.id, o.created_at, o.payment_method, o.total,
         c.first_name, c.last_name, c.phone, c.email,
-        a.label, a.city, a.street, a.house_number, a.zip;
+        a.city, a.street, a.house_number
     `;
     const { rows } = await con.query(sql, [orderId]);
     if (!rows[0]) return res.status(404).json({ error: 'Order not found' });
@@ -3620,6 +3620,107 @@ app.get('/api/customers/me/boarding/next', authenticateToken, async (req, res) =
     res.status(500).json({ error: err.message });
   }
 });
+
+
+// in your app.js
+app.put('/api/orders/:id', authenticateToken, async (req, res) => {
+  const orderId = parseInt(req.params.id, 10);
+  const { address, items } = req.body;
+
+  if (
+    !orderId ||
+    !address ||
+    typeof address.city !== 'string' ||
+    typeof address.street !== 'string' ||
+    typeof address.house_number !== 'string' ||
+    !Array.isArray(items)
+  ) {
+    return res.status(400).json({ error: 'Missing or invalid fields' });
+  }
+
+  try {
+    await con.query('BEGIN');
+
+    // 1) Update only those three address columns
+    await con.query(
+      `UPDATE addresses
+         SET city         = $1,
+             street       = $2,
+             house_number = $3
+       WHERE id = (
+         SELECT address_id FROM orders WHERE id = $4
+       )`,
+      [address.city, address.street, address.house_number, orderId]
+    );
+
+    // 2) Replace line-items
+    await con.query(`DELETE FROM order_items WHERE order_id = $1`, [orderId]);
+    const insSql = `
+      INSERT INTO order_items (order_id, product_id, quantity, unit_price)
+      SELECT $1, p.id, $2, p.price
+        FROM products p
+       WHERE p.id = $3
+    `;
+    for (const { product_id, quantity } of items) {
+      await con.query(insSql, [orderId, quantity, product_id]);
+    }
+
+    // 3) Recalculate orders.total
+    await con.query(
+      `UPDATE orders
+         SET total = sub.sum_total
+       FROM (
+         SELECT SUM(quantity * unit_price)::numeric(10,2) AS sum_total
+           FROM order_items
+          WHERE order_id = $1
+       ) AS sub
+       WHERE orders.id = $1`,
+      [orderId]
+    );
+
+    await con.query('COMMIT');
+    res.json({ success: true });
+  } catch (err) {
+    await con.query('ROLLBACK');
+    console.error('PUT /api/orders/:id error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// בתוך server.js, לצד שאר ה-GET ה-API שלך
+app.get('/api/categories', authenticateToken, async (req, res) => {
+  try {
+    const { rows } = await con.query(`
+      SELECT id, name 
+      FROM categories
+      ORDER BY name
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching categories:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.get('/api/employees', authenticateToken, async (req, res) => {
+  try {
+    const sql = `
+      SELECT
+        id,
+        full_name,
+        phone,
+        role
+      FROM employees
+      ORDER BY id;
+    `;
+    const { rows } = await con.query(sql);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching employees:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 
 
 //module.exports = router;

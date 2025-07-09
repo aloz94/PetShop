@@ -420,11 +420,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
 //reports 
 
-function loadReport(type) {
+// … (any existing imports or top-of-file code) …
 
+/**
+ * Export an HTML <table> to CSV and trigger a download.
+ * @param {HTMLTableElement} table 
+ * @param {string} filename 
+ */
+function exportTableToCSV(table, filename) {
+  // 1) Collect all rows
+  const rows = Array.from(table.querySelectorAll('tr'));
+  const csvContent = rows.map(row => {
+    const cells = Array.from(row.querySelectorAll('th, td'));
+    // 2) Wrap each cell in quotes, escape existing quotes, join with semicolons
+    return cells
+      .map(cell => `"${cell.textContent.trim().replace(/"/g, '""')}"`)
+      .join(';');
+  }).join('\r\n');
+
+  // 3) Prepend UTF-8 BOM so Excel recognizes encoding
+  const bom = '\uFEFF';
+  const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
+
+  // 4) Create temporary link & click to download
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+async function loadReport(type) {
   const period = "weekly";
   const container = document.getElementById('reportContainer');
   container.innerHTML = '<p>טוען דוח...</p>';
+
+  // helper to inject export button & wire it up after the table is rendered
+  const addExport = (filename) => {
+    container.insertAdjacentHTML('afterbegin',
+      `<button id="exportCsvBtn" class="export-btn">📥 הורד CSV</button>`
+    );
+    document
+      .getElementById('exportCsvBtn')
+      .addEventListener('click', () => {
+        const tbl = container.querySelector('table.report-table');
+        exportTableToCSV(tbl, filename);
+      });
+  };
 
   switch (type) {
     case 'customers-active':
@@ -433,24 +476,21 @@ function loadReport(type) {
         <p>לקוחות שביצעו הזמנה/שירות בחודשיים האחרונים</p>
         <table class="report-table">
           <thead>
-          <tr>
-          <th>#</th>
-          <th>ת.ז. </th>
-          <th>שם</th>
-          <th>טלפון</th>
-          <th>אימייל</th>
-          </tr>
+            <tr>
+              <th>#</th><th>ת.ז.</th><th>שם</th><th>טלפון</th><th>אימייל</th>
+            </tr>
           </thead>
           <tbody id="reportTableBody"></tbody>
         </table>`;
+      addExport('customers-active.csv');
       fetch('/reports/customers-active')
-        .then(res => res.json())
+        .then(r => r.json())
         .then(data => {
-          const tbody = document.getElementById('reportTableBody');
-          tbody.innerHTML = data.map((c, i) => `
+          const tb = document.getElementById('reportTableBody');
+          tb.innerHTML = data.map((c,i) => `
             <tr>
-              <td>${i + 1}</td>
-              <td>${c.id } </td>
+              <td>${i+1}</td>
+              <td>${c.id}</td>
               <td>${c.name}</td>
               <td>${c.phone}</td>
               <td>${c.email}</td>
@@ -458,449 +498,302 @@ function loadReport(type) {
         });
       break;
 
-case 'customers-inactive':
-  container.innerHTML = `
-    <h3>⚠️ לקוחות לא פעילים</h3>
-    <p>לקוחות שלא ביצעו הזמנה או רכישה בחודשיים האחרונים</p>
-    <table class="report-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>ת.ז. </th>
-          <th>שם</th>
-          <th>טלפון</th>
-          <th>אימייל</th>
-        </tr>
-      </thead>
-      <tbody id="reportTableBody"></tbody>
-    </table>
-  `;
-
-  fetch('/reports/customers-inactive')
-    .then(res => res.json())
-    .then(data => {
-      const tbody = document.getElementById('reportTableBody');
-      tbody.innerHTML = data.map((c, i) => `
-        <tr>
-          <td>${i + 1}</td>
-         <td>${c.id } </td>
-          <td>${c.name}</td>
-          <td>${c.phone}</td>
-          <td>${c.email}</td>
-        </tr>
-      `).join('');
-    })
-    .catch(err => {
-      container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>';
-      console.error(err);
-    });
-  break;
-
-  case 'customers-new':
-  container.innerHTML = `
-    <h3>✨ לקוחות חדשים</h3>
-    <p>לקוחות שנרשמו למערכת בחודש האחרון</p>
-    <table class="report-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>ת.ז. </th>
-
-          <th>שם</th>
-          <th>טלפון</th>
-          <th>אימייל</th>
-        </tr>
-      </thead>
-      <tbody id="reportTableBody"></tbody>
-    </table>
-  `;
-
-  fetch('/reports/customers-new')
-    .then(res => res.json())
-    .then(data => {
-      const tbody = document.getElementById('reportTableBody');
-      tbody.innerHTML = data.map((c, i) => `
-        <tr>
-          <td>${i + 1}</td>
-         <td>${c.id } </td>
-          <td>${c.name}</td>
-          <td>${c.phone}</td>
-          <td>${c.email}</td>
-        </tr>
-      `).join('');
-    })
-    .catch(err => {
-      container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>';
-      console.error(err);
-    });
-  break;
-
-  case 'customers-returning':
-  container.innerHTML = `
-    <h3>♻️ לקוחות חוזרים בפנסיון</h3>
-    <p>לקוחות שביצעו יותר מהזמנת פנסיון אחת</p>
-    <table class="report-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>ת.ז. </th>
-          <th>שם</th>
-          <th>טלפון</th>
-          <th>אימייל</th>
-          <th>סה"כ הזמנות</th>
-        </tr>
-      </thead>
-      <tbody id="reportTableBody"></tbody>
-    </table>
-  `;
-
-  //פנסיון
-  fetch('/reports/customers-returning')
-    .then(res => res.json())
-    .then(data => {
-      const tbody = document.getElementById('reportTableBody');
-      tbody.innerHTML = data.map((c, i) => `
-        <tr>
-          <td>${i + 1}</td>
-          <td>${c.id } </td>
-          <td>${c.name}</td>
-          <td>${c.phone}</td>
-          <td>${c.email}</td>
-          <td>${c.total_reservations}</td>
-        </tr>
-      `).join('');
-    })
-    .catch(err => {
-      container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>';
-      console.error(err);
-    });
-  break;
-
-case 'boarding-upcoming':
-  container.innerHTML = `
-    <h3>📆 הזמנות פנסיון עתידיות</h3>
-    <p>רשימת הזמנות עתידיות לפנסיון מהיום והלאה</p>
-    <table class="report-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>ת.ז.</th>
-          <th>שם לקוח</th>
-          <th>שם הכלב</th>
-          <th>תאריך כניסה</th>
-          <th>תאריך יציאה</th>
-        </tr>
-      </thead>
-      <tbody id="reportTableBody"></tbody>
-    </table>
-  `;
-
-  fetch('/reports/boarding-upcoming')
-    .then(res => res.json())
-    .then(data => {
-      const tbody = document.getElementById('reportTableBody');
-      tbody.innerHTML = data.map((row, i) => `
-        <tr>
-          <td>${i + 1}</td>
-          <td>${row.customer_id}</td>
-          <td>${row.customer_name}</td>
-          <td>${row.dog_name}</td>
-          <td>${new Date(row.check_in).toLocaleDateString('he-IL')}</td>
-          <td>${new Date(row.check_out).toLocaleDateString('he-IL')}</td>
-        </tr>
-      `).join('');
-    })
-    .catch(err => {
-      container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>';
-      console.error(err);
-    });
-  break;
-
-case 'grooming-returning':
-  container.innerHTML = `
-    <h3>♻️ לקוחות חוזרים בטיפוח</h3>
-    <p>לקוחות שביצעו יותר מפגישת טיפוח אחת</p>
-    <table class="report-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>תעודת זהות</th>
-          <th>שם</th>
-          <th>טלפון</th>
-          <th>אימייל</th>
-          <th>סה"כ פגישות</th>
-        </tr>
-      </thead>
-      <tbody id="reportTableBody"></tbody>
-    </table>
-  `;
-
-  fetch('/reports/grooming-returning')
-    .then(res => res.json())
-    .then(data => {
-      const tbody = document.getElementById('reportTableBody');
-      tbody.innerHTML = data.map((c, i) => `
-        <tr>
-          <td>${i + 1}</td>
-          <td>${c.customer_id}</td>
-          <td>${c.name}</td>
-          <td>${c.phone}</td>
-          <td>${c.email}</td>
-          <td>${c.total_appointments}</td>
-        </tr>
-      `).join('');
-    })
-    .catch(err => {
-      container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>';
-      console.error(err);
-    });
-  break;
-
-  case 'grooming-upcoming':
-  container.innerHTML = `
-    <h3>🗓 הזמנות טיפוח עתידיות</h3>
-    <p>רשימת הזמנות טיפוח החל מהיום והלאה</p>
-    <table class="report-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>ת"ז לקוח</th>
-          <th>שם לקוח</th>
-          <th>שם הכלב</th>
-          <th>שירות</th>
-          <th>תאריך</th>
-          <th>שעה</th>
-        </tr>
-      </thead>
-      <tbody id="reportTableBody"></tbody>
-    </table>
-  `;
-
-  fetch('/reports/grooming-upcoming')
-    .then(res => res.json())
-    .then(data => {
-      const tbody = document.getElementById('reportTableBody');
-      tbody.innerHTML = data.map((row, i) => `
-        <tr>
-          <td>${i + 1}</td>
-          <td>${row.customer_id}</td>
-          <td>${row.customer_name}</td>
-          <td>${row.dog_name}</td>
-          <td>${row.service_name}</td>
-          <td>${new Date(row.appointment_date).toLocaleDateString('he-IL')}</td>
-          <td>${row.slot_time.slice(0, 5)}</td>
-        </tr>
-      `).join('');
-    })
-    .catch(err => {
-      container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>';
-      console.error(err);
-    });
-  break;
-
-
-    case 'products-top':
+    case 'customers-inactive':
       container.innerHTML = `
-        <h3>מוצרים נמכרים ביותר</h3>
-        <canvas id="TopProductsChart"></canvas>`;
-      fetch('/reports/products-top')
-        .then(res => res.json())
+        <h3>⚠️ לקוחות לא פעילים</h3>
+        <p>לקוחות שלא ביצעו הזמנה או רכישה בחודשיים האחרונים</p>
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>#</th><th>ת.ז.</th><th>שם</th><th>טלפון</th><th>אימייל</th>
+            </tr>
+          </thead>
+          <tbody id="reportTableBody"></tbody>
+        </table>`;
+      addExport('customers-inactive.csv');
+      fetch('/reports/customers-inactive')
+        .then(r => r.json())
         .then(data => {
-          const ctx = document.getElementById('TopProductsChart').getContext('2d');
-          new Chart(ctx, {
-            type: 'bar',
-            data: {
-              labels: data.map(p => p.name),
-              datasets: [{
-                label: 'כמות',
-                data: data.map(p => p.quantity),
-                backgroundColor: '#4c8bf5'
-              }]
-            },
-            options: {
-              indexAxis: 'y',
-              responsive: true,
-              plugins: { legend: { display: false } }
-            }
-          });
-        });
+          const tb = document.getElementById('reportTableBody');
+          tb.innerHTML = data.map((c,i) => `
+            <tr>
+              <td>${i+1}</td>
+              <td>${c.id}</td>
+              <td>${c.name}</td>
+              <td>${c.phone}</td>
+              <td>${c.email}</td>
+            </tr>`).join('');
+        })
+        .catch(e => { container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>'; console.error(e); });
       break;
-case 'products-sold-all':
-  container.innerHTML = `
-    <h3>📦 כל המוצרים שנמכרו</h3>
-    <p>הכמות הכוללת שנמכרה לכל מוצר</p>
-    <table class="report-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>סריאלי</th>
-          <th>שם מוצר</th>
-          <th>סה״כ כמות</th>
-        </tr>
-      </thead>
-      <tbody id="reportTableBody"></tbody>
-    </table>
-  `;
 
-  fetch('/reports/products-sold-all')
-    .then(res => res.json())
-    .then(data => {
-      const tbody = document.getElementById('reportTableBody');
-      tbody.innerHTML = data.map((p, i) => `
-        <tr>
-          <td>${i + 1}</td>
-    <td>${p.product_id}</td>
-          <td>${p.product_name}</td>
-          <td>${p.total_sold}</td>
-        </tr>
-      `).join('');
-    })
-    .catch(err => {
-      container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>';
-      console.error(err);
-    });
-  break;
+    case 'customers-new':
+      container.innerHTML = `
+        <h3>✨ לקוחות חדשים</h3>
+        <p>לקוחות שנרשמו למערכת בחודש האחרון</p>
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>#</th><th>ת.ז.</th><th>שם</th><th>טלפון</th><th>אימייל</th>
+            </tr>
+          </thead>
+          <tbody id="reportTableBody"></tbody>
+        </table>`;
+      addExport('customers-new.csv');
+      fetch('/reports/customers-new')
+        .then(r => r.json())
+        .then(data => {
+          const tb = document.getElementById('reportTableBody');
+          tb.innerHTML = data.map((c,i) => `
+            <tr>
+              <td>${i+1}</td>
+              <td>${c.id}</td>
+              <td>${c.name}</td>
+              <td>${c.phone}</td>
+              <td>${c.email}</td>
+            </tr>`).join('');
+        })
+        .catch(e => { container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>'; console.error(e); });
+      break;
 
+    case 'customers-returning':
+      container.innerHTML = `
+        <h3>♻️ לקוחות חוזרים בפנסיון</h3>
+        <p>לקוחות שביצעו יותר מהזמנת פנסיון אחת</p>
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>#</th><th>ת.ז.</th><th>שם</th><th>טלפון</th><th>אימייל</th><th>סה"כ הזמנות</th>
+            </tr>
+          </thead>
+          <tbody id="reportTableBody"></tbody>
+        </table>`;
+      addExport('customers-returning.csv');
+      fetch('/reports/customers-returning')
+        .then(r => r.json())
+        .then(data => {
+          const tb = document.getElementById('reportTableBody');
+          tb.innerHTML = data.map((c,i) => `
+            <tr>
+              <td>${i+1}</td>
+              <td>${c.id}</td>
+              <td>${c.name}</td>
+              <td>${c.phone}</td>
+              <td>${c.email}</td>
+              <td>${c.total_reservations}</td>
+            </tr>`).join('');
+        })
+        .catch(e => { container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>'; console.error(e); });
+      break;
 
-  case 'sales-by-category':
-  container.innerHTML = `
-    <h3>📋 מכירות לפי קטגוריות</h3>
-    <p>סה״כ כמות יחידות שנמכרו בכל קטגוריה</p>
-    <table class="report-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>מזהה קטגוריה</th>
-          <th>שם קטגוריה</th>
-          <th>סה״כ שנמכרו</th>
-        </tr>
-      </thead>
-      <tbody id="reportTableBody"></tbody>
-    </table>
-  `;
+    case 'boarding-upcoming':
+      container.innerHTML = `
+        <h3>📆 הזמנות פנסיון עתידיות</h3>
+        <p>רשימת הזמנות עתידיות לפנסיון מהיום והלאה</p>
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>#</th><th>ת.ז.</th><th>שם לקוח</th><th>שם כלב</th><th>כניסה</th><th>יציאה</th>
+            </tr>
+          </thead>
+          <tbody id="reportTableBody"></tbody>
+        </table>`;
+      addExport('boarding-upcoming.csv');
+      fetch('/reports/boarding-upcoming')
+        .then(r => r.json())
+        .then(data => {
+          const tb = document.getElementById('reportTableBody');
+          tb.innerHTML = data.map((row,i) => `
+            <tr>
+              <td>${i+1}</td>
+              <td>${row.customer_id}</td>
+              <td>${row.customer_name}</td>
+              <td>${row.dog_name}</td>
+              <td>${new Date(row.check_in).toLocaleDateString('he-IL')}</td>
+              <td>${new Date(row.check_out).toLocaleDateString('he-IL')}</td>
+            </tr>`).join('');
+        })
+        .catch(e => { container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>'; console.error(e); });
+      break;
 
-  fetch('/reports/sales-by-category')
-    .then(res => res.json())
-    .then(data => {
-      const tbody = document.getElementById('reportTableBody');
-      tbody.innerHTML = data.map((cat, i) => `
-        <tr>
-          <td>${i + 1}</td>
-          <td>${cat.category_id}</td>
-          <td>${cat.category_name}</td>
-          <td>${cat.total_sold}</td>
-        </tr>
-      `).join('');
-    })
-    .catch(err => {
-      container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>';
-      console.error(err);
-    });
-  break;
+    case 'grooming-returning':
+      container.innerHTML = `
+        <h3>♻️ לקוחות חוזרים בטיפוח</h3>
+        <p>לקוחות שביצעו יותר מפגישת טיפוח אחת</p>
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>#</th><th>ת.ז.</th><th>שם</th><th>טלפון</th><th>אימייל</th><th>סה"כ פגישות</th>
+            </tr>
+          </thead>
+          <tbody id="reportTableBody"></tbody>
+        </table>`;
+      addExport('grooming-returning.csv');
+      fetch('/reports/grooming-returning')
+        .then(r => r.json())
+        .then(data => {
+          const tb = document.getElementById('reportTableBody');
+          tb.innerHTML = data.map((c,i) => `
+            <tr>
+              <td>${i+1}</td>
+              <td>${c.customer_id}</td>
+              <td>${c.name}</td>
+              <td>${c.phone}</td>
+              <td>${c.email}</td>
+              <td>${c.total_appointments}</td>
+            </tr>`).join('');
+        })
+        .catch(e => { container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>'; console.error(e); });
+      break;
 
-  case 'referrals-comparison':
-  container.innerHTML = `
-    <h3>📊 השוואת הפניות למאלטים / וטרינרים</h3>
-    <p>מספר הפניות שהופנו לכל אחד מהגורמים המטפלים</p>
-    <table class="report-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>סוג יעד</th>
-          <th>סה״כ פניות</th>
-        </tr>
-      </thead>
-      <tbody id="reportTableBody"></tbody>
-    </table>
-  `;
+    case 'grooming-upcoming':
+      container.innerHTML = `
+        <h3>🗓 הזמנות טיפוח עתידיות</h3>
+        <p>רשימת הזמנות טיפוח החל מהיום והלאה</p>
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>#</th><th>ת.ז.</th><th>שם לקוח</th><th>שם כלב</th><th>שירות</th><th>תאריך</th><th>שעה</th>
+            </tr>
+          </thead>
+          <tbody id="reportTableBody"></tbody>
+        </table>`;
+      addExport('grooming-upcoming.csv');
+      fetch('/reports/grooming-upcoming')
+        .then(r => r.json())
+        .then(data => {
+          const tb = document.getElementById('reportTableBody');
+          tb.innerHTML = data.map((row,i) => `
+            <tr>
+              <td>${i+1}</td>
+              <td>${row.customer_id}</td>
+              <td>${row.customer_name}</td>
+              <td>${row.dog_name}</td>
+              <td>${row.service_name}</td>
+              <td>${new Date(row.appointment_date).toLocaleDateString('he-IL')}</td>
+              <td>${row.slot_time.slice(0,5)}</td>
+            </tr>`).join('');
+        })
+        .catch(e => { container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>'; console.error(e); });
+      break;
 
-  fetch('/reports/referrals-comparison')
-    .then(res => res.json())
-    .then(data => {
-      const tbody = document.getElementById('reportTableBody');
-      tbody.innerHTML = data.map((row, i) => `
-        <tr>
-          <td>${i + 1}</td>
-          <td>${row.destination_type === 'וטרינר' ? 'וטרינר' : 'מקלט'}</td>
-          <td>${row.total_referrals}</td>
-        </tr>
-      `).join('');
-    })
-    .catch(err => {
-      container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>';
-      console.error(err);
-    });
-  break;
+    case 'products-sold-all':
+      container.innerHTML = `
+        <h3>📦 כל המוצרים שנמכרו</h3>
+        <p>הכמות הכוללת שנמכרה לכל מוצר</p>
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>#</th><th>סריאלי</th><th>שם מוצר</th><th>סה״כ כמות</th>
+            </tr>
+          </thead>
+          <tbody id="reportTableBody"></tbody>
+        </table>`;
+      addExport('products-sold-all.csv');
+      fetch('/reports/products-sold-all')
+        .then(r => r.json())
+        .then(data => {
+          const tb = document.getElementById('reportTableBody');
+          tb.innerHTML = data.map((p,i) => `
+            <tr>
+              <td>${i+1}</td>
+              <td>${p.product_id}</td>
+              <td>${p.product_name}</td>
+              <td>${p.total_sold}</td>
+            </tr>`).join('');
+        })
+        .catch(e => { container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>'; console.error(e); });
+      break;
 
-/*case 'transport-counts':
-  container.innerHTML = `
-    <h3>🚗 מספר ההסעות שביצע כל שליח</h3>
-    <p>רשימת שליחים שביצעו הסעות עם סטטוס "הושלם"</p>
-    <table class="report-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>ת"ז שליח</th>
-          <th>שם שליח</th>
-          <th>טלפון</th>
-          <th>סה״כ הסעות</th>
-        </tr>
-      </thead>
-      <tbody id="reportTableBody"></tbody>
-    </table>
-  `;
+    case 'sales-by-category':
+      container.innerHTML = `
+        <h3>📋 מכירות לפי קטגוריות</h3>
+        <p>סה״כ כמות יחידות שנמכרו בכל קטגוריה</p>
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>#</th><th>מזהה קטגוריה</th><th>שם קטגוריה</th><th>סה״כ שנמכרו</th>
+            </tr>
+          </thead>
+          <tbody id="reportTableBody"></tbody>
+        </table>`;
+      addExport('sales-by-category.csv');
+      fetch('/reports/sales-by-category')
+        .then(r => r.json())
+        .then(data => {
+          const tb = document.getElementById('reportTableBody');
+          tb.innerHTML = data.map((c,i) => `
+            <tr>
+              <td>${i+1}</td>
+              <td>${c.category_id}</td>
+              <td>${c.category_name}</td>
+              <td>${c.total_sold}</td>
+            </tr>`).join('');
+        })
+        .catch(e => { container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>'; console.error(e); });
+      break;
 
-  fetch('/reports/transport-counts')
-    .then(res => res.json())
-    .then(data => {
-      const tbody = document.getElementById('reportTableBody');
-      tbody.innerHTML = data.map((h, i) => `
-        <tr>
-          <td>${i + 1}</td>
-          <td>${h.handler_id}</td>
-          <td>${h.handler_name}</td>
-          <td>${h.phone}</td>
-          <td>${h.completed_transports}</td>
-        </tr>
-      `).join('');
-    })
-    .catch(err => {
-      container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>';
-      console.error(err);
-    });
-  break;*/
-      case 'transport-counts':
+    case 'referrals-comparison':
+      container.innerHTML = `
+        <h3>📊 השוואת הפניות למאלטים / וטרינרים</h3>
+        <p>מספר הפניות שהופנו לכל אחד מהגורמים המטפלים</p>
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>#</th><th>סוג יעד</th><th>סה״כ פניות</th>
+            </tr>
+          </thead>
+          <tbody id="reportTableBody"></tbody>
+        </table>`;
+      addExport('referrals-comparison.csv');
+      fetch('/reports/referrals-comparison')
+        .then(r => r.json())
+        .then(data => {
+          const tb = document.getElementById('reportTableBody');
+          tb.innerHTML = data.map((row,i) => `
+            <tr>
+              <td>${i+1}</td>
+              <td>${row.destination_type === 'וטרינר' ? 'וטרינר' : 'מקלט'}</td>
+              <td>${row.total_referrals}</td>
+            </tr>`).join('');
+        })
+        .catch(e => { container.innerHTML = '<p>שגיאה בטעינת הדוח.</p>'; console.error(e); });
+      break;
+
+    case 'transport-counts':
+      container.innerHTML = `
+        <h3>🚗 הסעות לפי שליח</h3>
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>#</th><th>שליח</th><th>טלפון</th><th>סה"כ</th>
+            </tr>
+          </thead>
+          <tbody id="reportTableBody"></tbody>
+        </table>`;
+      addExport('transport-counts.csv');
       fetch(`/reports/transport-counts?period=${period}`)
-        .then(res => res.json())
+        .then(r => r.json())
         .then(data => {
-          container.innerHTML = `
-            <h3>🚗 הסעות לפי שליח</h3>
-            <table class="report-table">
-              <thead>
-                <tr>
-                  <th>#</th><th>שליח</th><th>טלפון</th><th>סה"כ</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${data.map((h, i) => `
-                  <tr>
-                    <td>${i + 1}</td>
-                    <td>${h.handler_name}</td>
-                    <td>${h.phone}</td>
-                    <td>${h.completed_transports}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          `;
+          const tb = document.getElementById('reportTableBody');
+          tb.innerHTML = data.map((h,i) => `
+            <tr>
+              <td>${i+1}</td>
+              <td>${h.handler_name}</td>
+              <td>${h.phone}</td>
+              <td>${h.completed_transports}</td>
+            </tr>`).join('');
         });
       break;
 
+    /* you can add any other report‐types here, following the same pattern */
 
     default:
       container.innerHTML = '<p>דוח לא מוגדר עדיין</p>';
   }
 }
+
+// … (any remaining code in Manager.js) …
 
 
 

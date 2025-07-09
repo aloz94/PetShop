@@ -80,8 +80,13 @@
             <i class="fa-solid fa-chart-line"></i>
             <span>דוחות</span>
           </a>
+          <a href="employees.html" data-target="employees">
+            <i class="fa-solid fa-users-cog"></i>
+            <span>עובדים</span>
+          </a>
         </li>
       </ul>
+      
     </nav>
 
     <button class="sidebar-logout" onclick="logout()">
@@ -516,7 +521,52 @@
   </div>
 
 </header>
+<div class="search-group">
+  <button class="add-btn" type="button" id="openGroomingBtn">
+    <i class="fas fa-plus"></i>
+  </button>
+
+  <select id="orderSearchCategory">
+    <option value="">קטגורית חיפוש</option>
+    <option value="id">מס' הזמנה</option>
+    <option value="customer_id">מס' לקוח (ID)</option>
+    <option value="customer_name">שם לקוח</option>
+    <option value="date">תאריך הזמנה</option>
+    <option value="status">סטטוס</option>
+  </select>
+
+  <input
+    type="text"
+    id="orderSearchText"
+    placeholder="חפש…"
+    class="search-input"
+  />
+
+  <select class="search-select" id="groomingSearchStatusSelect" style="display:none">
+    <option value="">כל הסטטוסים</option>
+    <option value="scheduled">נקבע</option>
+    <option value="in_treatment">בטיפול</option>
+    <option value="waiting_pick">ממתין לאיסוף</option>
+    <option value="completed">הושלם</option>
+    <option value="cancelled">בוטל</option>
+  </select>
+
+<!--<select class="search-select" id="groomingServiceSelect" style="display:none">
+  <option value="">בחר שירות</option>
+  <option value="1">רחצה וטיפוח מלא</option>
+  <option value="2">תספורת קיץ</option>
+  <option value="3">ניקוי שיניים</option>
+</select>-->
+
+  <button id="groomingSearchBtn" class="btn-search" title="חפש">
+    🔍
+  </button>
+  <button id="groomingClearBtn" class="btn-clear" type="button" title="נקה">
+    ✖
+  </button>
+</div>
       <h2>הזמנות</h2>
+
 <div id="ordersAccordion"></div>
 
 <!-- Orders Status Modal -->
@@ -530,6 +580,77 @@
     <div class="orders-modal-body" id="ordersStatusModalBody">
       <!-- filled dynamically -->
     </div>
+  </div>
+</div>
+
+<!-- Edit Order Modal -->
+<!-- ליד ה־editOrderModal הקיים, החלף / עדכן ל: -->
+<div id="editOrderModal" class="modal" hidden>
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeEditOrderModal()">&times;</span>
+    <h3 class="modal-header">ערוך הזמנה</h3>
+    <form id="editOrderForm">
+      <input type="hidden" id="editOrderId">
+
+      <!-- ====== חלק 1: פרטי הכתובת ====== -->
+      <h4>פרטי הכתובת</h4>
+
+      <div class="form-group">
+        <label for="editCity">עיר</label>
+        <input type="text" id="editCity" required class="border rounded p-2">
+      </div>
+      <div class="form-group">
+        <label for="editStreet">רחוב</label>
+        <input type="text" id="editStreet" required class="border rounded p-2">
+      </div>
+      <div class="form-group">
+        <label for="editHouseNumber">מס׳ בית</label>
+        <input type="text" id="editHouseNumber" required class="border rounded p-2">
+      </div>
+
+      <!-- ====== חלק 2: סה״כ (מחושב אוטומטית) ====== -->
+      <div class="form-group">
+        <label>סה״כ ההזמנה</label>
+        <div id="editOrderTotal" style="font-size:1.2em; font-weight:bold;">₪0.00</div>
+      </div>
+
+      <!-- ====== חלק 3: פרטי מוצרים ====== -->
+      <h4>פרטי מוצרים</h4>
+      <!-- ====== סינון לפי קטגוריה ====== -->
+<div style="display:flex; gap:8px; margin-bottom:12px;">
+  <select id="productCategoryFilter" class="border rounded p-2">
+    <option value="">כל הקטגוריות</option>
+    <!-- יורכב דינמית ברגע הטעינה -->
+  </select>
+  <!-- ====== הוספת מוצר ====== -->
+  <select id="newProductSelect" class="border rounded p-2">
+    <option value="">בחר מוצר להוספה…</option>
+  </select>
+  <input id="newProductQty" type="number" min="1" value="1"
+         style="width:4rem; padding:4px;"/>
+  <button type="button" id="addProductBtn"
+          style="padding:4px 8px; background:#28a745; color:#fff; border:none; border-radius:4px;">
+    הוסף מוצר
+  </button>
+</div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>מוצר</th>
+            <th>כמות</th>
+            <th>מחיר יחידה</th>
+            <th>סה״כ שורה</th>
+            <th>הסר</th>
+          </tr>
+        </thead>
+        <tbody id="editOrderProducts">
+          <!-- יורכב על־ידי JS -->
+        </tbody>
+      </table>
+
+      <button type="submit" class="popup-button mt-4">שמור שינויים</button>
+    </form>
   </div>
 </div>
 
@@ -584,7 +705,7 @@
 <div id="lowStockModal" class="modal">
   <div class="modal-content">
     <span class="modal-close" data-target="lowStockModal">&times;</span>
-    <h2>מלאי נמוך</h2>
+    <h2 style="text-align: center;">מלאי נמוך</h2>
     <div id="lowStockModalBody"></div>
   </div>
 </div>
@@ -593,7 +714,7 @@
 <div id="outOfStockModal" class="modal">
   <div class="modal-content">
     <span class="modal-close" data-target="outOfStockModal">&times;</span>
-    <h2>אזל מהמלאי</h2>
+    <h2 style="text-align: center;">אזל מהמלאי</h2>
     <div id="outOfStockModalBody"></div>
   </div>
 </div>
@@ -607,7 +728,7 @@
 <div id="editProductModal" class="modal">
   <div class="modal-content">
     <span class="modal-close" data-target="editProductModal">&times;</span>
-    <h2>ערוך מוצר</h2>
+    <h2 style="text-align: center;">ערוך מוצר</h2>
     <form id="editProductForm">
       <input type="hidden" id="edit-id" name="id">
 
@@ -643,14 +764,15 @@
         <textarea id="edit-desc" name="description"></textarea>
       </div>
 
-      <button type="submit" class="save-btn">שמור</button>
+      <button type="submit" class="save-btn"   style="display: block; margin: 0 auto;"
+>שמור</button>
     </form>
   </div>
 </div>
 
 </section>
 
-    <section class="content" id="abandoned">
+  <section class="content" id="abandoned">
 
       
       <h2>פניות לכלבים נטושים</h2>
@@ -713,7 +835,7 @@
     <div class="value" id="Abandoned-cancelled-today">-</div>
     <div class="label">מבוטלים היום</div>
   </div>
-  </header>
+       </header>
 
               <div class="search-group">
           <button class="add-btn" type="button" id="openabndBtn">
@@ -761,7 +883,7 @@
   <button id="abndClearBtn" class="btn-clear" type="button" title="נקה">
     ✖
   </button>
-</div>
+                </div>
 
       <table class="dashboard-table" id="abandoned-posts">
         <thead>
@@ -802,9 +924,9 @@
       <tbody></tbody>
     </table>
   </div>
-</div>
+        </div>
 
-<div id="openReportsModal" class="modal">
+              <div id="openReportsModal" class="modal">
   <div class="modal-content">
     <span class="close-btn" onclick="closeModal('openReportsModal')">&times;</span>
     <h3 class="modal-header">פניות פתוחות</h3>
@@ -823,14 +945,14 @@
       <tbody></tbody>
     </table>
   </div>
-</div>
+                  </div>
 
 
-<div id="img-modal" class="popup-container" style="display: none;">
+              <div id="img-modal" class="popup-container" style="display: none;">
     <span class="close-btn" onclick="closeImgModal()">&times;</span>
     <img id="img-modal-img" src="" alt="Image Preview">
-  </div>
-  <div id="abandonedCancelledModal" class="modal">
+          </div>
+          <div id="abandonedCancelledModal" class="modal">
   <div class="modal-content">
     <span class="close" onclick="closeAbandonedCancelledModal()">&times;</span>
     <h3>פניות מבוטלות להיום</h3>
@@ -848,7 +970,7 @@
       </tbody>
     </table>
   </div>
-</div>
+           </div>
 
 
 <div id="handlerReportsModal" class="modal">
@@ -872,7 +994,6 @@
     </table>
   </div>
 </div>
-
       <div id="abandentpopup" class="popup-container">
       <div class="popup-content">
       <form id="abandentpopup_form" enctype="multipart/form-data">
@@ -921,13 +1042,38 @@
                   </form>
 
           </div>
-        </div>
 
       </section>
 
+      <section class="content" id="delivry">
 
+            <h2>שליחים</h2>
+
+        <!--<header class="kpi-bar">
+          <div class="kpi-card green" >
+            <div class="icon"><i class="fas fa-sign-in-alt"></i>
+            </div>
+            <div class="value" id="checkins-today">12</div>
+            <div class="label">כניסה היום</div>
+          </div>
+      
+          <div class="kpi-card blue">
+            <div class="icon"><i class="fas fa-sign-out-alt"></i>
+            </div>
+            <div class="value" id="checkouts-today">5</div>
+            <div class="label">יציאה היום</div>
+          </div>
+      
+          <div class="kpi-card red" >
+            <div class="icon"><i class="fas fa-times-circle"></i>
+            </div>
+            <div class="value" id="cancelled-today">-</div>
+            <div class="label">מבוטלים היום</div>
+          </div>
+      
           
-          <SECTION CLASS="content" ID="delivry">
+        </header>-->
+
                     <div class="search-group">
           <button class="add-btn" type="button" id="openHandlerBtn">
          <i class="fas fa-plus"></i>
@@ -956,33 +1102,6 @@
     ✖
   </button>
 </div>
-            <h2>שליחים</h2>
-
-        <!--<header class="kpi-bar">
-          <div class="kpi-card green" >
-            <div class="icon"><i class="fas fa-sign-in-alt"></i>
-            </div>
-            <div class="value" id="checkins-today">12</div>
-            <div class="label">כניסה היום</div>
-          </div>
-      
-          <div class="kpi-card blue">
-            <div class="icon"><i class="fas fa-sign-out-alt"></i>
-            </div>
-            <div class="value" id="checkouts-today">5</div>
-            <div class="label">יציאה היום</div>
-          </div>
-      
-          <div class="kpi-card red" >
-            <div class="icon"><i class="fas fa-times-circle"></i>
-            </div>
-            <div class="value" id="cancelled-today">-</div>
-            <div class="label">מבוטלים היום</div>
-          </div>
-      
-          
-        </header>-->
-
 
             <table class="dashboard-table" id="handlers-posts">
               <thead>
@@ -999,35 +1118,8 @@
             <div id="accordion-handlers"></div>
       
       </section>
+
       <section class="content" id="support">
-                <div class="search-group">
-          <button class="add-btn" type="button" id="openBoardingBtn">
-         <i class="fas fa-plus"></i>
-          </button>
-          <select id="boardingSearchCategory">
-            <option value="">קטגורית חיפוש</option>
-            <option value="id">מס' גורם</option>
-            <option value="dog_name">שם גורם</option>
-            <option value="address">כתובת</option>
-            <option value="phone">טלפון</option>
-          </select>
-        
-  <input   id="boardingSearchText" type="text"  placeholder="חפש…"  class="search-input"  />
-          <select id="boardingSearchStatusSelect" style="display:none">
-            <option value="">כל הסטטוסים</option>
-            <option value="pending">ממתין</option>
-            <option value="inprogress">בתהליך</option>
-            <option value="completed">הושלם</option>
-            <option value="cancelled">בוטל</option>
-          </select>
-        
-  <button id="boardingSearchBtn" class="btn-search" title="חפש">
-    🔍
-  </button>
-  <button id="boardingClearBtn" class="btn-clear" type="button" title="נקה">
-    ✖
-  </button>
-</div>
         <h2>גורמי סיוע</h2>
 
      <!--   <header class="kpi-bar">
@@ -1055,6 +1147,35 @@
           
         </header>-->
 
+                <div class="search-group">
+          <button class="add-btn" type="button" id="openBoardingBtn">
+         <i class="fas fa-plus"></i>
+          </button>
+          <select id="boardingSearchCategory">
+            <option value="">קטגורית חיפוש</option>
+            <option value="id">מס' גורם</option>
+            <option value="dog_name">שם גורם</option>
+            <option value="type">סוג גורם</option>
+            <option value="address">כתובת</option>
+            <option value="phone">טלפון</option>
+          </select>
+        
+  <input   id="boardingSearchText" type="text"  placeholder="חפש…"  class="search-input"  />
+          <select id="boardingSearchStatusSelect" style="display:none">
+            <option value="">כל הסטטוסים</option>
+            <option value="pending">ממתין</option>
+            <option value="inprogress">בתהליך</option>
+            <option value="completed">הושלם</option>
+            <option value="cancelled">בוטל</option>
+          </select>
+        
+  <button id="boardingSearchBtn" class="btn-search" title="חפש">
+    🔍
+  </button>
+  <button id="boardingClearBtn" class="btn-clear" type="button" title="נקה">
+    ✖
+  </button>
+</div>
 
         <table class="dashboard-table" id="support-posts">
           <thead>
@@ -1343,6 +1464,27 @@
     <section id="reportContainer">
   <p>בחרי דוח להצגה</p>
 </section>
+<!-- ========= Employees Dashboard ========= -->
+<section class="content" id="employees">
+  <h2>עובדים</h2>
+  <!-- (Optional) a table fallback if JS is disabled -->
+  <table id="employees-table" class="dashboard-table" style="display:none;">
+    <thead>
+      <tr>
+        <th>מס' עובד</th>
+        <th>שם מלא</th>
+        <th>טלפון</th>
+        <th>תפקיד</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- JS will hide this and build the accordion instead -->
+    </tbody>
+  </table>
+
+  <!-- This is where the JS will render the accordion -->
+  <div id="employee-accordion"></div>
+</section>
 
 
 </main>
@@ -1570,42 +1712,36 @@
 
     <h2>הוסף מוצר חדש</h2>
 
-          <label>שם מוצר:</label>
       <div class="input-field">
-      <input type="text" name="name" required>
+      <input type="text" name="name" placeholder="הכנס שם מוצר" required>
       </div>
 
-      <label>קטגוריה:</label>
       <div class="input-field">
       <select name="category_id" id="categorySelect" required>
         <option value="">בחר קטגוריה</option>
       </select>
       </div>
 
-      <label>מחיר:</label>
       <div class="input-field">
-      <input type="number" step="0.01" name="price" required>
-      </div>
-      <label>כמות במלאי:</label>
-
-      <div class="input-field">
-      <input type="number" name="stock_quantity" required>
-      </div>
-      <label>כמות מינימלית:</label>
-
-      <div class="input-field">
-      <input type="number" name="min_quantity" required>
+      <input type="number" step="0.01" name="price" placeholder="הכנס מחיר" required>
       </div>
 
-      <label>תיאור:</label>
       <div class="input-field">
-      <textarea name="description" rows="3"></textarea>
+      <input type="number" name="stock_quantity" placeholder="הכנס כמות במלאי" required>
+      </div>
+
+      <div class="input-field">
+      <input type="number" name="min_quantity" placeholder="הכנס כמות מינימלית" required>
+      </div>
+
+      <div class="input-field">
+      <textarea name="description" rows="3" placeholder="הכנס תיאור"></textarea>
       </div>
 
 
-            <label>תמונה:</label>
 
       <div class="input-field">
+        <span class="file-upload-label">בחר תמונה</span>
       <input type="file" name="img" accept="image/*" required>
       </div>
 

@@ -624,7 +624,7 @@ background-color: rgba(240, 167, 11, 0.7); /* 70% opacity */
 .accordion-body span {
   flex: 1 1 0;
   min-width: 80px;
-  font-size: 0.95rem;
+  font-size: 1.2rem;
   color: #333;
   padding: 0.25rem 0;
   border-bottom: 1px dashed #ddd;
@@ -3277,4 +3277,194 @@ canvas {
 }
 #abandonedCancelledModal .close:hover {
   color: #b71c1c !important;
+}
+
+.modal-close {
+  color: red;
+  cursor: pointer; /* keeps the pointer cursor */
+}
+
+#editOrderForm .form-group {
+  margin-bottom: 1rem;
+}
+#editOrderForm label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+#editOrderForm input,
+#editOrderForm select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+/* Submit button */
+#editOrderForm .popup-button {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  background: #3b82f6;
+  color: #fff;
+  font-size: 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#editOrderForm .popup-button:hover {
+  background: #2563eb;
+}
+
+.accordion-header--static {
+  background: #fbbf24;        /* צהוב “kpi” שלך */
+  color: #1f2937;             /* כהה לקריאות */
+  font-weight: 600;
+}
+.accordion-header--static span {
+  flex: 1;                    /* מרווח שווה לכל עמודה */
+  text-align: center;
+}
+
+/* ─────────────────────────────────────────────
+   Customers Accordion (modern “teddy” look)
+───────────────────────────────────────────── */
+/* target only the static header in the customers accordion */
+#accordion-customers .accordion-header--static {
+  cursor: default;            /* no pointer on hover */
+  position: relative;         /* ensure pseudo-el exists */
+}
+
+/* completely kill its “before” content */
+#accordion-customers .accordion-header--static::before {
+  content: none !important;
+  display: none !important;
+}
+
+#accordion-customers {
+  font-family: 'Varela Round', sans-serif;
+  color: #3e2723;
+}
+
+/* Wrap each accordion in a soft card */
+#accordion-customers .accordion {
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Static header row */
+/* Static header row (column titles) */
+/* Only the static “column titles” row in the customers accordion */
+/* Only the static “column titles” row in the customers accordion */
+#accordion-customers .accordion-header--static {
+  background-color: #fbbf24;    /* matches your gold/yellow bar */
+  color: #1f2937;               /* dark text for contrast */
+  border-bottom: 2px solid #d97706; /* deeper amber border */
+}
+
+/* If you need to override a Tailwind utility or previous rule, add !important: */
+#accordion-customers .accordion-header--static {
+  background-color: #fbbf24 !important;
+  color: #0a0808 !important;
+  border-bottom: 2px solid #004d40 !important;
+}
+
+/* Dynamic rows */
+#accordion-customers .accordion-header {
+  background: white;
+  color: #3e2723;
+  border-top: 1px solid #f0f0f0;
+  transition: background 0.2s;
+}
+
+/* Highlight the open row */
+#accordion-customers .accordion-header.open {
+  background: #FFE082;        /* light gold when expanded */
+}
+
+/* Keep the ▶ icon aligned left */
+#accordion-customers .accordion-header span:first-child {
+  justify-self: start;
+  padding-left: 1rem;
+}
+#accordion-customers .accordion-header span,
+#accordion-customers .accordion-header button {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+/* Edit button override, keep it tight */
+#accordion-customers .accordion-header .edit-btn {
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+/* Accordion body */
+#accordion-customers .accordion-body {
+  display: none;
+  background: white;
+  padding: 1rem;
+  border-top: 1px solid #ffe0b2;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Fade-in for body */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to   { opacity: 1; transform: translateY(0);     }
+}
+
+/* Customer info at top of body */
+#accordion-customers .cust-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+#accordion-customers .cust-info > div {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* Dogs grid */
+#accordion-customers .dog-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+  gap: 1rem;
+}
+#accordion-customers .dog-card {
+  background: #fff8e1;
+  border: 1px solid #ffe0b2;
+  border-radius: 6px;
+  padding: 0.75rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+#accordion-customers .dog-card h5 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  color: #5d4037;
+}
+
+.export-btn {
+  display: inline-block;
+  margin-bottom: 0.5em;
+  padding: 0.4em 0.8em;
+  background-color: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 0.25em;
+  font-size: 0.95em;
+  cursor: pointer;
+  margin-top: 20px;
+}
+.export-btn:hover {
+  background-color: #1e4bb8;
 }
