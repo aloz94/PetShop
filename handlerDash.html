@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="styles/dashboard.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
         crossorigin="anonymous" referrerpolicy="no-referrer" />
-
+<link rel="stylesheet" href="styles/handleracc.css"/>
   <link rel="stylesheet" href="styles/kpi-dashboard.css"/>
 </head>
 <body>
@@ -86,7 +86,7 @@
       <span class="kpi-sub-label">פניות בדרך</span>
     </div>
   </div>
-  <div class="kpi-sub-value clickable" id="in_progress_reports">–</div>
+  <div class="kpi-sub-value clickable" id="in_progress_reports" style="font-weight:700; font-size: 1.5em;">–</div>
   <div class="kpi-label">פניות בטיפול</div>
 
   <!-- (אופציונלי) קונטיינר לדיפולדן שב-JS נפתח בעת הצורך -->
@@ -97,33 +97,30 @@
   </header>
 
 
-      <table class="dashboard-table" id="abandoned-posts">
-        <thead>
-          <tr>
-            <th>מס' דוח</th>
-            <th>גודל כלב</th>
-            <th>מצב בריאות</th>
-            <th>כתובת</th>
-            <th>הערות</th>
-            <th>סטטוס</th>
-            <th>שליח</th>
-            <th>גורם מטפל</th>
-            <th>תמונה</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- ימולא ב-JS -->
-        </tbody>
-      </table>
-      
-      <div id="accordion-abandoned"></div>
+<section id="abandoned">
+  <!-- הטבלה הסטטית שלך (אם רוצים להשאיר אותה למצבי no-data) -->
+  <table id="abandoned-posts" class="dashboard-table">
+    <thead>
+      <tr>
+        <th></th>            <!-- עמודת ▶ -->
+        <th>מס' דוח</th>
+        <th>שם לקוח</th>
+        <th>טלפון</th>
+        <th>גודל כלב</th>
+        <th>מצב בריאות</th>
+        <th>גורם מטפל</th>
+        <th>סטטוס</th>
+      </tr>
+    </thead>
+
+    <!-- פה יודבקו השורות על־ידי JS -->
+    <tbody id="accordion-body"></tbody>
+  </table>
+</section>
           </section>
 
       <section class="content" id="support">
                 <div class="search-group">
-          <button class="add-btn" type="button" id="openBoardingBtn">
-         <i class="fas fa-plus"></i>
-          </button>
           <select id="boardingSearchCategory">
             <option value="">קטגורית חיפוש</option>
             <option value="id">מס' תור</option>

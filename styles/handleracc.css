@@ -1,0 +1,181 @@
+/* Theme Variables */
+:root {
+  --color-bg:         #ffffff;
+  --color-card:       #f8f9fa;
+  --color-accent:     #f58d17;
+  --color-accent-alt: #0056b3;
+  --color-text:       #333333;
+  --color-muted:      #6c757d;
+  --color-border:     #e0e0e0;
+  --radius:           8px;
+  --spacing:          12px;
+  --font-family:      'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Container */
+#abandoned-posts {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: var(--font-family);
+  background: var(--color-bg);
+  overflow: hidden;
+  border-radius: var(--radius);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* Responsive wrapper */
+#abandoned-posts-wrapper {
+  overflow-x: auto;
+  margin: var(--spacing) 0;
+}
+
+/* Header */
+#abandoned-posts thead tr {
+  background-color: var(--color-accent);
+}
+#abandoned-posts thead th {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  padding: var(--spacing);
+  white-space: nowrap;
+  border-bottom: none;
+}
+
+/* Summary rows */
+#abandoned-posts tbody tr.accordion-summary {
+  background: var(--color-card);
+  transition: background 0.2s, transform 0.2s;
+  cursor: pointer;
+}
+#abandoned-posts tbody tr.accordion-summary:hover {
+  background: #e9ecef;
+  transform: translateY(-1px);
+}
+
+/* Open state */
+#abandoned-posts tbody tr.accordion-summary.open {
+  background-color: var(--color-accent-alt);
+}
+#abandoned-posts tbody tr.accordion-summary.open td {
+  color: #fff;
+}
+
+/* Cells */
+#abandoned-posts th,
+#abandoned-posts td {
+  padding: var(--spacing);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+  vertical-align: middle;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Arrow cell */
+#abandoned-posts tbody tr.accordion-summary td:first-child {
+  width: 32px;
+  font-size: 16px;
+}
+
+/* Status badge */
+.status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+.status-badge.accepted  { background: #28a745; color: #fff; }
+.status-badge.rejected  { background: #dc3545; color: #fff; }
+.status-badge.ontheway  { background: #17a2b8; color: #fff; }
+.status-badge.completed { background: #20c997; color: #fff; }
+.status-badge.cancelled { background: #6c757d; color: #fff; }
+
+/* Detail rows */
+#abandoned-posts tbody tr.accordion-detail {
+  background: var(--color-bg);
+}
+#abandoned-posts tbody tr.accordion-detail td {
+  background: #fefefe;
+  padding: var(--spacing) calc(var(--spacing) * 1.5);
+  border-bottom: none;
+  font-size: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+#abandoned-posts tbody tr.accordion-detail td > * {
+  flex: 1 1 45%;
+  margin-bottom: var(--spacing);
+}
+
+/* Edit button */
+.btn-edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  background: #ffc107;
+  color: #212529;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-edit:hover {
+  background: #e0a800;
+}
+
+/* Status select */
+.status-select {
+  width: 100%;
+  max-width: 200px;
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: #fff;
+  font-size: 14px;
+  margin-top: var(--spacing);
+}
+
+/* Images in detail */
+.accordion-detail img {
+  max-width: 100px;
+  border-radius: var(--radius);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  #abandoned-posts thead { display: none; }
+  #abandoned-posts,
+  #abandoned-posts tbody,
+  #abandoned-posts tr,
+  #abandoned-posts td {
+    display: block;
+    width: 100%;
+  }
+  #abandoned-posts tr.accordion-summary {
+    margin-bottom: var(--spacing);
+  }
+  #abandoned-posts tr.accordion-summary td:first-child {
+    position: absolute;
+    top: var(--spacing);
+    left: var(--spacing);
+  }
+  #abandoned-posts tr.accordion-summary td {
+    padding-left: calc(32px + var(--spacing) * 2);
+    text-align: left;
+  }
+  #abandoned-posts tr.accordion-detail td {
+    display: block;
+    padding-left: var(--spacing);
+  }
+}
+
+/* always hide the detail rows until clicked */

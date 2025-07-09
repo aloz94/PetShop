@@ -349,95 +349,137 @@ const labelMap = {
   cancelled:   'בוטל'
 };
 
-  async function loadAbandonedReports() {
-    console.log('calling loadAbandonedReports…');
-  
-    try {
-      // 1. קבל נתונים מהשרת
-      const res = await fetch('http://localhost:3000/handler/reports', {
-        credentials: 'include',
-        cache: 'no-cache'     // <-- always force a fresh cop
-        
-      });
-     
-      if (!res.ok) {
-        // pull the text (or JSON) for debugging
-        const errText = await res.text();
-        throw new Error(`Server error ${res.status}: ${errText}`);
-      }
-      const data = await res.json();
-      console.log('abandoned data:', data);
-      _AbnDataCache = data; // <- cache the raw items for later use
+async function loadAbandonedReports() {
+  console.log('calling loadAbandonedReports…');
+console.log('running loadAbandonedReports');
+console.log('tbody:', document.getElementById('accordion-body'));
+  try {
+    // 1. Fetch
+    const res = await fetch('http://localhost:3000/handler/reports', {
+      credentials: 'include',
+      cache: 'no-cache'
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Server error ${res.status}: ${err}`);
+    }
+    const raw = await res.json();
 
-        // הכנת מערך להצגה
-    const dataM = data.map(item => ({
-      ...item,
-      statusBadge: `
-        <span class="status-badge ${classMap[item.status] || ''}">
-          ${labelMap[item.status] || item.status}
-        </span>`,
-      statusSelect: `
-        <select class="status-select" data-id="${item.id}">
-          <option value="">בחר סטטוס</option>
-          <option value="accepted" ${item.status === 'accepted' ? 'selected' : ''}>התקבלה</option>
-          <option value="rejected" ${item.status === 'rejected' ? 'selected' : ''}>נדחתה</option>
-          <option value="ontheway" ${item.status === 'ontheway' ? 'selected' : ''}>בדרך</option>
-          <option value="completed" ${item.status === 'completed' ? 'selected' : ''}>הושלם</option>
-          <option value="cancelled" ${item.status === 'cancelled' ? 'selected' : ''}>בוטל</option>
-        </select>`,
-      editHtml: `<button class="action-btn btn-edit" data-id="${item.id}">ערוך/שבץ</button>`
+    // 2. Hide static table if data exists (optional)
+
+    // 3. Prepare records
+    const records = raw.map(item => ({
+      id:            item.id,
+      customer_name: item.customer_name,
+      phone:         item.phone,
+      dog_size:      item.dog_size,
+      health_status: item.health_status,
+      care_provider: item.care_provider_name || 'לא שובץ',
+      statusBadge:   `<span class="status-badge ${classMap[item.status]||''}">
+                        ${labelMap[item.status]||item.status}
+                     </span>`,
+      statusSelect: `<select class="status-select" data-id="${item.id}">
+                       <option value="">בחר סטטוס</option>
+                       <option value="accepted"   ${item.status==='accepted'  ?'selected':''}>התקבלה</option>
+                       <option value="rejected"   ${item.status==='rejected'  ?'selected':''}>נדחתה</option>
+                       <option value="ontheway"   ${item.status==='ontheway'  ?'selected':''}>בדרך</option>
+                       <option value="completed"  ${item.status==='completed'?'selected':''}>הושלם</option>
+                       <option value="cancelled"  ${item.status==='cancelled'?'selected':''}>בוטל</option>
+                     </select>`,
+      address:     item.address,
+      notes:       item.notes,
+      image_path:  item.image_path
+                    ? `<img src="/uploads/${item.image_path}" style="max-width:80px;">`
+                    : 'אין תמונה',
+      report_date: new Date(item.report_date).toLocaleDateString('he-IL')
     }));
 
+    // 4. Render into <tbody>
+    const tbody = document.getElementById('accordion-body');
+    tbody.innerHTML = '';
 
-      // 2. הסתר את הטבלה הסטטית
-      const table = document.getElementById('abandoned-posts');
-      if (data.length > 0) {
-        table.style.display = 'none';
-      } else {
-        table.style.display = ''; // השאר אותה גלויה
-      }
-      
-      // 3. בנה אקורדיון מתוך ה־JSON
-      const formatted = dataM.map(item => ({
-        ...item,
-        handler_id:    item.handler_id    ?? 'לא שובץ',
+    records.forEach(rec => {
+      // --- summary row ---
+      const trSum = document.createElement('tr');
+      trSum.classList.add('accordion-summary');
+      trSum.innerHTML = `
+        <td>▶</td>
+        <td>${rec.id}</td>
+        <td>${rec.customer_name}</td>
+        <td>${rec.phone}</td>
+        <td>${rec.dog_size}</td>
+        <td>${rec.health_status}</td>
+        <td>${rec.care_provider}</td>
+        <td>${rec.statusBadge}</td>
+      `;
+      tbody.appendChild(trSum);
 
-        care_provider: item.care_provider ?? 'לא שובץ',
-      
-        image_path: `<img src="/uploads/${item.image_path}" alt="תמונה" style="max-width:100px;">`
-      }));
-  
-      buildAccordionFromData(
-        formatted,
-        'accordion-abandoned',
-        ['id','customer_name','phone','dog_size','health_status','care_provider_name','statusBadge'],
-        ['address','notes','image_path','report_date','statusSelect'],
-        {
-          id:             "מס' דוח",
-          customer_name:  "שם לקוח",
-          phone:          "טלפון",
-          dog_size:       "גודל כלב",
-          health_status:  "מצב בריאות",
-          report_date:    "תאריך דיווח",
-          address:        "כתובת",
-          notes:          "הערות",
-        //  status:         "סטטוס",
-        //  handler_name:       "שליח",
-          care_provider_name: "גורם מטפל ",
-          image_path:     "תמונה",
-         statusBadge:   " ",
-        statusSelect:  "עדכן סטטוס",
-       // editHtml:      "ערוך/שבץ"
+      // --- detail row ---
+      const trDet = document.createElement('tr');
+      trDet.classList.add('accordion-detail');
+      trDet.style.display = 'none'; // initially hidden
+      trDet.innerHTML = `
+        <td colspan="8">
+          <strong>כתובת:</strong> ${rec.address}<br>
+          <strong>הערות:</strong> ${rec.notes}<br>
+          <strong>תמונה:</strong> ${rec.image_path}<br>
+          <strong>תאריך דיווח:</strong> ${rec.report_date}<br>
+          ${rec.statusSelect}
+        </td>
+      `;
+      tbody.appendChild(trDet);
+const select = trDet.querySelector('.status-select');
+select.addEventListener('change', async e => {
+  const newStatus = e.target.value;
+  const reportId  = e.target.dataset.id;
 
-        }
-      );
+  // 1) Optimistically update the badge in the summary row
+  const badgeCell = trSum.children[7]; // the 8th <td> is your statusBadge
+  badgeCell.innerHTML = `
+    <span class="status-badge ${newStatus}">
+      ${labelMap[newStatus] || newStatus}
+    </span>
+  `;
+
+  // 2) (Optional) send update to server
+  try {
+    const resp = await fetch(`/api/abandonedReports/${reportId}/status`, {
+  method: 'PATCH',
+  headers: {'Content-Type': 'application/json'},
+  body: JSON.stringify({ status: newStatus }),
+  credentials: 'include'
+});
+loadAbandonedReports(); // Reload reports to reflect changes
+loadKpiData();
+  loadAbandonedStats();
+  if (!resp.ok) throw new Error(await resp.text());
+  } catch (err) {
+    console.error('Failed to save status:', err);
+    alert('לא ניתן לשמור את הסטטוס'); 
     
-    } catch (err) {
-      console.error('Error loading abandoned reports:', err);
-      alert('שגיאה בטעינת פניות לכלבים נטושים');
-    }
+    // revert in case of error
+    const prev = rec.status; 
+    e.target.value = prev;
+    badgeCell.innerHTML = rec.statusBadge;
   }
+});
 
+      
+      // toggle on click
+      trSum.addEventListener('click', () => {
+        const open = trDet.style.display === '';
+        trDet.style.display = open ? 'none' : '';
+        trSum.querySelector('td:first-child').textContent = open ? '▶' : '▼';
+      });
+    });
+
+  } catch (err) {
+    console.error(err);
+    alert('שגיאה בטעינת פניות לכלבים נטושים');
+  }
+}
+
+  
   // =================== STATUS UPDATE HANDLER ===================
     const abandonedAcc = document.getElementById('accordion-abandoned');
 if (abandonedAcc) {

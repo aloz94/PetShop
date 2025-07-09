@@ -3790,6 +3790,38 @@ app.put('/api/employees/:id', authenticateToken, async (req, res) => {
   }
 });
 
+app.patch(
+  '/api/abandonedReports/:id/status',
+  authenticateToken,
+  async (req, res) => {
+    const reportId = req.params.id;
+    const { status } = req.body;
+
+    // 1) בדיקת תקינות סטטוס (לדוגמה רק הערכים המותרים)
+    const allowed = ['accepted','rejected','ontheway','completed','cancelled'];
+    if (!allowed.includes(status)) {
+      return res.status(400).json({ error: 'Invalid status value' });
+    }
+
+    try {
+      // 2) עדכון בבסיס הנתונים
+      await con.query(
+        `UPDATE abandoned_dog_reports
+         SET status = $1
+         WHERE id = $2`,
+        [status, reportId]
+      );
+
+      // 3) השב בהצלחה (אין תוכן)
+      res.sendStatus(204);
+    } catch (err) {
+      console.error('Error updating status:', err);
+      res.status(500).json({ error: 'Database update failed' });
+    }
+  }
+);
+
+
 //module.exports = router;
 app.listen(3000, () => {
     console.log("Server running on http://localhost:3000");
