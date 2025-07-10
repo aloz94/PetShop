@@ -164,21 +164,80 @@
           <tbody></tbody>
         </table>
       
-        <div id="accordion-support"></div>
+  <div id="accordion-support" class="accordion-container"></div>
       </section>
 
             <section class="content" id="profile">
             <div id="handler-profile" class="profile-container">
-  <h2>פרופיל מטפל</h2>
+  <h2 style="text-align: center;">פרופיל שליח</h2>
   <div class="handler-info">
     <p><strong>שם:</strong> <span id="handlerName"></span></p>
     <p><strong>טלפון:</strong> <span id="handlerPhone"></span></p>
     <p><strong>אימייל:</strong> <span id="handlerEmail"></span></p>
-    <p><strong>סוג רכב:</strong> <span id="handlerVehicle"></span></p>
+    <p><strong>גודל רכב:</strong> <span id="handlerVehicle"></span></p>
     <p><strong>כתובת:</strong> <span id="handlerAddress"></span></p>
+    <button id="editProfileBtn" class="btn-edit" >ערוך פרופיל</button>
   </div>
 
-  <h3>דיווחים שטופלו</h3>
+  <h3 style="text-align: center;">דיווחים שהושלמו</h3>
+  <div class="search-group" style="margin-bottom:1rem; display:flex; gap:0.5rem; align-items:center; ">
+  <select id="completedJobsSearchCategory" class="search-input" style="flex:1;">
+    <option value="">כל הקטגוריות</option>
+    <option value="id">מס' דיווח</option>
+    <option value="provider">גורם מטפל</option>
+    <option value="size">גודל כלב</option>
+    <option value="health">מצב בריאותי</option>
+    <option value="address">כתובת</option>
+    <option value="date">תאריך דיווח</option>
+  </select>
+
+  <!-- טקסט רגיל -->
+  <input
+    type="text"
+    id="completedJobsSearchText"
+    class="search-input"
+    placeholder="הקלד חיפוש…"
+    style="display:none; flex:1;"
+  />
+
+  <!-- רשימת גורמי טיפול -->
+  <select
+    id="completedJobsProviderSelect"
+    class="search-input"
+    style="display:none; flex:1;"
+  >
+    <option value="">כל הגורמים</option>
+  </select>
+  <select
+    id="completedJobsHealthSelect"
+    class="search-input"
+    style="display:none; flex:1;"
+  >
+    <option value="">כל המצבים</option>
+    <option value="לא ידוע">לא ידוע</option>
+    <option value="פצוע">פצוע</option>
+    <option value="בריא">בריא</option>
+    <option value="חולה">חולה</option>
+  </select>
+
+  <!-- תאריך -->
+  <input
+    type="date"
+    id="completedJobsDateInput"
+    class="search-input"
+    style="display:none;"
+  />
+  
+  <button id="completedJobsSearchBtn" class="btn-search" title="חפש">
+    🔍
+  </button>
+  <button id="completedJobsClearBtn" class="btn-clear" type="button" title="נקה">
+    ✖
+  </button>
+</div>
+
+
+
   <table id="completedJobsTable" class="jobs-table">
     <thead>
       <tr>

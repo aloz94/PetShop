@@ -178,4 +178,15 @@
   }
 }
 
-/* always hide the detail rows until clicked */
+/* make the static header row in the support accordion #f58d17 */
+#accordion-support .accordion-header--static {
+  background-color: #f58d17;
+  color: white;               /* so the text shows up nicely */
+}
+
+/* if you also want the toggling headers to match: */
+/* only target that button inside .handler-info */
+.handler-info #editProfileBtn {
+  display: block;
+  margin: 1rem auto 0; /* top-margin optional, then auto on left/right */
+}

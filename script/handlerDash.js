@@ -513,38 +513,73 @@ if (abandonedAcc) {
 
 // =================== CARE PROVIDERS ACCORDION ===================
   async function loadCareProvidersAccordion() {
-    try {
-      const res = await fetch('http://localhost:3000/care-providers', {
-        credentials: 'include'
+  try {
+    // 1) fetch all care providers from your working route
+    const res = await fetch('http://localhost:3000/care-providers', {
+      credentials: 'include'
+    });
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+    const data = await res.json();
+
+    // 2) grab & clear the container
+    const container = document.getElementById('accordion-support');
+    container.innerHTML = '';
+
+    // 3) static header row
+    const hdr = document.createElement('div');
+    hdr.classList.add('accordion-header', 'accordion-header--static');
+    hdr.innerHTML = `
+      <span>מס' גורם</span>
+      <span>שם</span>
+      <span>סוג</span>
+      <span>כתובת</span>
+      <span>טלפון</span>
+    `;
+    container.appendChild(hdr);
+
+    // 4) build each provider panel
+    data.forEach(item => {
+      const panel = document.createElement('div');
+      panel.classList.add('accordion');
+
+      // header
+      const head = document.createElement('div');
+      head.classList.add('accordion-header');
+      head.innerHTML = `
+        <span>${item.id}</span>
+        <span>${item.name}</span>
+        <span>${item.type || '—'}</span>
+        <span>${item.address || '—'}</span>
+        <span>${item.phone || '—'}</span>
+      `;
+      panel.appendChild(head);
+
+      // body
+      const body = document.createElement('div');
+      body.classList.add('accordion-body');
+      body.style.display = 'none';
+      body.innerHTML = `
+        <p><strong>כתובת:</strong> ${item.address || '—'}</p>
+        <p><strong>טלפון:</strong> ${item.phone || '—'}</p>
+        <p><strong>טלפון נוסף:</strong> ${item.additional_phone || '—'}</p>
+        <p><strong>סוג:</strong> ${item.type || '—'}</p>
+      `;
+      panel.appendChild(body);
+
+      // toggle
+      head.addEventListener('click', () => {
+        const open = head.classList.toggle('open');
+        body.style.display = open ? 'block' : 'none';
       });
-      if (!res.ok) throw new Error(`Server error: ${res.status}`);
-      const data = await res.json();
-  
-      // הסתרת הטבלה
-      const table = document.getElementById('support-posts');
-      if (table) table.style.display = 'none';
-  
-      // בניית אקורדיון
-      buildAccordionFromData(
-        data,
-        'accordion-support',
-        ['id','name','type'],                         // כותרת
-        ['address','phone','additional_phone'], // גוף
-        {
-          id:               "מס' גורם",
-          name:             "שם",
-          address:          "כתובת",
-          phone:            "טלפון",
-          additional_phone: "טלפון נוסף",
-          type:             "סוג"
-        }
-      );
-  
-    } catch (err) {
-      console.error('Error loading care providers:', err);
-      alert('שגיאה בטעינת גורמי סיוע');
-    }
+
+      container.appendChild(panel);
+    });
+
+  } catch (err) {
+    console.error('Error loading care providers:', err);
+    alert('שגיאה בטעינת גורמי הסיוע');
   }
+}
  //----------HANDLER PROFILE -------------------
 async function loadHandlerProfile() {
   try {
@@ -576,3 +611,94 @@ async function loadHandlerProfile() {
     console.error('Error loading profile:', err);
   }
 }
+
+// 1) אחרי שנטענו את כל הדיווחים והנחתם ב-#completedJobsTable tbody:
+async function initCompletedJobsSearch() {
+  const catSel   = document.getElementById('completedJobsSearchCategory');
+  const txtInput = document.getElementById('completedJobsSearchText');
+  const provSel  = document.getElementById('completedJobsProviderSelect');
+  const dateInp  = document.getElementById('completedJobsDateInput');
+  const tbody    = document.querySelector('#completedJobsTable tbody');
+  const healthSel = document.getElementById('completedJobsHealthSelect');
+
+  // 2) מלא את provSel בערכי גורם מטפל ייחודיים
+  try {
+    const res = await fetch('http://localhost:3000/care-providers', {
+      credentials: 'include'
+    });
+    if (!res.ok) throw new Error(res.statusText);
+    const providers = await res.json();
+    providers.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.name;
+      opt.textContent = p.name;
+      provSel.appendChild(opt);
+    });
+  } catch (err) {
+    console.error('Failed to load care providers for filter:', err);
+  }
+
+  // 3) כשמשנים קטגוריה
+  catSel.addEventListener('change', () => {
+    const v = catSel.value;
+    // הסתר את כל השדות:
+    [txtInput, provSel, healthSel, dateInp].forEach(el => el.style.display = 'none');
+
+    // הפעל לפי קטגוריה:
+    if (v === 'provider') {
+      provSel.style.display = '';
+    } else if (v === 'date') {
+      dateInp.style.display = '';
+    } else if (v === 'health') {            // NEW case
+      healthSel.style.display = '';
+    } else if (v) {
+      txtInput.style.display = '';
+    }
+    // reset values:
+    txtInput.value  = '';
+    provSel.value   = '';
+    healthSel.value = '';
+    dateInp.value   = '';
+
+    filterCompletedJobs();  // סינון מחדש
+  });
+
+  // 4) מאזינים לשינויי ערך
+  txtInput.addEventListener('input',    filterCompletedJobs);
+  provSel .addEventListener('change',   filterCompletedJobs);
+  dateInp .addEventListener('change',   filterCompletedJobs);
+}
+
+// הפונקציה שמסננת בפועל
+function filterCompletedJobs() {
+  const cat = document.getElementById('completedJobsSearchCategory').value;
+  const txt = document.getElementById('completedJobsSearchText').value.trim().toLowerCase();
+  const prov= document.getElementById('completedJobsProviderSelect').value;
+  const dt  = document.getElementById('completedJobsDateInput').value;  // YYYY-MM-DD
+
+  document
+    .querySelectorAll('#completedJobsTable tbody tr')
+    .forEach(tr => {
+      let keep = true;
+      if (cat === 'id') {
+        keep = tr.cells[0].textContent.trim().toLowerCase().includes(txt);
+      } else if (cat === 'size') {
+        keep = tr.cells[1].textContent.trim().toLowerCase().includes(txt);
+      } else if (cat === 'health') {
+        keep = tr.cells[2].textContent.trim().toLowerCase().includes(txt);
+      } else if (cat === 'address') {
+        keep = tr.cells[3].textContent.trim().toLowerCase().includes(txt);
+      } else if (cat === 'date') {
+        // תאריך בתא בפורמט ישראלי? אם כן, תתאים השוואה פשוטה
+        keep = tr.cells[4].querySelector('time')
+                ? tr.cells[4].querySelector('time').getAttribute('datetime') === dt
+                : tr.cells[4].textContent.trim().includes(dt);
+      } else if (cat === 'provider') {
+        keep = prov === '' || tr.cells[5].textContent.trim() === prov;
+      }
+      tr.style.display = keep ? '' : 'none';
+    });
+}
+
+// קריאה ראשונית: מיד אחרי שהטבלה נטענה
+initCompletedJobsSearch();
