@@ -3468,3 +3468,25 @@ canvas {
 .export-btn:hover {
   background-color: #1e4bb8;
 }
+
+/* מרחיב את הפופ־אפ לרוחב רצוי ומוסיף פדינג פנימי */
+#addHandlerPopup .popup-content {
+  max-width: 600px;      /* או כל רוחב אחר שתבחר */
+  width: 90%;            /* יתאים למסכים קטנים יותר */
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+/* מארג ה־Grid: שתי עמודות, רווח אופקי ואנכי */
+#addHandlerPopup .input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 1.5rem;  /* רווח בין העמודות */
+  row-gap: 1rem;       /* רווח בין השורות */
+  margin-bottom: 1.5rem;
+}
+
+/* שדות הקלט יתכווצו לרוחב התיבה */
+#addHandlerPopup .input-grid .input-field {
+  width: 100%;
+}

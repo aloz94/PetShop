@@ -95,6 +95,8 @@
       </div>
     </div>
   </div>
+
+    
     <!-- 3) Personal Info & My Dogs -->
       <section class="details-dogs  ">
       <!-- Personal Info -->
@@ -139,6 +141,30 @@
     <!-- 4) Future Appointments -->
 
   </div><!-- /.container -->
+  <!-- ================= My Store Orders ================= -->
+<section class="card bg-white rounded-lg shadow mb-8">
+  <h3 class="p-4 border-b font-semibold text" style="text-align: center;">הזמנות החנות שלי</h3>
+  <!-- השתלנו כאן לגריד 2 עמודות עם רווח אופקי -->
+  <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- הזמנות בתהליך -->
+    <div>
+      <h4 class="font-semibold mb-2">הזמנות בתהליך</h4>
+      <ul id="storeOrdersPending" class="list-disc list-inside text-gray-700">
+        <!-- JS ימלא פה את הרשימה -->
+      </ul>
+      <p id="noPendingOrders" class="text-gray-500 hidden">אין הזמנות בתהליך</p>
+    </div>
+    <!-- הזמנות שהושלמו -->
+    <div>
+      <h4 class="font-semibold mb-2">הזמנות שהושלמו</h4>
+      <ul id="storeOrdersCompleted" class="list-disc list-inside text-gray-700">
+        <!-- JS ימלא פה את הרשימה -->
+      </ul>
+      <p id="noCompletedOrders" class="text-gray-500 hidden">אין הזמנות שהושלמו</p>
+    </div>
+  </div>
+</section>
+
 <div class="card-grid">
   <section class="history">
     <h3>היסטוריית תורים</h3>
@@ -163,6 +189,8 @@
     </div>
   </section>
 </div>
+
+
 
 
   <!-- forms -->
@@ -258,6 +286,65 @@
       </div>
     </div>
   </form>
+
+  <!-- Order Details Modal -->
+<div id="orderDetailsModal" class="modal" aria-hidden="true">
+  <div class="modal-content">
+    <span class="modal-close" aria-label="Close">&times;</span>
+    <div id="orderDetailsBody" class="modal-body">
+      
+      <!-- ===== 1) כותרת ראשית ===== -->
+      <div class="order-header">
+        <h2>הזמנה #${order.id}</h2>
+        <div class="order-meta">
+          נוצר ב: ${order.created_at} • סה״כ: ₪${order.total.toFixed(2)}
+        </div>
+      </div>
+
+      <!-- ===== 2) פרטי לקוח ===== -->
+      <div class="section">
+        <h3>פרטי לקוח</h3>
+        <p>${order.customer_name} — ${order.customer_phone} — ${order.customer_email}</p>
+      </div>
+
+      <!-- ===== 3) פרטי כתובת ===== -->
+      <div class="section">
+        <h3 >כתובת למשלוח</h3>
+        <p>${order.street} ${order.house_number}, ${order.city}</p>
+      </div>
+
+      <!-- ===== 4) טבלת פריטי הזמנה ===== -->
+      <table>
+        <thead>
+          <tr>
+            <th>מוצר</th>
+            <th>כמות</th>
+            <th>יחידה</th>
+            <th>סה״כ</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${order.items.map(item => `
+            <tr>
+              <td>${item.product_name}</td>
+              <td>${item.quantity}</td>
+              <td>₪${item.unit_price.toFixed(2)}</td>
+              <td>₪${item.line_total.toFixed(2)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td colspan="3"><strong>סה״כ הזמנה</strong></td>
+            <td>₪${order.items.reduce((sum,i)=>sum+i.line_total,0).toFixed(2)}</td>
+          </tr>
+        </tfoot>
+      </table>
+
+    </div>
+  </div>
+</div>
+
 
   <!-- Main Script -->
   <script src="script/profile.js"></script>

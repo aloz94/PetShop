@@ -687,3 +687,241 @@
 .info-list li strong {
   justify-self: start;
 }
+
+/* container: two columns side by side */
+#storeOrders.store‑orders {
+  display: flex;
+  gap: 1rem;               /* space between columns */
+  margin: 1.5rem 0;
+}
+
+/* each column */
+#storeOrders .store‑orders__column {
+  flex: 1;                  /* each takes half the width */
+  background: #fff;         /* white card */
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+/* headings centered */
+#storeOrders .store‑orders__column h3 {
+  margin-top: 0;
+  text-align: center;
+  font-size: 1.1rem;
+  color: #333;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 0.5rem;
+}
+
+/* list reset & spacing */
+#storeOrders .store‑orders__column ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0;
+}
+
+/* each item styling */
+#storeOrders .store‑orders__column li {
+  padding: 0.5rem;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 0.95rem;
+}
+
+/* last list‑item no border */
+#storeOrders .store‑orders__column li:last-child {
+  border-bottom: none;
+}
+
+/* status badge */
+#storeOrders .status-badge {
+  display: inline-block;
+  padding: 0.15em 0.5em;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  color: #fff;
+  margin-left: 0.5rem;
+}
+.status-new       { background: #4c8bf5; }
+.status-pending   { background: #f0ad4e; }
+.status-on_the_way{ background: #5cb85c; }
+.status-cancelled { background: #d9534f; }
+.status-completed { background: #5cb85c; }
+
+/* “no orders” message */
+#storeOrders .no‑orders {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  margin: 1rem 0 0;
+}
+
+/* modal backdrop */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.modal.open {
+  display: flex;
+}
+
+/* white “card” */
+.modal-content {
+  background: #fff;
+  border-radius: 6px;
+  width: 90%;
+  max-width: 600px;
+  padding: 1.5rem;
+  position: relative;
+  direction: rtl;
+}
+
+/* close button */
+.modal-close {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* inner scrollable body */
+.modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* כללי למודאל */
+#orderDetailsModal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  z-index: 1000;
+}
+
+#orderDetailsModal[aria-hidden="true"] {
+  display: none;
+}
+
+#orderDetailsModal .modal-content {
+  background: #fff;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  overflow: hidden;
+  font-family: "Varela Round", sans-serif;
+}
+
+/* כפתור סגירה */
+#orderDetailsModal .modal-close {
+  position: absolute;
+  top: 12px; right: 16px;
+  font-size: 24px;
+  color: #333;
+  cursor: pointer;
+  transition: color .2s;
+}
+#orderDetailsModal .modal-close:hover {
+  color: #f51717;
+}
+
+/* גוף המודאל */
+#orderDetailsModal .modal-body {
+  padding: 24px;
+  color: #444;
+}
+
+/* 1) Order Header */
+#orderDetailsModal .order-header {
+  border-bottom: 2px solid #f0f0f0;
+  margin-bottom: 16px;
+  text-align: center;
+}
+#orderDetailsModal .order-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #3b82f6;
+}
+#orderDetailsModal .order-meta {
+  margin-top: 4px;
+  font-size: 14px;
+  color: #666;
+}
+
+/* 2) Sections (לקוח, כתובת) */
+#orderDetailsModal .section {
+  margin: 16px 0;
+  padding: 12px 16px;
+  background: #fafafa;
+  border-left: 4px solid #3b82f6;
+  border-radius: 4px;
+}
+#orderDetailsModal .section h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  color: #333;
+}
+#orderDetailsModal .section p {
+  margin: 4px 0;
+  line-height: 1.5;
+}
+
+/* 3) טבלה */
+#orderDetailsModal table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+#orderDetailsModal th,
+#orderDetailsModal td {
+  padding: 8px 12px;
+  text-align: center;
+}
+#orderDetailsModal thead th {
+  background: #3b82f6;
+  color: #fff;
+  font-weight: 600;
+}
+#orderDetailsModal tbody tr:nth-child(even) {
+  background: #f9f9f9;
+}
+#orderDetailsModal tbody tr:hover {
+  background: #fff3e6;
+}
+#orderDetailsModal tfoot .total-row td {
+  padding-top: 12px;
+  font-weight: 600;
+  border-top: 2px solid #ddd;
+  background: #fffbe6;
+}
+
+/* גלילה פנימית לטבלה במובייל */
+@media (max-width: 480px) {
+  #orderDetailsModal .modal-body {
+    padding: 16px;
+  }
+  #orderDetailsModal table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  #orderDetailsModal th, #orderDetailsModal td {
+    padding: 6px 8px;
+    font-size: 14px;
+  }
+}
+.total-row td {
+  font-weight: 600 !important;
+}

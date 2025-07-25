@@ -16,7 +16,7 @@ try {
   document.getElementById('orderNumber').textContent = `מס' הזמנה: ${data.id}`;
 
   // כתובת
-  const addr = `${data.street} ${data.house_number}, ${data.city}, ${data.postal_code}`;
+  const addr = `${data.street} ${data.house_number}, ${data.city}`;
   document.getElementById('addressBox').textContent = addr;
 
   // פריטים

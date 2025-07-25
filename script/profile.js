@@ -753,5 +753,183 @@ statusEl.innerHTML = `סטטוס: <span class="status-badge status-${data.status
   }
 }
   
-  
+  // מפה של סטטוסים לעברית
+const orderStatusLabels = {
+  new:        'חדש',
+  pending:    'בהמתנה',
+  on_the_way: 'בדרך',
+  cancelled:  'בוטל',
+  completed:  'הושלם'
+};
 
+async function loadMyStoreOrders() {
+  try {
+    const res = await fetch('/api/customers/me/orders', {
+      credentials: 'include'
+    });
+    if (!res.ok) throw new Error(`Status ${res.status}`);
+
+    const orders = await res.json();
+    const pendingEl   = document.getElementById('storeOrdersPending');
+    const completedEl = document.getElementById('storeOrdersCompleted');
+    const nonePend    = document.getElementById('noPendingOrders');
+    const noneComp    = document.getElementById('noCompletedOrders');
+
+    // נקה קודם
+    pendingEl.innerHTML   = '';
+    completedEl.innerHTML = '';
+
+    // פצל להזמנות בתהליך/הושלמו
+    const pending   = orders.filter(o => o.status !== 'completed');
+    const completed = orders.filter(o => o.status === 'completed' || o.status === 'cancelled');
+
+    // בנה אלמנט לכל הזמנה
+    function makeLi(o) {
+      const date = new Date(o.created_at).toLocaleDateString('he-IL');
+      const label = orderStatusLabels[o.status] || o.status;
+      const li = document.createElement('li');
+      li.innerHTML = `
+        הזמנה #<strong>${o.id}</strong> — ${date} — 
+        סה״כ: <strong>₪${Number(o.total).toFixed(2)}</strong> — 
+        סטטוס: <span class="status-badge status-${o.status}">${label}</span>
+<button 
+  type="button"
+  class="order-details-btn ml-2 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"
+  data-id="${o.id}">
+  פרטים
+</button>
+
+      `;
+      return li;
+    }
+
+    // מלא pending
+    if (pending.length) {
+      nonePend.classList.add('hidden');
+      pending.forEach(o => pendingEl.appendChild(makeLi(o)));
+    } else {
+      nonePend.classList.remove('hidden');
+    }
+
+    // מלא completed
+    if (completed.length) {
+      noneComp.classList.add('hidden');
+      completed.forEach(o => completedEl.appendChild(makeLi(o)));
+    } else {
+      noneComp.classList.remove('hidden');
+    }
+    
+    console.log('Loaded store orders:', orders);
+  } catch (err) {
+    console.error('Error loading store orders:', err);
+    alert('שגיאה בטעינת הזמנות החנות');
+  }
+}
+
+// קרא לפונקציה אחרי שהדף נטען:
+document.addEventListener('DOMContentLoaded', loadMyStoreOrders);
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  // 1) Delegate clicks on any .order-details-btn
+  document.body.addEventListener('click', e => {
+    const btn = e.target.closest('.order-details-btn');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    openOrderDetailsModal(id);
+  });
+
+  // 2) Close when clicking the × 
+  document
+    .getElementById('orderDetailsModal')
+    .querySelector('.modal-close')
+    .addEventListener('click', closeOrderDetailsModal);
+});
+
+async function openOrderDetailsModal(orderId) {
+  const modal = document.getElementById('orderDetailsModal');
+  const body  = document.getElementById('orderDetailsBody');
+
+  // show loading
+  body.innerHTML = `<p>טוען פרטי הזמנה #${orderId}…</p>`;
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden','false');
+
+  try {
+    const res = await fetch(`/api/orders/${orderId}/full`, {
+      credentials: 'include'
+    });
+    if (!res.ok) throw new Error(`Status ${res.status}`);
+    const o = await res.json();
+
+    // build your HTML however you like—here’s an example:
+    let html = `
+  <!-- 1) כותרת ההזמנה -->
+  <div class="order-header">
+    <h2 style="font-weight: bold;">הזמנה #${o.id}</h2>
+    <div class="order-meta">
+      <p><strong>נוצר ב:</strong> ${o.created_at}</p>
+      <p><strong>סה״כ:</strong> ₪${Number(o.total).toFixed(2)}</p>
+    </div>
+  </div>
+
+  <!-- 2) פרטי לקוח -->
+  <!-- <div class="section">
+    <h3>פרטי לקוח</h3>
+    <p>${o.customer_name} — ${o.customer_phone} — ${o.customer_email}</p>
+  </div> -->
+
+  <!-- 3) כתובת למשלוח -->
+  <div class="section">
+    <h3 style="text-align: center;">כתובת למשלוח</h3>
+    <p>
+   ${o.address.city} , ${o.address.street} - ${o.address.house_number}
+ 
+</p>
+
+  </div>
+
+  <!-- 4) פרטי מוצרים -->
+  <div class="section">
+    <h3 style="text-align: center;">פרטי מוצרים</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>מוצר</th>
+          <th>כמות</th>
+          <th>יחידה</th>
+          <th>סה״כ</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${o.items.map(it => `
+          <tr>
+            <td>${it.product_name}</td>
+            <td>${it.quantity}</td>
+            <td>₪${it.unit_price.toFixed(2)}</td>
+            <td>₪${it.line_total.toFixed(2)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+      <tfoot class="total-row">
+        <tr>
+          <td colspan="3">סה״כ הכל</td>
+          <td>₪${Number(o.total).toFixed(2)}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+`;
+    body.innerHTML = html;
+
+  } catch (err) {
+    console.error('Failed to load order details:', err);
+    body.innerHTML = `<p style="color:red;">שגיאה בטעינת פרטי ההזמנה.</p>`;
+  }
+}
+
+function closeOrderDetailsModal() {
+  const modal = document.getElementById('orderDetailsModal');
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden','true');
+}

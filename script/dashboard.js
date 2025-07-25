@@ -31,7 +31,7 @@ async function checkLogin() {
 }
 
 async function logout() {
-    await fetch('http://localhost:3000/logout', {
+    await fetch('/logout', {
         method: 'POST',
         credentials: 'include'
     });
@@ -268,7 +268,7 @@ let editingBoardingId  = null;
 // 1) טען את כל התורים ובנה אקורדיון
 async function loadBoardingData() {
   try {
-    const res   = await fetch('http://localhost:3000/boardings', { credentials: 'include' });
+    const res   = await fetch('/boardings', { credentials: 'include' });
     if (!res.ok) throw new Error('Network error');
     const items = await res.json();
     _boardingDataCache = items; // שמור
@@ -481,7 +481,7 @@ acc.addEventListener('change', async e => {
   if (!e.target.matches('select.status-select')) return;
   const id     = e.target.dataset.id;
   const status = e.target.value;
-  await fetch(`http://localhost:3000/boarding-appointments/${id}/status`, {
+  await fetch(`/boarding-appointments/${id}/status`, {
     method:      'PUT',
     credentials: 'include',
     headers:     { 'Content-Type':'application/json' },
@@ -534,8 +534,8 @@ document.getElementById('editboardingpopup_form')
       notes:     document.getElementById('boardingNotes').value
     };
     const url    = editingBoardingId
-                  ? `http://localhost:3000/boarding-appointments/${editingBoardingId}`
-                  : 'http://localhost:3000/boarding-appointments';
+                  ? `/boarding-appointments/${editingBoardingId}`
+                  : '/boarding-appointments';
     const method = editingBoardingId ? 'PUT' : 'POST';
 
     const todayStr        = new Date().toISOString().split('T')[0];  
@@ -575,7 +575,7 @@ document.getElementById('editboardingpopup_form')
   async function loadBoardingStats(date) {
     try {
       const today = date || new Date().toISOString().split('T')[0];
-     const res = await fetch('http://localhost:3000/boarding/stats?date=${today}', {
+     const res = await fetch('/boarding/stats?date=${today}', {
         method: 'GET',
         credentials: 'include',      // <=== חובה
         headers: {
@@ -672,7 +672,7 @@ document.addEventListener('DOMContentLoaded', loadKpiData);
 async function loadGroomingStats(date) {
   try {
     const today = date || new Date().toISOString().split('T')[0];
-    const res = await fetch(`http://localhost:3000/grooming/stats?date=${today}`, {
+    const res = await fetch(`/grooming/stats?date=${today}`, {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -918,7 +918,7 @@ let editingGroomingId  = null;
 // 1) Load + cache + initial render
 async function loadGroomingAppointments() {
   try {
-    const res = await fetch('http://localhost:3000/grooming/appointments', {
+    const res = await fetch('/grooming/appointments', {
       credentials: 'include'
     });
     if (!res.ok) throw new Error(res.status);
@@ -1078,7 +1078,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const newStatus     = sel.value;
       try {
         await fetch(
-          `http://localhost:3000/grooming-appointments/${appointmentId}/status`,
+          `/grooming-appointments/${appointmentId}/status`,
           {
             method:      'PUT',
             credentials: 'include',
@@ -1168,7 +1168,7 @@ async function openGroomingEditPopup(appointmentId) {
 
   // 8) Load this customer's dogs and pre-select
   const dogs = await fetch(
-    `http://localhost:3000/customers/${item.customer_id}/dogs`,
+    `/customers/${item.customer_id}/dogs`,
     { credentials: 'include' }
   ).then(r => r.json());
   const dogSelect = document.getElementById('EdogSelect');
@@ -1213,7 +1213,7 @@ document
 
     try {
       const res = await fetch(
-        `http://localhost:3000/grooming/appointments/${editingGroomingId}`,
+        `/grooming/appointments/${editingGroomingId}`,
         {
           method:      'PUT',
           credentials: 'include',
@@ -1361,7 +1361,7 @@ document
   if (!customerId) return;
 
   try {
-    const res = await fetch(`http://localhost:3000/customers/${customerId}/dogs`, {
+    const res = await fetch(`/customers/${customerId}/dogs`, {
       credentials: 'include'
     });
     if (!res.ok) throw new Error('Failed to load dogs');
@@ -1388,7 +1388,7 @@ async function loadServices() {
   const sel = document.getElementById('serviceSelect');
   sel.innerHTML = `<option value="">טוען שירותים…</option>`;
   try {
-    const res = await fetch('http://localhost:3000/services', {
+    const res = await fetch('/services', {
       credentials: 'include'
     });
     const services = await res.json();
@@ -1416,7 +1416,7 @@ document.getElementById('customerIdInput')
       return dogSel.innerHTML = `<option value="">ראשית הזיני ת.ז.</option>`;
     }
     try {
-      const res = await fetch(`http://localhost:3000/customers/${cid}/dogs`, {
+      const res = await fetch(`/customers/${cid}/dogs`, {
         credentials: 'include'
       });
       if (!res.ok) throw new Error(res.status);
@@ -1447,7 +1447,7 @@ async function loadServicesEdit() {
   const sel = document.getElementById('EserviceSelect');
   sel.innerHTML = `<option value="">טוען שירותים…</option>`;
   try {
-    const res = await fetch('http://localhost:3000/services', {
+    const res = await fetch('/services', {
       credentials: 'include'
     });
     const services = await res.json();
@@ -1491,7 +1491,7 @@ async function loadAvailableHours() {
     console.log('▶ loading availability for', date, 'duration', duration);
 
     const res = await fetch(
-      `http://localhost:3000/appointments?date=${date}`,
+      `/appointments?date=${date}`,
       { credentials: 'include' }
     );
     if (!res.ok) throw new Error(res.status);
@@ -1560,7 +1560,7 @@ async function loadAvailableHoursEdit() {
 
   try {
     // Fetch booked slots from the correct endpoint
-    const url = `http://localhost:3000/appointments?date=${encodeURIComponent(date)}`;
+    const url = `/appointments?date=${encodeURIComponent(date)}`;
     console.log('▶ fetching booked slots from', url);
     const res = await fetch(url, { credentials: 'include' });
     if (!res.ok) {
@@ -1660,7 +1660,7 @@ document.getElementById('groomingpopup_form')
 };
 
     try {
-      const res = await fetch('http://localhost:3000/addgrooming-appointments', {
+      const res = await fetch('/addgrooming-appointments', {
         method: 'post',
         credentials: 'include',
         headers: { 'Content-Type':'application/json' },
@@ -1737,7 +1737,7 @@ let editingAbnId  = null;
   
     try {
       // 1. קבל נתונים מהשרת
-      const res = await fetch('http://localhost:3000/dashboard/reports', {
+      const res = await fetch('/dashboard/reports', {
         credentials: 'include',
         cache: 'no-cache'     // <-- always force a fresh cop
         
@@ -1851,7 +1851,7 @@ if (abandonedAcc) {
     const newStatus = sel.value;
     try {
       await fetch(
-        `http://localhost:3000/abandoned-reports/${reportId}/status`,
+        `/abandoned-reports/${reportId}/status`,
         {
           method:      'PUT',
           credentials: 'include',
@@ -2044,7 +2044,7 @@ async function loadHandlersDropdown() {
   handlerSelect.innerHTML = '<option value="">טוען שליחים...</option>'; // Loading state
 
   try {
-    const res = await fetch('http://localhost:3000/dashboard/couriers', { credentials: 'include' });
+    const res = await fetch('/dashboard/couriers', { credentials: 'include' });
     if (!res.ok) throw new Error('Failed to load handlers');
     const handlers = await res.json();
 
@@ -2067,7 +2067,7 @@ async function loadCareProvidersDropdown() {
   careProviderSelect.innerHTML = '<option value="">טוען גורמי סיוע...</option>'; // Loading state
 
   try {
-    const res = await fetch('http://localhost:3000/dashboard/care-providers', { credentials: 'include' });
+    const res = await fetch('/dashboard/care-providers', { credentials: 'include' });
     if (!res.ok) throw new Error('Failed to load care providers');
     const careProviders = await res.json();
 
@@ -2767,7 +2767,7 @@ let _handlersDataCache = [];
 
   async function loadHandlersAccordion() {
     try {
-      const res = await fetch('http://localhost:3000/handlers', {
+      const res = await fetch('/handlers', {
         credentials: 'include'
       });
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
@@ -2907,7 +2907,7 @@ document.getElementById('addHandlerForm').addEventListener('submit', async (e) =
   };
 
   try {
-    const res = await fetch('http://localhost:3000/handlers/add', {
+    const res = await fetch('/handlers/add', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -2937,7 +2937,7 @@ document.getElementById('openHandlerBtn').addEventListener('click', () => {
 // =================== CARE PROVIDERS ACCORDION ===================
   async function loadCareProvidersAccordion() {
     try {
-      const res = await fetch('http://localhost:3000/care-providers', {
+      const res = await fetch('/care-providers', {
         credentials: 'include'
       });
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
@@ -2971,7 +2971,7 @@ document.getElementById('openHandlerBtn').addEventListener('click', () => {
 // =================== CUSTOMERS ACCORDION ===================
 async function loadCustomersAccordion() {
   try {
-    const res = await fetch('http://localhost:3000/dashboard/customers', {
+    const res = await fetch('/dashboard/customers', {
       credentials: 'include'
     });
     if (!res.ok) throw new Error(`Server error ${res.status}`);
@@ -3095,7 +3095,7 @@ if (addForm) {
     }
     // שלח את הבקשה
     try {
-      const res = await fetch('http://localhost:3000/boarding-appointments', {
+      const res = await fetch('/boarding-appointments', {
         method:      'POST',
         credentials: 'include',
         headers:     { 'Content-Type': 'application/json' },
@@ -3122,7 +3122,7 @@ let _productDataCache = [];
 // Function to load all products and cache them
 async function loadProducts() {
   try {
-    const res = await fetch('http://localhost:3000/products', { credentials: 'include' });
+    const res = await fetch('/products', { credentials: 'include' });
     if (!res.ok) throw new Error('Failed to load products');
     const products = await res.json();
     _productDataCache = products; // Cache the products
@@ -3890,6 +3890,7 @@ async function loadOrdersAccordion() {
       hdr.innerHTML = `
         <span>#${order.id}</span>
         <span>${order.customer_name}</span>
+        
         <span>${order.date}</span>
         <span>₪${Number(order.total).toFixed(2)}</span>
         <span class="status-badge status-${order.status}">
@@ -4131,6 +4132,7 @@ const optionsHtml = statuses.map(s => `
     <div class="order-customer">
       <h4>פרטי לקוח</h4>
       <p><strong>שם:</strong> ${order.customer_name}</p>
+      <p><strong>ת.ז.:</strong> ${order.customer_id}</p>
       <p><strong>טלפון:</strong> ${order.customer_phone}</p>
       <p><strong>אימייל:</strong> ${order.customer_email}</p>
     </div>

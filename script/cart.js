@@ -114,9 +114,11 @@ function updateCartDropdown() {
                         <td>${item.image ? `<img src="/uploads/${item.image}" alt="${item.name}" class="cart-thumb">` : ''}</td>
                         <td>${item.name}</td>
                         <td>
-        <button class="qty-btn minus" title="הפחת כמות"><i class="fas fa-minus"></i></button>
+                                <button class="qty-btn plus" title="הוסף כמות"><i class="fas fa-plus"></i></button>
+
                             <span class="qty">${item.quantity}</span>
-        <button class="qty-btn plus" title="הוסף כמות"><i class="fas fa-plus"></i></button>
+                                    <button class="qty-btn minus" title="הפחת כמות"><i class="fas fa-minus"></i></button>
+
                         </td>
                         <td>₪${subtotal.toFixed(2)}</td>
     <td><button class="remove-btn" title="הסר מהמוצר"><i class="fas fa-trash-alt"></i></button></td>
@@ -130,10 +132,19 @@ function updateCartDropdown() {
                 </tr>
             </tfoot>
         </table>
-        <div style="text-align: center; margin-top: 15px;">
+        <div id="checkoutButtonContainer" style="text-align: center; margin-top: 15px;">
             <a href="/checkout.html" class="checkout-btn">המשך לתשלום</a>
         </div>
     `;
+// finally: if we are on checkout.html, nuke the button container
+if (window.location.pathname.endsWith('/checkout.html')) {
+  const btnDiv = document.getElementById('checkoutButtonContainer');
+  if (btnDiv) btnDiv.remove();
+  const closebtn = document.getElementsByClassName('close-sidebar');
+  if (closebtn.length > 0) {
+    closebtn[0].style.display = 'none'; // Hide the close button on checkout page
+  }
+}
 
     // Add event listeners for buttons
     document.querySelectorAll('.qty-btn.plus').forEach(btn => {
@@ -238,7 +249,7 @@ document.getElementById('chooseAddressBtn').onclick = () => {
   // אם המודאל כבר קיים – פשוט הצג
   let modal = document.getElementById('addrModal');
   if (!modal) {
-    /* --- בניית HTML למודאל (פעם אחת) --- */
+    // Build the modal once
     modal = document.createElement('div');
     modal.id = 'addrModal';
     modal.innerHTML = `
@@ -246,92 +257,92 @@ document.getElementById('chooseAddressBtn').onclick = () => {
       <div class="addr-dialog">
         <h3>בחר כתובת</h3>
         <div id="addrList"></div>
-
         <h4>הוסף כתובת חדשה</h4>
         <input id="newCity"      placeholder="עיר">
         <input id="newStreet"    placeholder="רחוב">
         <input id="newHouseNum"  placeholder="מספר בית">
-        <button id="addAddrBtn"  class="btn-primary-sm">הוסף</button>
+        <button id="addAddrBtn"  class="btn-primary-sm" ">הוסף</button>
         <button id="closeAddr"   class="btn-default-sm">סגור</button>
       </div>`;
     document.body.appendChild(modal);
 
-    /* סטייל בסיסי – אפשר להעביר ל-CSS חיצוני */
+    // Inject basic styles (or move to your CSS file)
     const style = document.createElement('style');
     style.textContent = `
       #addrModal { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:6000; }
       .addr-backdrop { position:absolute; inset:0; background:#0003; }
-      .addr-dialog   { position:relative; background:#fff; padding:24px 26px; border-radius:12px; width:320px; max-height:80vh; overflow:auto; }
+      .addr-dialog   { position:relative; background:#fff; padding:24px 26px; border-radius:12px; width:320px; max-height:80vh; overflow:auto;     overflow-x: hidden;  
+}
       #addrList label { display:block; padding:6px 2px; cursor:pointer; }
       .btn-primary-sm { margin-top:10px; background:#4c45bf; color:#fff; border:none; padding:6px 12px; border-radius:8px; }
       .btn-default-sm { margin-top:10px; background:#ddd; border:none; padding:6px 12px; border-radius:8px; }
-      input { width:100%; padding:6px 8px; margin-top:6px; box-sizing:border-box; }
-    `;
+      input { width:100%; padding:6px 8px; margin-top:6px; box-sizing:border-box; }`;
     document.head.appendChild(style);
 
-    /* close handler */
-    modal.querySelector('#closeAddr').onclick =
-      () => (modal.style.display = 'none');
+    // Close button handler
+    modal.querySelector('#closeAddr').onclick = () => {
+      modal.style.display = 'none';
+    };
 
-    /* add new address handler */
+    // "Add address" handler
     modal.querySelector('#addAddrBtn').onclick = async () => {
       const profileRes = await fetch('/profile', { credentials: 'include' });
       if (!profileRes.ok) {
         alert('נא להתחבר');
         return;
       }
-      const profileData = await profileRes.json();
-const customerId = profileData.user.userId; // Extract the customer ID
-
+      const { user } = await profileRes.json();
       const city   = modal.querySelector('#newCity').value.trim();
       const street = modal.querySelector('#newStreet').value.trim();
       const num    = modal.querySelector('#newHouseNum').value.trim();
       if (!city || !street || !num) {
-        alert('נא למלא את כל השדות'); return;
+        alert('נא למלא את כל השדות');
+        return;
       }
-      // שליחת כתובת חדשה לשרת
-const r = await fetch('/set/addresses', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  credentials: 'include',
-  body: JSON.stringify({ city, street, house_number: num, customer_id: customerId }) // Include customer ID
-});      if (!r.ok) return alert('שגיאה בהוספת כתובת');
-      const newAddr = await r.json();          // { id, city, street, house_number }
+      const r = await fetch('/set/addresses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ city, street, house_number: num, customer_id: user.userId })
+      });
+      if (!r.ok) return alert('שגיאה בהוספת כתובת');
+      const newAddr = await r.json();
       addresses.unshift(newAddr);
       addressId = newAddr.id;
-      renderAddrList();   // רענן רשימה
-      renderAddress();    // עדכן תצוגה בדף
+      renderAddrList();
+      renderAddress();
       modal.style.display = 'none';
     };
   }
 
-  /* --- רנדר רשימת כתובות בכל פתיחה --- */
+  // Helper to render the list of addresses each time
   function renderAddrList() {
     const list = modal.querySelector('#addrList');
-list.innerHTML = addresses.map(a => `
-  <label class="addr-card">
-    <input type="radio" name="addr" value="${a.id}" ${a.id == addressId ? 'checked' : ''}>
-    <div class="addr-body">
-      <span class="addr-icon"></span>
-      <span class="addr-text">${a.street} ${a.house_number}, ${a.city}</span>
-    </div>
-  </label>
-`).join('');
-css
-Copy
-Edit
-    list.querySelectorAll('input[name="addr"]').forEach(inp=>{
+    list.innerHTML = addresses.map(a => `
+      <label class="addr-card">
+        <input type="radio" name="addr" value="${a.id}" ${a.id == addressId ? 'checked' : ''}>
+        <div class="addr-body">
+          <span class="addr-icon"></span>
+          <span class="addr-text">${a.street} ${a.house_number}, ${a.city}</span>
+        </div>
+      </label>
+    `).join('');
+    list.querySelectorAll('input[name="addr"]').forEach(inp => {
       inp.onchange = () => {
-        addressId = inp.value;
-        renderAddress();          // עדכן תצוגה בדף
+        addressId = Number(inp.value);        
+        renderAddress();
         modal.style.display = 'none';
       };
     });
   }
 
+  // Always re-render the list and show the modal
   renderAddrList();
   modal.style.display = 'flex';
 };
+
+// כפתור "בחר כתובת" – בחר את הכתובת הנוכחית
+
 
 /* ביצוע הזמנה */
 document.getElementById('placeOrderBtn').onclick = async () => {

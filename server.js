@@ -3449,6 +3449,7 @@ app.get('/api/orders/:id/full', authenticateToken, async (req, res) => {
         c.first_name  || ' ' || c.last_name AS customer_name,
         c.phone AS customer_phone,
         c.email AS customer_email,
+        o.customer_id AS customer_id,
 
         /* nested shipping address */
         json_build_object(
@@ -3820,6 +3821,31 @@ app.patch(
     }
   }
 );
+
+// coustomer profile store orders 
+// מחזיר את כל ההזמנות של הלקוח המחובר
+app.get('/api/customers/me/orders', authenticateToken, async (req, res) => {
+  const customerId = req.user.userId;  // מניח שיש לך את ה־id במשתנה זה אחרי אימות
+  try {
+    const sql = `
+      SELECT 
+        o.id,
+        to_char(o.created_at, 'YYYY-MM-DD"T"HH24:MI:SS') AS created_at,
+        o.total,
+        o.status
+      FROM orders o
+      WHERE o.customer_id = $1
+      ORDER BY o.created_at DESC
+    `;[customerId];
+    const { rows } = await con.query(sql, [customerId]);
+        console.log(`→ Found ${rows.length} orders for customer ${customerId}`);
+
+    return res.json(rows);
+  } catch (err) {
+    console.error('Error fetching customer orders:', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
 
 
 //module.exports = router;
