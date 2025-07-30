@@ -5,28 +5,81 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>מוצרי מזון</title>
     <link rel="stylesheet" href="styles/store-styles.css">
+        <link rel="stylesheet" href="styles/styles.css">
+
    
 </head>
 <body>
     <header>
+        <!-- Navbar -->
         <nav class="navbar">
             <div class="nav-container">
-                <img src="logo.png" alt="Logo" class="logo">
+                <img src="res/logo.png" alt="Logo" class="logo">
                 <ul class="nav-links">
-                    <li><img src="home-icon.png" alt="בית"><br><a href="#">בית</a></li>
-                    <li><img src="shop-icon.png" alt="חנות"><br><a href="#">חנות</a></li>
-                    <li><img src="hotel-icon.png" alt="פנסיון"><br><a href="#">פנסיון</a></li>
-                    <li><img src="grooming-icon.png" alt="טיפוח"><br><a href="#">טיפוח</a></li>
-                    <li><img src="topics-icon.png" alt="נושאים"><br><a href="#">נושאים</a></li>
-                    <li><img src="contact-icon.png" alt="צור קשר"><br><a href="#">צור קשר</a></li>
+                    <li><img src="res/home.png" alt="בית" ><br><a href="index.html">בית</a></li>
+                    <li><img src="res/pet-shop.png" alt="חנות"><br><a href="store.html">חנות</a></li>
+                    <li><a href="Boarding.html"><img src="res/dog-sleep.png" alt="פנסיון"><br>פנסיון</a></li>
+                    <li><a href="AboutGrooming.html"><img src="res/dog_shower.png" alt="טיפוח"><br>טיפוח</a></li>
+                    <li><a href="AboutAband.html"><img src="res/care.png" alt="נטושים"><br>נטושים</a></li>
+                    <li><a href="contactus.html"><img src="res/virtual-assistant.png" alt="צור קשר"><br>צור קשר</a></li>
                 </ul>
             </div>
-            <div class="auth-buttons">
-                <button><img src="register-icon.png" alt="*">רישום</button>
-                <button><img src="sign-icon.png" alt="*">כניסה</button>
+
+            <!-- Authentication buttons (register/log in)-->
+            <div class="auth-buttons" id="auth-buttons">
+              <!--  <button onclick="openPopup('loginpopup')"><img src="res/Login-icon.png" alt="*">כניסה</button>-->
+                
             </div>
-        </nav>
+<!-- בתוך קובץ ה־HTML שלך -->
+<div class="left-navbar">
+  <!-- מיכל חדש: עגלה מעל כפתור התנתקות -->
+  <div class="cart-logout-group">
+    <!-- כפתור עגלה -->
+    <div class="cart-container">
+      <button id="cartToggle">  <i class="fas fa-shopping-cart"></i>
+ עגלה (<span id="cartCount">0</span>)</button>
+      <div id="cartSidebar" class="cart-sidebar" style="display: none;">
+        <button class="close-sidebar" onclick="closeCartSidebar()">×</button>
+        <h3>🛒 עגלת הקניות</h3>
+        <div id="cartItems">
+          <!-- פריטים יתווספו כאן -->
+        </div>
+      </div>
+    </div>
+    <!-- כפתור התנתקות -->
+    <div id="logout-button" style="display: none;">
+      <button class="logout-button" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i> התנתק
+      </button>
+    </div>
+  </div>
+
+  <!-- שאר הכפתורים ב-navbar -->
+  <div id="login-button" style="display: block;">
+    <button class="login-button" onclick="openPopup('loginpopup')">
+      <i class="fas fa-sign-in-alt"></i> התחבר
+    </button>
+  </div>
+  <div id="register-button" style="display: block;">
+    <button class="register-button" onclick="openPopup('regispopup')">
+      <i class="fas fa-user-plus"></i> הרשמה
+    </button>
+  </div>
+  <div id="profile-icon" style="display: none;">
+    <a href="profile.html">
+      <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+           alt="Profile" width="40" height="40">
+    </a>
+        <span class="profile-name">שם משתמש</span>
+
+  </div>
+</div>
     </header>
+        <div class="container">
+        <h2>מוצרי קולר</h2>
+     <p>עדיין לא הוספו מוצרים</p>   
+        </div>
+
     <div class="container">
         <h2>מוצרי מזון</h2>
         
@@ -61,5 +114,7 @@
             <div class="product-card"><img src="food6.jpg" alt="מזון 6"><h3>שימורי פטה</h3><p>מזון רטוב לכלבים</p><div class="price">₪24</div><div class="buttons"><button>קנה עכשיו</button><button>פרטים נוספים</button></div></div>
         </div>
     </div>
+    <script src="script/web.js"></script>
+
 </body>
 </html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>חנות מוצרים</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="styles/styles.css">
+    <link rel="stylesheet" href="styles/main-store.css">
+      <style>
+    /* === Base === */
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: #f5f5f5;
+    }
+    a { color: #4c45bf; text-decoration: none; }
+
+     footer { background: #4c45bf; color: #fff; }
+    header { padding: 16px; text-align: center; }
+    header h1 { margin: 0; font-size: 1.8rem; }
+    nav a { margin: 0 8px; color: #fff; font-weight: bold; }
+
+    main { max-width: 1000px; margin: 24px auto; padding: 0 16px; }
+
+    section { background: #fff; margin-bottom: 24px; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    section h2 { margin-top: 0; color: #4c45bf; }
+
+    ul { padding-left: 1.2em; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    footer { text-align: center; padding: 12px; font-size: 0.9rem; }
+  </style>
+
+</head>
+<body>
+    <header>
+        <!-- Navbar -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <img src="res/logo.png" alt="Logo" class="logo">
+                <ul class="nav-links">
+                    <li><img src="res/home.png" alt="בית" ><br><a href="index.html">בית</a></li>
+                    <li><img src="res/pet-shop.png" alt="חנות"><br><a href="#">חנות</a></li>
+                    <li><a href="Boarding.html"><img src="res/dog-sleep.png" alt="פנסיון"><br>פנסיון</a></li>
+                    <li><a href="AboutGrooming.html"><img src="res/dog_shower.png" alt="טיפוח"><br>טיפוח</a></li>
+                    <li><a href="AboutAband.html"><img src="res/care.png" alt="נטושים"><br>נטושים</a></li>
+                    <li><img src="res/virtual-assistant.png" alt="צור קשר"><br><a href="#">צור קשר</a></li>
+                </ul>
+            </div>
+
+            <!-- Authentication buttons (register/log in)-->
+            <div class="auth-buttons" id="auth-buttons">
+              <!--  <button onclick="openPopup('loginpopup')"><img src="res/Login-icon.png" alt="*">כניסה</button>-->
+                
+            </div>
+<!-- בתוך קובץ ה־HTML שלך -->
+<div class="left-navbar">
+  <!-- מיכל חדש: עגלה מעל כפתור התנתקות -->
+  <div class="cart-logout-group">
+    <!-- כפתור עגלה -->
+    <div class="cart-container">
+      <button id="cartToggle">  <i class="fas fa-shopping-cart"></i>
+ עגלה (<span id="cartCount">0</span>)</button>
+      <div id="cartSidebar" class="cart-sidebar" style="display: none;">
+        <button class="close-sidebar" onclick="closeCartSidebar()">×</button>
+        <h3>🛒 עגלת הקניות</h3>
+        <div id="cartItems">
+          <!-- פריטים יתווספו כאן -->
+        </div>
+      </div>
+    </div>
+    <!-- כפתור התנתקות -->
+    <div id="logout-button" style="display: none;">
+      <button class="logout-button" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i> התנתק
+      </button>
+    </div>
+  </div>
+
+  <!-- שאר הכפתורים ב-navbar -->
+  <div id="login-button" style="display: block;">
+    <button class="login-button" onclick="openPopup('loginpopup')">
+      <i class="fas fa-sign-in-alt"></i> התחבר
+    </button>
+  </div>
+  <div id="register-button" style="display: block;">
+    <button class="register-button" onclick="openPopup('regispopup')">
+      <i class="fas fa-user-plus"></i> הרשמה
+    </button>
+  </div>
+  <div id="profile-icon" style="display: none;">
+    <a href="profile.html">
+      <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+           alt="Profile" width="40" height="40">
+    </a>
+        <span class="profile-name">שם משתמש</span>
+
+  </div>
+</div>
+    </header>
+
+  <section class="info-header">
+    <h2>מידע על חנות המוצרים</h2>
+    <p>כל מה שחיית המחמד שלך צריכה – במקום אחד</p>
+  </section>
+
+  <!-- Info Cards -->
+  <section class="info-cards">
+    <div class="info-card">
+      <div class="info-card-icon">🐾</div>
+      <h3>אודות החנות</h3>
+      <p>חנות אונליין למזון, צעצועים, קולרים ומוצרי טיפוח לכלבים .</p>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-icon">🚚</div>
+      <h3>משלוחים</h3>
+      <p>משלוחים מהירים לכל הארץ, עם אפשרות לאיסוף עצמי.</p>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-icon">💳</div>
+      <h3>תשלום</h3>
+  <p>כעת התשלום באתר מתאפשר במזומן בלבד. בקרוב תתווסף גם אפשרות תשלום בכרטיסי אשראי.</p>
+    </div>
+  </section>
+
+  <!-- Highlight Banner -->
+  <div class="highlight-banner">
+    חנות ידידותית ונטולת דאגות – פשוט בחר, שילמת, ונהנית!
+  </div>
+
+  <!-- FAQ -->
+  <section class="faq-section">
+    <div class="faq-item">
+      <div class="faq-question">אילו קטגוריות מוצרים קיימות?</div>
+      <div class="faq-answer">
+        מזון יבש ורטוב, צעצועים, קולרים ורצועות ומוצרי טיפוח לכלבים.
+      </div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">איך ניתן לעקוב אחרי משלוח?</div>
+      <div class="faq-answer">
+ניתן לעקוב אחר סטטוס המשלוח דרך דף הפרופיל של הלקוח במערכת.
+
+       </div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">האם ניתן להחזיר מוצר?</div>
+      <div class="faq-answer">
+        ניתן לבקש החלפה או החזר עד 7 ימים ממועד הקנייה, בכפוף לתנאי ההחזרה.
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+        <div class="shop-items">
+            <a href="food.html" class="shop-item"><img src="res/dog food catg.webp" alt="מזון"><br>מזון</a>
+            <a href="toys.html" class="shop-item"><img src="res/Do toys category.jpg" alt="צעצועים"><br><br>צעצועים</a>
+            <a href="collars.html" class="shop-item"><img src="res/dog collars.webp" alt="קולרים ורצועות"><br>קולרים ורצועות</a>
+            <a href="grooming.html" class="shop-item"><img src="res/Pesticide products.webp" alt="מוצרי הדברה"><br>מוצרי הדברה</a>
+        </div>
+
+  <script>
+    // FAQ toggle logic
+    document.querySelectorAll('.faq-item').forEach(item => {
+      item.querySelector('.faq-question').addEventListener('click', () => {
+        item.classList.toggle('open');
+      });
+    });
+  </script>
+</body>
+</html>

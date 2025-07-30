@@ -12,7 +12,7 @@
 
   async function loadEmployeeCount() {
   try {
-    const res  = await fetch('http://localhost:3000/manager/stats/employees', {
+    const res  = await fetch('/manager/stats/employees', {
       credentials: 'include'
     });
     if (!res.ok) throw new Error('Bad response');
@@ -34,7 +34,7 @@ loadRevenueToday();
 
 async function loadDogsInBoarding() {
   try {
-    const res = await fetch('http://localhost:3000/manager/stats/dogs', {
+    const res = await fetch('/manager/stats/dogs', {
       credentials: 'include'
     });
     if (!res.ok) throw new Error('Bad response');

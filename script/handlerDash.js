@@ -1,14 +1,14 @@
 // =================== LOGIN & LOGOUT ===================
 async function checkLogin() {
     try {
-        const res = await fetch('http://localhost:3000/profile', { credentials: 'include' });
+        const res = await fetch('/profile', { credentials: 'include' });
         if (!res.ok) throw new Error('Not authenticated');
     } catch (err) {
         window.location.href = '/index.html'; // Redirect to login if not authenticated
     }
 }
 async function logout() {
-    await fetch('http://localhost:3000/logout', {
+    await fetch('/logout', {
         method: 'POST',
         credentials: 'include'
     });
@@ -355,7 +355,7 @@ console.log('running loadAbandonedReports');
 console.log('tbody:', document.getElementById('accordion-body'));
   try {
     // 1. Fetch
-    const res = await fetch('http://localhost:3000/handler/reports', {
+    const res = await fetch('/handler/reports', {
       credentials: 'include',
       cache: 'no-cache'
     });
@@ -490,7 +490,7 @@ if (abandonedAcc) {
     const newStatus = sel.value;
     try {
       await fetch(
-        `http://localhost:3000/abandoned-reports/${reportId}/status`,
+        `/abandoned-reports/${reportId}/status`,
         {
           method:      'PUT',
           credentials: 'include',
@@ -515,7 +515,7 @@ if (abandonedAcc) {
   async function loadCareProvidersAccordion() {
   try {
     // 1) fetch all care providers from your working route
-    const res = await fetch('http://localhost:3000/care-providers', {
+    const res = await fetch('/care-providers', {
       credentials: 'include'
     });
     if (!res.ok) throw new Error(`Server error ${res.status}`);
@@ -623,7 +623,7 @@ async function initCompletedJobsSearch() {
 
   // 2) מלא את provSel בערכי גורם מטפל ייחודיים
   try {
-    const res = await fetch('http://localhost:3000/care-providers', {
+    const res = await fetch('/care-providers', {
       credentials: 'include'
     });
     if (!res.ok) throw new Error(res.statusText);

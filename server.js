@@ -11,14 +11,15 @@ const multer = require('multer');
 //log in 
 //const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = 'MyProjectJWT!2025_Secret_Key!';
+const JWT_SECRET = process.env.JWT_SECRET || 'MyProjectJWT!2025_Secret_Key!';
 
 
 const app=express();
 //app.use(cors()); // Enable CORS for all routes
 
 app.use(cors({
-    origin: 'http://localhost:3000', // Replace with your client URL
+    //origin: 'http://localhost:3000', // Replace with your client URL
+    origin: true, // Allow all origins for development
     credentials: true // Allow cookies to be sent
 }));
 app.use(express.json());
@@ -27,13 +28,18 @@ app.use(express.static(path.join(__dirname)));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
-const con=new Client({
+/*const con=new Client({
     host:'localhost',
     user:'postgres',
     port:5432 ,
     password:'aloz2053919',
     database:'joy_db'
+});*/
+const con = new Client({
+    connectionString: process.env.DATABASE_URL || 'postgres://postgres:aloz2053919@localhost:5432/joy_db',
+    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
 });
+
 
 con.connect().then(()=> console.log("connected"))
 
@@ -3850,5 +3856,5 @@ app.get('/api/customers/me/orders', authenticateToken, async (req, res) => {
 
 //module.exports = router;
 app.listen(3000, () => {
-    console.log("Server running on http://localhost:3000");
+    console.log("Server running ");
 });

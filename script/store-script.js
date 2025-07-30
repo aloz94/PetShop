@@ -264,7 +264,7 @@ async function submitRegistration(e) {
     
 
 try{
-        const response = await fetch('http://localhost:3000/postData', {
+        const response = await fetch('/postData', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -300,7 +300,7 @@ async function submitlogin(e) {
     try {
 
 //changed here was response
-    const loginresponse = await fetch('http://localhost:3000/login', {
+    const loginresponse = await fetch('/login', {
       
         method: 'POST',
         headers: {
@@ -366,7 +366,7 @@ showCustomAlert('התחברת בהצלחה - מועבר לדשבורד '); // �
    // check if user is logged in
    async function checkLoginStatus() {
     try {
-        const response = await fetch('http://localhost:3000/profile', {
+        const response = await fetch('/profile', {
             method: 'GET',
             credentials: 'include' // 🔥 חשוב
         });

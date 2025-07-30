@@ -2,7 +2,7 @@
 
 async function checkLogin() {
     try {
-        const response = await fetch('http://localhost:3000/profile', {
+        const response = await fetch('/profile', {
             method: 'GET',
             credentials: 'include'   // 🔥 חשוב מאוד כדי שהקוקי יישלח אוטומטית
         });
@@ -24,7 +24,7 @@ async function checkLogin() {
 
 
 async function logout() {
-    await fetch('http://localhost:3000/logout', {
+    await fetch('/logout', {
         method: 'POST',
         credentials: 'include'
     });
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Fetch personal details from server
   async function loadUserDetails() {
     try {
-      const res = await fetch('http://localhost:3000/profile/details', {
+      const res = await fetch('/profile/details', {
         method: 'GET',
         credentials: 'include'  // send cookie
       });
@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   async function loadUserDogs() {
-    const res = await fetch('http://localhost:3000/my-dogs', { credentials: 'include' });
+    const res = await fetch('/my-dogs', { credentials: 'include' });
   const dogs = await res.json();
 
   const container = document.getElementById('dog-list');
@@ -121,7 +121,7 @@ async function handleAddDogForm(e) {
     }
   
     try {
-      const res = await fetch('http://localhost:3000/add-dog', {
+      const res = await fetch('/add-dog', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -184,7 +184,7 @@ function openEditDog(id, name, breed, age, size, gender) {
     }
   
     try {
-      const res = await fetch(`http://localhost:3000/dogs/${id}`, {
+      const res = await fetch(`/dogs/${id}`, {
         method: 'PUT',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -208,7 +208,7 @@ function openEditDog(id, name, breed, age, size, gender) {
   
   // 2) בתום loadUserDogs: הוסף כפתור עריכה יחד עם מחיקה לכל כרטיס
 async function loadUserDogs() {
-  const res = await fetch('http://localhost:3000/my-dogs', {
+  const res = await fetch('/my-dogs', {
     credentials: 'include'
   });
   const dogs = await res.json();
@@ -264,7 +264,7 @@ async function loadUserDogs() {
     if (!confirm('למחוק כלב זה?')) return;
   
     try {
-      const res = await fetch(`http://localhost:3000/dogs/${id}`, {
+      const res = await fetch(`/dogs/${id}`, {
         method: 'DELETE',
         credentials: 'include'
       });
@@ -347,8 +347,8 @@ async function loadAllAppointments() {
   try {
     // 1) Fetch both endpoints
     const [groomRes, boardRes] = await Promise.all([
-      fetch('http://localhost:3000/profile/grooming', { credentials: 'include' }),
-      fetch('http://localhost:3000/profile/boarding', { credentials: 'include' }),
+      fetch('/profile/grooming', { credentials: 'include' }),
+      fetch('/profile/boarding', { credentials: 'include' }),
     ]);
     if (!groomRes.ok || !boardRes.ok) throw new Error('Fetch failed');
 
@@ -428,8 +428,8 @@ async function loadFutureAppointments() {
   try {
     // 1) Fetch grooming & boarding in parallel
     const [groomRes, boardRes] = await Promise.all([
-      fetch('http://localhost:3000/profile/Upcoming/grooming', { credentials: 'include' }),
-      fetch('http://localhost:3000/profile/Upcoming/boarding', { credentials: 'include' }),
+      fetch('/profile/Upcoming/grooming', { credentials: 'include' }),
+      fetch('/profile/Upcoming/boarding', { credentials: 'include' }),
     ]);
     if (!groomRes.ok || !boardRes.ok) {
       throw new Error('Failed to fetch upcoming appointments');
@@ -461,8 +461,7 @@ async function loadFutureAppointments() {
       if (isNaN(dt) || dt < now) return;
       all.push({
         datetime: dt,
-        text:     `פנסיון לכלב ${b.dog_name} בתאריך ` +
-                  ` ל־${b.durationdays} ימים  ` 
+        text:     `פנסיון לכלב ${b.dog_name} בתאריך ${dt.toLocaleDateString('he-IL')} ל־${b.durationdays} ימים ${b.check_out ? 'עד ' + new Date(b.check_out).toLocaleDateString('he-IL') : ''}`
       });
     });
 
@@ -495,7 +494,7 @@ rejected: 'בטיפול - מתאם שליח אחר',
   completed:  'הושלם',
   cancelled:  'בוטל'
 };
-      const res = await fetch('http://localhost:3000/profile/reports', { credentials: 'include' });
+      const res = await fetch('/profile/reports', { credentials: 'include' });
         console.log('Loading reports...');
 
         const reports = await res.json();

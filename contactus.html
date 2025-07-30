@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+      <link rel="stylesheet" href="styles/styles.css">
+
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>צור קשר – PetForYou</title>
+  <style>
+    /* === Reset & Base === */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      line-height: 1.5;
+    }
+    header { padding: 16px; text-align: center; }
+    header h1 { font-size: 1.6rem; }
+    main { max-width: 900px; margin: 24px auto; padding: 0 16px; }
+
+    /* === Layout === */
+    .contact-container {
+      display: grid;
+    }
+    @media (max-width: 700px) {
+      .contact-container { grid-template-columns: 1fr; }
+    }
+
+    /* === Form Styling === */
+    .contact-form {
+      background: #fff;
+      padding: 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    .contact-form h2 {
+      margin-bottom: 16px;
+      color: #4c45bf;
+      font-size: 1.2rem;
+      text-align: center;
+    }
+    .contact-form label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+    .contact-form input,
+    .contact-form textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      direction: rtl;
+    }
+    .contact-form textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+    .contact-form button {
+      background: #eba118;
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: block;        /* make it a block so margin auto works */
+  margin: 24px auto 0;   /* top‑spacing + auto left/right centers it */
+
+    }
+    .contact-form button:hover {
+      background: #3f3a9d;
+    }
+
+    /* === Contact Info Styling === */
+    .contact-info {
+      background: #fff;
+      padding: 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    .contact-info h2 {
+      margin-bottom: 16px;
+      color: #4c45bf;
+      font-size: 1.2rem;
+    }
+    .contact-info p {
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      font-size: 0.95rem;
+    }
+    .contact-info p span {
+      display: inline-block;
+      width: 24px;
+      text-align: center;
+      margin-left: 8px;
+      font-size: 1.2rem;
+    }
+/* put this after your existing contact‑form rules */
+
+#phone {
+  direction: rtl;     /* make the input use right‑to‑left flow */
+  text-align: right;   /* right‑align both value and placeholder */
+}
+
+    /* === Footer === */
+    footer {
+      text-align: center;
+      padding: 12px;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+    <header>
+        <!-- Navbar -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <img src="res/logo.png" alt="Logo" class="logo">
+                <ul class="nav-links">
+                    <li><img src="res/home.png" alt="בית" ><br><a href="index.html">בית</a></li>
+                    <li><img src="res/pet-shop.png" alt="חנות"><br><a href="store.html">חנות</a></li>
+                    <li><a href="Boarding.html"><img src="res/dog-sleep.png" alt="פנסיון"><br>פנסיון</a></li>
+                    <li><a href="AboutGrooming.html"><img src="res/dog_shower.png" alt="טיפוח"><br>טיפוח</a></li>
+                    <li><a href="AboutAband.html"><img src="res/care.png" alt="נטושים"><br>נטושים</a></li>
+                    <li><a href="contactus.html"><img src="res/virtual-assistant.png" alt="צור קשר"><br>צור קשר</a></li>
+                </ul>
+            </div>
+
+            <!-- Authentication buttons (register/log in)-->
+            <div class="auth-buttons" id="auth-buttons">
+              <!--  <button onclick="openPopup('loginpopup')"><img src="res/Login-icon.png" alt="*">כניסה</button>-->
+                
+            </div>
+<!-- בתוך קובץ ה־HTML שלך -->
+<div class="left-navbar">
+  <!-- מיכל חדש: עגלה מעל כפתור התנתקות -->
+  <div class="cart-logout-group">
+    <!-- כפתור עגלה -->
+    <div class="cart-container">
+      <button id="cartToggle">  <i class="fas fa-shopping-cart"></i>
+ עגלה (<span id="cartCount">0</span>)</button>
+      <div id="cartSidebar" class="cart-sidebar" style="display: none;">
+        <button class="close-sidebar" onclick="closeCartSidebar()">×</button>
+        <h3>🛒 עגלת הקניות</h3>
+        <div id="cartItems">
+          <!-- פריטים יתווספו כאן -->
+        </div>
+      </div>
+    </div>
+    <!-- כפתור התנתקות -->
+    <div id="logout-button" style="display: none;">
+      <button class="logout-button" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i> התנתק
+      </button>
+    </div>
+  </div>
+
+  <!-- שאר הכפתורים ב-navbar -->
+  <div id="login-button" style="display: block;">
+    <button class="login-button" onclick="openPopup('loginpopup')">
+      <i class="fas fa-sign-in-alt"></i> התחבר
+    </button>
+  </div>
+  <div id="register-button" style="display: block;">
+    <button class="register-button" onclick="openPopup('regispopup')">
+      <i class="fas fa-user-plus"></i> הרשמה
+    </button>
+  </div>
+  <div id="profile-icon" style="display: none;">
+    <a href="profile.html">
+      <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+           alt="Profile" width="40" height="40">
+    </a>
+        <span class="profile-name">שם משתמש</span>
+
+  </div>
+</div>
+    </header>
+
+
+  <main class="contact-container">
+    <!-- Contact Form -->
+    <section class="contact-form">
+      <h2>השאירו הודעה</h2>
+      <form action="#" method="post">
+        <label for="name">שם מלא</label>
+        <input type="text" id="name" name="name" placeholder="הכנס את שמך" required>
+
+        <label for="email">אימייל</label>
+        <input type="email" id="email" name="email" placeholder="הכנס את האימייל שלך" required>
+
+        <label for="phone">טלפון</label>
+        <input type="tel" id="phone" name="phone" placeholder="הכנס מספר טלפון">
+
+        <label for="message">הודעה</label>
+        <textarea id="message" name="message" placeholder="מה תרצו לשאול או ליידע אותנו?" required></textarea>
+
+        <button type="submit" >שלח</button>
+      </form>
+    </section>
+
+    <!-- Contact Details -->
+   <!-- <section class="contact-info">
+      <img src="res/BoardingTour.png" alt="סיור בפנסיון לכלבים" style="width: fit-content; height: auto;"/>
+    </section>-->
+  </main>
+
+  
+    <script src="script/web.js"></script>
+
+
+</body>
+</html>

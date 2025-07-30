@@ -6,53 +6,86 @@
     <title>מוצרי מזון</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="styles/store-styles.css">
-   
+       <link rel="stylesheet" href="styles/styles.css">
+
 </head>
 <body>
     <header>
+        <!-- Navbar -->
         <nav class="navbar">
             <div class="nav-container">
                 <img src="res/logo.png" alt="Logo" class="logo">
                 <ul class="nav-links">
                     <li><img src="res/home.png" alt="בית" ><br><a href="index.html">בית</a></li>
-                    <li><img src="res/pet-shop.png" alt="חנות"><br><a href="#">חנות</a></li>
-                    <li><img src="res/dog-sleep.png" alt="פנסיון"><br><a href="#">פנסיון</a></li>
-                    <li><img src="res/dog_shower.png" alt="טיפוח"><br><a href="#">טיפוח</a></li>
-                    <li><img src="res/care.png" alt="נטושים"><br><a href="#">נטושים</a></li>
-                    <li><img src="res/virtual-assistant.png" alt="צור קשר"><br><a href="#">צור קשר</a></li>
+                    <li><img src="res/pet-shop.png" alt="חנות"><br><a href="store.html">חנות</a></li>
+                    <li><a href="Boarding.html"><img src="res/dog-sleep.png" alt="פנסיון"><br>פנסיון</a></li>
+                    <li><a href="AboutGrooming.html"><img src="res/dog_shower.png" alt="טיפוח"><br>טיפוח</a></li>
+                    <li><a href="AboutAband.html"><img src="res/care.png" alt="נטושים"><br>נטושים</a></li>
+                    <li><a href="contactus.html"><img src="res/virtual-assistant.png" alt="צור קשר"><br>צור קשר</a></li>
                 </ul>
             </div>
+
+            <!-- Authentication buttons (register/log in)-->
             <div class="auth-buttons" id="auth-buttons">
-                <button onclick="openPopup('loginpopup')"><img src="res/Login-icon.png" alt="*">כניסה</button>
-                <button onclick="openPopup('regispopup')"><img src="res/sign up.png" alt="*">רישום</button>
+              <!--  <button onclick="openPopup('loginpopup')"><img src="res/Login-icon.png" alt="*">כניסה</button>-->
+                
             </div>
-        <div class="cart-container">
-    <button id="cartToggle">🛒 עגלה (<span id="cartCount">0</span>)</button>
-<div id="cartSidebar" class="cart-sidebar" style="display: none;">
-    <button class="close-sidebar" onclick="closeCartSidebar()">×</button>
-    <h3>🛒 עגלת הקניות</h3>
-    <div id="cartItems">
-        <!-- Cart items will be dynamically added here -->
+<!-- בתוך קובץ ה־HTML שלך -->
+<div class="left-navbar">
+  <!-- מיכל חדש: עגלה מעל כפתור התנתקות -->
+  <div class="cart-logout-group">
+    <!-- כפתור עגלה -->
+    <div class="cart-container">
+      <button id="cartToggle">  <i class="fas fa-shopping-cart"></i>
+ עגלה (<span id="cartCount">0</span>)</button>
+      <div id="cartSidebar" class="cart-sidebar" style="display: none;">
+        <button class="close-sidebar" onclick="closeCartSidebar()">×</button>
+        <h3>🛒 עגלת הקניות</h3>
+        <div id="cartItems">
+          <!-- פריטים יתווספו כאן -->
+        </div>
+      </div>
     </div>
-</div>            
-            
+    <!-- כפתור התנתקות -->
+    <div id="logout-button" style="display: none;">
+      <button class="logout-button" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i> התנתק
+      </button>
+    </div>
+  </div>
 
-            <div id="profile-icon" style="display: none;">
-                <a href="profile.html">
-                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile" width="40" height="40">
-                </a>
-            </div>
-            
+  <!-- שאר הכפתורים ב-navbar -->
+  <div id="login-button" style="display: block;">
+    <button class="login-button" onclick="openPopup('loginpopup')">
+      <i class="fas fa-sign-in-alt"></i> התחבר
+    </button>
+  </div>
+  <div id="register-button" style="display: block;">
+    <button class="register-button" onclick="openPopup('regispopup')">
+      <i class="fas fa-user-plus"></i> הרשמה
+    </button>
+  </div>
+  <div id="profile-icon" style="display: none;">
+    <a href="profile.html">
+      <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+           alt="Profile" width="40" height="40">
+    </a>
+        <span class="profile-name">שם משתמש</span>
 
-        </nav>
+  </div>
+</div>
     </header>
-    <div id="collarsProductGrid" class="product-grid"></div>
+
+    <div class="container">
+        <h2>מוצרי קולר</h2>
+     <p>עדיין לא הוספו מוצרים</p>   
+        </div>
+
+   <!--<div id="collarsProductGrid" class="product-grid"></div>--> 
 
         
         
 
-<script src="/script/store-script.js" ></script>
-<script src="/script/cart.js"></script>
 <!--    log in popup-->
     <form id="loginpopup_form">
 <div id="loginpopup" class="popup-container">
@@ -164,6 +197,11 @@
     <button onclick="closeCustomAlert()">אישור</button>
   </div>
 </div>
+<script src="/script/store-script.js" ></script>
+<script src="/script/cart.js"></script>
+
+<script src="script/web.js"></script>
+
 
 </body>
 </html>

@@ -121,7 +121,7 @@ async function submitRegistration(e) {
     
 
 try{
-        const response = await fetch('http://localhost:3000/postData', {
+        const response = await fetch('/postData', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -157,7 +157,7 @@ async function submitlogin(e) {
     try {
 
 //changed here was response
-    const loginresponse = await fetch('http://localhost:3000/login', {
+    const loginresponse = await fetch('/login', {
       
         method: 'POST',
         headers: {
@@ -272,7 +272,7 @@ let currentUserId = null; // משתנה גלובלי
 
 async function checkLoginStatus() {
     try {
-        const response = await fetch('http://localhost:3000/profile', {
+        const response = await fetch('/profile', {
             method: 'GET',
             credentials: 'include' // 🔥 חשוב
         });
@@ -307,7 +307,7 @@ if (profileIcon && profileName) {
 }
 
 async function logout() {
-    await fetch('http://localhost:3000/logout', {
+    await fetch('/logout', {
         method: 'POST',
         credentials: 'include'
     });
@@ -316,7 +316,7 @@ async function logout() {
 
 async function loadServices() {
     try {
-        const response = await fetch('http://localhost:3000/services');
+        const response = await fetch('/services');
         const services = await response.json();
 
         const serviceSelect = document.getElementById('serviceSelect');
@@ -355,7 +355,7 @@ async function loadServices() {
 // 🐶 טען את רשימת הכלבים של המשתמש
 async function loadUserDogs() {
     try {
-      const res = await fetch('http://localhost:3000/my-dogs', {
+      const res = await fetch('/my-dogs', {
         credentials: 'include'
       });
       const dogs = await res.json();
@@ -398,7 +398,7 @@ if (appointment_date < todayStr) {
   return;
 }
     try {
-      const res = await fetch('http://localhost:3000/grooming-appointments', {
+      const res = await fetch('/grooming-appointments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -442,7 +442,7 @@ function updatePriceLabel() {
     if (!selectedDate || !selectedDuration) return;
   
     try {
-      const response = await fetch(`http://localhost:3000/appointments?date=${selectedDate}`, {
+      const response = await fetch(`/appointments?date=${selectedDate}`, {
         credentials: 'include'
       });
       const appointments = await response.json();
@@ -527,7 +527,7 @@ function updatePriceLabel() {
     if (image) formData.append('image', image);
   
     try {
-      const res = await fetch('http://localhost:3000/report-dog', {
+      const res = await fetch('/report-dog', {
         method: 'POST',
         body: formData,
         credentials: 'include'
@@ -564,7 +564,7 @@ function updatePriceLabel() {
 
   async function loadUserDogsForBoarding() {
     try {
-      const res = await fetch('http://localhost:3000/my-dogs', {
+      const res = await fetch('/my-dogs', {
         credentials: 'include'
       });
       const dogs = await res.json();
@@ -587,7 +587,7 @@ function updatePriceLabel() {
     console.log('Check-in:', startDate, 'Check-out:', endDate);
 
     try {
-      const response = await fetch(`http://localhost:3000/boarding-availability?start_date=${startDate}&end_date=${endDate}`, {
+      const response = await fetch(`/boarding-availability?start_date=${startDate}&end_date=${endDate}`, {
         credentials: 'include'
       });
       const result = await response.json();
@@ -669,7 +669,7 @@ function updatePriceLabel() {
     if (!available) return;
   
     try {
-      const response = await fetch('http://localhost:3000/boarding-appointments', {
+      const response = await fetch('/boarding-appointments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -726,3 +726,43 @@ body: JSON.stringify({
 function closeCustomAlert() {
   document.getElementById('custom-alert').style.display = 'none';
 }
+
+// 4) Modal JS
+document.addEventListener('DOMContentLoaded', () => {
+  const openBtn   = document.getElementById('openContactBtn');
+  const modal     = document.getElementById('contactModal');
+  const closeBtn  = modal.querySelector('.modal-close');
+  const backdrop  = modal.querySelector('.modal-backdrop');
+  const form      = document.getElementById('contactModalForm');
+
+  function openModal() {
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal() {
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  openBtn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  backdrop.addEventListener('click', closeModal);
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    // TODO: send data
+    alert('תודה! הודעתך נשלחה בהצלחה.');
+    form.reset();
+    closeModal();
+  });
+
+  // <<< new code starts here >>>
+  const contactLink = document.getElementById('contact-link');
+  if (contactLink) {
+    contactLink.addEventListener('click', e => {
+      e.preventDefault();
+      openModal();
+    });
+  }
+  // <<< new code ends here >>>
+});

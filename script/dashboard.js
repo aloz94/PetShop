@@ -2,7 +2,7 @@
 async function checkLogin() {
     try {
         // Fetch user profile data
-        const res = await fetch('http://localhost:3000/profile', { credentials: 'include' });
+        const res = await fetch('/profile', { credentials: 'include' });
         const data = await res.json();
 
         // Check if the response is OK and contains a username
@@ -1153,18 +1153,27 @@ async function openGroomingEditPopup(appointmentId) {
   }
 
   // 7) Load and pre-select service
-  await loadServicesEdit();
+await loadServicesEdit();
+  
   const svcSel = document.getElementById('EserviceSelect');
   svcSel.value = item.service_id;
         loadAvailableHoursEdit();
 
-  if (!svcSel.dataset._editListener) {
-    svcSel.addEventListener('change', () => {
-      const price = svcSel.selectedOptions[0]?.dataset.price || 0;
-      document.getElementById('priceDisplay').textContent = `עלות – ₪${price}`;
-    });
+if (!svcSel.dataset._editListener) {
+  svcSel.addEventListener('change', () => {
+    const opt   = svcSel.selectedOptions[0];
+    const price = opt?.dataset.price ?? 0;
+    document.getElementById('priceDisplay')
+            .textContent = `עלות – ₪${price}`;
+  });
     svcSel.dataset._editListener = '1';
   }
+  svcSel.value = item.service_id;
+svcSel.dispatchEvent(new Event('change'));
+
+console.log(
+  Array.from(svcSel.options).map(o => o.dataset.price)
+);
 
   // 8) Load this customer's dogs and pre-select
   const dogs = await fetch(
@@ -1460,6 +1469,10 @@ async function loadServicesEdit() {
       o.dataset.price    = s.price;
       sel.appendChild(o);
     });
+        if (sel.value) {
+      sel.dispatchEvent(new Event('change'));
+    }
+
   } catch(err) {
     console.error('Error loading services:', err);
     sel.innerHTML = `<option value="">שגיאה בטעינת שירותים</option>`;
@@ -2947,21 +2960,37 @@ document.getElementById('openHandlerBtn').addEventListener('click', () => {
       const table = document.getElementById('support-posts');
       if (table) table.style.display = 'none';
   
+          const formattedProviders = data.map(cp => ({
+      ...cp,
+      address:          cp.address          || 'לא צוין',
+      phone:            cp.phone            || 'לא צוין',
+      additional_phone: cp.additional_phone || 'לא צוין',
+      // this string will be injected verbatim into your accordion
+      editHtml: `<button class="action-btn btn-edit" data-id="${cp.id}">
+                   <i class="fa fa-edit"></i>
+                 </button>`
+    }));
+
+
       // בניית אקורדיון
-      buildAccordionFromData(
-        data,
-        'accordion-support',
-        ['id','name','type'],                         // כותרת
-        ['address','phone','additional_phone'], // גוף
-        {
-          id:               "מס' גורם",
-          name:             "שם",
-          address:          "כתובת",
-          phone:            "טלפון",
-          additional_phone: "טלפון נוסף",
-          type:             "סוג"
-        }
-      );
+    buildAccordionFromData(
+      formattedProviders,
+      'accordion-support',
+      // header keys: id, name, type, and finally your raw HTML
+      ['id','name','type','phone','editHtml'],
+      // body keys remain the same
+      ['address','additional_phone'],
+      // human‑readable labels (you can leave editHtml’s label blank)
+      {
+        id:               "מס' גורם",
+        name:             "שם",
+        type:             "סוג",
+        editHtml:         "ערוך",              // no label, just the button
+        address:          "כתובת",
+        phone:            "טלפון",
+        additional_phone: "טלפון נוסף"
+      }
+    );
   
     } catch (err) {
       console.error('Error loading care providers:', err);

@@ -319,13 +319,12 @@
 }
 
 #Upcoming-appointments li {
-  position: relative;
   background: #f3f4f6;
   padding: 1rem;
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  word-break: break-word;
-  max-height: fit-content;
+  position: relative;
+  word-break: break-word; /* Ensure text wraps nicely */
 }
 
 #Upcoming-appointments li::before {
@@ -924,4 +923,64 @@
 }
 .total-row td {
   font-weight: 600 !important;
+}
+
+/* ——— Two‑column grid (already using Tailwind, but here’s a direct CSS equivalent) ——— */
+.card .p-4.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+/* ——— Reset and style the ULs ——— */
+#storeOrdersPending,
+#storeOrdersCompleted {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* ——— Flex‑row order items ——— */
+#storeOrdersPending li,
+#storeOrdersCompleted li {
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+/* ——— Status badges ——— */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 68px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 14px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  margin-right: 12px;
+  color: #fff;
+}
+.status-badge.in-progress { background: #f1c40f; }
+.status-badge.completed   { background: #2ecc71; }
+.status-badge.cancelled   { background: #e74c3c; }
+.status-badge.new         { background: #3498db; }
+
+/* ——— “פרטים” button ——— */
+.details-btn {
+  margin-left: auto;
+  background: #4c45bf;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color .2s;
+}
+.details-btn:hover {
+  background: #3f3a9d;
 }

@@ -15,11 +15,11 @@
                 <img src="res/logo.png" alt="Logo" class="logo">
                 <ul class="nav-links">
                     <li><img src="res/home.png" alt="בית" ><br><a href="index.html">בית</a></li>
-                    <li><img src="res/pet-shop.png" alt="חנות"><br><a href="#">חנות</a></li>
+                    <li><img src="res/pet-shop.png" alt="חנות"><br><a href="store.html">חנות</a></li>
                     <li><a href="Boarding.html"><img src="res/dog-sleep.png" alt="פנסיון"><br>פנסיון</a></li>
                     <li><a href="AboutGrooming.html"><img src="res/dog_shower.png" alt="טיפוח"><br>טיפוח</a></li>
                     <li><a href="AboutAband.html"><img src="res/care.png" alt="נטושים"><br>נטושים</a></li>
-                    <li><img src="res/virtual-assistant.png" alt="צור קשר"><br><a href="#">צור קשר</a></li>
+                    <li><a href="contactus.html"><img src="res/virtual-assistant.png" alt="צור קשר"><br>צור קשר</a></li>
                 </ul>
             </div>
 
@@ -433,6 +433,28 @@
         </div>
     </div>
 </form>  
+
+<div id="contactModal" class="modal">
+  <div class="modal-backdrop"></div>
+  <div class="modal-content">
+    <button class="modal-close" aria-label="Close">&times;</button>
+    <h2>צור קשר</h2>
+    <form id="contactModalForm">
+      <label for="modalName">שם מלא</label>
+      <input type="text" id="modalName" name="name" required />
+
+      <label for="modalEmail">אימייל</label>
+      <input type="email" id="modalEmail" name="email" required />
+
+      <label for="modalMessage">הודעה</label>
+      <textarea id="modalMessage" name="message" required></textarea>
+
+      <button type="submit" class="btn btn-primary">שלח</button>
+    </form>
+  </div>
+</div>
+
+
     <script src="script/web.js"></script>
     <script src="script/cart.js"></script>
     <script src="script/Manager.js"></script>
@@ -444,5 +466,7 @@
     <button onclick="closeCustomAlert()">אישור</button>
   </div>
 </div>
+
+
 </body>
 </html>

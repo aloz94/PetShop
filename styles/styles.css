@@ -1247,3 +1247,8 @@ textarea.textarea-field:focus {
 #tourForm {
   justify-content: center;
 }
+
+input[type="tel"] {
+  direction: rtl;      /* מימין לשמאל */
+  text-align: right;   /* יישור הטקסט וה־placeholder לצד ימין */
+}

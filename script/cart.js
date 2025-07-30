@@ -7,7 +7,7 @@ const cart = [];
 
 async function checkLogin() {
     try {
-        const res = await fetch('http://localhost:3000/profile', { credentials: 'include' });
+        const res = await fetch('/profile', { credentials: 'include' });
         if (!res.ok) throw new Error('Not authenticated');
     } catch (err) {
         window.location.href = '/index.html'; // Redirect to login if not authenticated
