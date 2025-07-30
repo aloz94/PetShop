@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const path = require('path');
 const {Client} = require('pg');
 const multer = require('multer');
+const PORT = process.env.PORT || 3000;
 
 
 
@@ -3855,6 +3856,6 @@ app.get('/api/customers/me/orders', authenticateToken, async (req, res) => {
 
 
 //module.exports = router;
-app.listen(3000, () => {
-    console.log("Server running ");
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
