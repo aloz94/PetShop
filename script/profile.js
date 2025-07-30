@@ -610,15 +610,6 @@ timeEl.innerText = `שעה: ${appt.time.slice(0, 5)}`;
         dogEl.innerText    = `כלב: ${appt.dog_name}`;
 statusEl.innerHTML = `סטטוס: <span class="status-badge status-${appt.status}">${statusLabels[appt.status] || appt.status}</span>`;
         // אופציונלי: טיפול בביטול תור
-        cancelBtn.addEventListener('click', async () => {
-          await fetch(`/api/customers/me/grooming/${appt.id}`, {
-            method: 'DELETE',
-            credentials: 'include'
-          });
-          // אחרי ביטול רענן את הכרטיס
-          loadNextGrooming();
-        });
-
       } else {
         // אין תור מתוזמן
         dateEl.innerText = 'אין תורים מתוזמנים';
@@ -630,13 +621,37 @@ statusEl.innerHTML = `סטטוס: <span class="status-badge status-${appt.status
         cancelBtn.style.display = 'none';
       editBtn.style.display = 'none'; // Hide edit button if no appointment
       }
+  editingGroomingId = appt.id; // Save ID for cancellation
+
+      document.getElementById('grooming-cancel').addEventListener('click', async () => {
+  if (!confirm('האם אתה בטוח שברצונך לבטל את התור?')) return;
+
+  try {
+    const res = await fetch(`/appointments/${editingGroomingId}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'cancelled' })
+    });
+
+    if (!res.ok) throw new Error(await res.text());
+
+    alert('התור בוטל בהצלחה');
+  } catch (err) {
+    console.error('Error cancelling appointment:', err);
+    alert('אירעה שגיאה בביטול התור. נסה שנית.');
+  }
+});
+
 
     } catch (err) {
       console.error(err);
     }
   }
 
-    //abandoned latest 
+
+  
+  //abandoned latest 
   document.addEventListener('DOMContentLoaded', loadAbandonedReports);
 
   async function loadAbandonedReports() {
@@ -733,25 +748,46 @@ statusEl.innerHTML = `סטטוס: <span class="status-badge status-${data.status
       cancelBtn.style.display = 'inline-block';
       editBtn.style.display = 'inline-block';
 
-      cancelBtn.onclick = async () => {
-        await fetch(`/api/customers/me/boarding/${data.id}`, {
-          method: 'DELETE',
-          credentials: 'include'
-        });
-        loadNextBoarding();  // refresh
-      };
     } else {
       // No upcoming booking
       startEl.innerText = 'אין הזמנות מתוזמנות';
       startEl.style.textAlign = 'center';
       [durEl, dogEl, statusEl, cancelBtn, editBtn].forEach(el => el.style.display = 'none');
     }
+    editingBoardingId = data.id; // Save ID for cancellation
+document.getElementById('boarding-cancel').addEventListener('click', async () => {
+  // 1) Confirm with the user
+  if (!confirm('האם אתה בטוח שברצונך לבטל את תור הפנסיון?')) return;
+
+  try {
+    // 2) Send PATCH to your boarding endpoint
+    const res = await fetch(`/boarding/${editingBoardingId}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'cancelled' })
+    });
+
+    // 3) Handle errors
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text);
+    }
+
+    // 4) Success feedback
+    alert('תור הפנסיון בוטל בהצלחה');
+    // …here you might also close the modal and refresh your list…
+  } catch (err) {
+    console.error('Error cancelling boarding appointment:', err);
+    alert('אירעה שגיאה בביטול תור הפנסיון. נסה שנית.');
+  }
+});
 
   } catch (err) {
     console.error('loadNextBoarding error:', err);
   }
 }
-  
+
   // מפה של סטטוסים לעברית
 const orderStatusLabels = {
   new:        'חדש',

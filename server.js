@@ -962,6 +962,7 @@ app.get('/profile/details', authenticateToken, async (req, res) => {
   }
 });
  
+
   
 // UPDATE dog details
 app.put('/dogs/:id', authenticateToken, async (req, res) => {
@@ -3851,6 +3852,43 @@ app.get('/api/customers/me/orders', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error('Error fetching customer orders:', err);
     return res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
+app.patch('/appointments/:id', async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  await con.query(
+    'UPDATE grooming_appointments SET status = $1 WHERE id = $2, status_updated_at = NOW()',
+    [status, id]
+  );
+  res.sendStatus(200);
+});
+
+// PATCH /boarding/:id — cancel a boarding appointment
+app.patch('/boarding/:id', async (req, res) => {
+  const { id }     = req.params;
+  const { status } = req.body;
+
+  try {
+    const result = await con.query(
+      `UPDATE boarding_appointments
+         SET status = $1,
+             status_updated_at = NOW()
+       WHERE id = $2
+       RETURNING *`,
+      [status, id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error updating boarding status:', err);
+    res.status(500).send('Server error');
   }
 });
 
