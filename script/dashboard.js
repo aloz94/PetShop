@@ -4213,9 +4213,10 @@ const optionsHtml = statuses.map(s => `
       // quick UI feedback
       select.disabled = true;
       setTimeout(() => select.disabled = false, 600);
-          order.status = newStatus;
+      order.status = newStatus;
+      refreshStatusCards();
+    }
 
-    } 
     catch (err) {
       console.error('Failed to update status:', err);
       alert('שגיאה בעדכון סטטוס ההזמנה');

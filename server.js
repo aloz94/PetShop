@@ -2559,12 +2559,11 @@ app.post('/orders/create', authenticateToken, async (req, res) => {
     const total = cart.reduce((s, i) => s + i.price * i.quantity, 0);
     await con.query('BEGIN'); // Start transaction
 
-    const { rows: [{ id: orderId }] } = await con.query(`
-      INSERT INTO orders (customer_id, address_id, payment_method, total)
-      VALUES ($1, $2, $3, $4) RETURNING id`,
-      [customer_id, address_id, payment_method, total]
-    );
-
+const { rows: [{ id: orderId }] } = await con.query(`
+  INSERT INTO orders (customer_id, address_id, payment_method, total, status)
+  VALUES ($1, $2, $3, $4, 'new') RETURNING id`,
+  [customer_id, address_id, payment_method, total]
+);
     for (const it of cart) {
       await con.query(`
         INSERT INTO order_items (order_id, product_id, quantity, unit_price)
